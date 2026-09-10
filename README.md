@@ -25,3 +25,11 @@ A team project of SYSEN 5151 at Cornell
    ```powershell
    python src/main.py
    ```
+
+## process
+git pull
+git switch -c feat/your-feature-name
+- after changing -
+git add .
+git commit -m "Describe your change"
+git push -u origin feat/your-feature-name
