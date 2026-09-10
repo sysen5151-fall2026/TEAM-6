@@ -35,3 +35,7 @@ A team project of SYSEN 5151 at Cornell
 - git add .
 - git commit -m "Describe your change"
 - git push -u origin feat/your-feature-name
+- pull request, review and merge on GitHub 在github上合并
+- git switch main
+- git pull origin main 合并后再次同步
+- git branch -d feat/your-feature-name 删除本地分支
