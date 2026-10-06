@@ -27,7 +27,20 @@ Rule: every GenAI-assisted change is logged here with the tool, the (constrained
 | Constraining sources | Entry 001 outputs; Innoslate export `EcoCommute 10.5_C1-C4`; SND/SRD wording conventions (need: "I need ... so that ..."; requirement: one "shall", measurable MOE, validation, method); BMA 7.9 (C.4 may only explain a calculated result) and risk R8 |
 | What it produced | Need 1.1.8 and requirement 2.1.10 with trace/satisfy/perform links in `docs/model/EcoCommute_10.6_C4-explanation-req.xml` (script-patched XML, 2 entities and 12 relationships added, nothing removed); `explain_result()` now takes only calculated values; new test; regenerated SPEC.md (28 requirements); doc updates |
 | Not claimed | The Stakeholder Needs report (docx/pdf) is not updated: it still says 20 needs and 27 requirements |
-| Human review | **Pending.** Reviewer and date: ____________ . Check the requirement wording and the XML import. |
+| Human review | **Pending.** Reviewer and date: ____________ . Check the requirement wording and the XML import (10.5 import verified by screenshot; 10.6 import pending). |
+
+## Entry 003 - 2026-10-05 - Fixes after an external review of the Canvas submission
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `fix/model-status-and-2-1-10-test` |
+| Prompt (summary, originally Chinese) | Evaluate a second reviewer's comments on the submission; adopt the reasonable ones. |
+| Constraining sources | Reviewer comments; Innoslate Intelligence screenshot of the imported 10.5 (C.1-C.4) model; Entry 002 outputs |
+| What it produced | `explain_result()` now also takes the estimated difference, factor source and version, so the explanation states every fact named in requirement 2.1.10; new test `test_explanation_contains_required_facts`; `tests/test_model_linkage.py` now reads the UC.1 actions from the exported XML instead of a hard-coded list; docs wording corrected (import status, what the linkage test checks); screenshot saved as `docs/model/intelligence-10.5-c1-c4.webp`; `.gitignore` excludes the Canvas submission files |
+| Not claimed | 10.6 has not been imported into Innoslate or run through Intelligence |
+| Human review | **Pending.** Reviewer and date: ____________ . |
 
 ## Entry template
 

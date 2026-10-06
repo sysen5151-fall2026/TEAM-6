@@ -249,7 +249,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-bet
       <div class="stat"><b>28</b><span>stakeholder requirements</span></div>
       <div class="stat"><b>12</b><span>actions in the primary use case</span></div>
       <div class="stat"><b>6</b><span>modeled assets: C.0 + C.1&ndash;C.4</span></div>
-      <div class="stat"><b>10</b><span>automated tests passing</span></div>
+      <div class="stat"><b>12</b><span>automated tests passing</span></div>
     </div>
   </div>
 </section>
@@ -357,7 +357,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-bet
   <div class="wrap">
     <div class="kicker">Model &harr; product</div>
     <h2>Trace any behavior back to a stakeholder need.</h2>
-    <p class="sub">Stakeholder &rarr; need &rarr; requirement &rarr; modeled action &rarr; code &rarr; test. A test fails if any of the twelve UC.1 actions has no code, or if code claims an action that is not in the model.</p>
+    <p class="sub">Stakeholder &rarr; need &rarr; requirement &rarr; modeled action &rarr; code &rarr; test. A test reads the UC.1 actions from the exported Innoslate model and checks that each of the twelve has tagged code and that no other UC.1 action is tagged.</p>
     <div class="tabs" role="tablist" aria-label="Traceability examples" id="tabs"></div>
     <div class="chain" id="chain"></div>
   </div>
@@ -381,7 +381,7 @@ Your trip is estimated at 480 g CO2e; driving the same
 distance would be 480 g. The difference is an estimate,
 not verified avoided emissions. ...</span>
 <span class="p">$</span> python -m unittest discover -s tests -t .
-<span class="d">Ran 10 tests ... </span><span class="p">OK</span></pre></div>
+<span class="d">Ran 12 tests ... </span><span class="p">OK</span></pre></div>
       <div class="scroll"><table>
         <thead><tr><th>Participant</th><th>Today</th><th>Detail</th></tr></thead>
         <tbody>
@@ -539,7 +539,7 @@ not verified avoided emissions. ...</span>
   var CHAINS=[
     {t:"Get advice I can use",c:["SH.1 Commuters","1.1.4 “I need suggestions for a greener way to travel that fit the weather and my own limits, so I get advice I can actually follow.”","2.1.4 one alternative with a stated reason; 2.1.5 never a mode marked not feasible","UC.1.6, UC.1.7, UC.1.10","c2_application_service.evaluate_alternatives","test_short_dry_trip_gets_walk_alternative, test_infeasible_mode_is_never_recommended, test_rain_blocks_walk_bike"]},
     {t:"Log my commute quickly",c:["SH.1 Commuters","1.1.1 “I need to record my daily commute in a few seconds, because I will not keep using something that adds work to my morning.”","2.1.1 submit an entry in 30 s or less for at least 80% of timed tasks","UC.1.1 – UC.1.4","present_entry_fields, enter_trip_details, submit_commute_request","End-to-end run (timing needs a real UI)"]},
-    {t:"Understand my result",c:["SH.1 Commuters","1.1.8 “I need a short plain-language explanation of my trip result and the suggested alternative, so I understand what the numbers mean.”","2.1.10 explanation states only facts from the calculated result","UC.1.11 (performed by C.1 and C.4)","c4_explanation_model.explain_result","test_explanation_states_only_calculated_facts"]},
+    {t:"Understand my result",c:["SH.1 Commuters","1.1.8 “I need a short plain-language explanation of my trip result and the suggested alternative, so I understand what the numbers mean.”","2.1.10 explanation states only facts from the calculated result","UC.1.11 (performed by C.1 and C.4)","c4_explanation_model.explain_result","test_explanation_contains_required_facts, test_explanation_states_only_calculated_facts"]},
     {t:"Compare fairly",c:["SH.4 Method Reviewers","1.4.2 “I need the always-drive comparison to use the same distance and a stated vehicle factor and occupancy, so the comparison is fair.”","2.4.3 baseline from distance, declared factor and occupancy; 2.4.4 label as estimate","UC.1.9, UC.1.11","c2_application_service.compare_baseline","test_baseline_difference_for_greener_mode"]}
   ];
   var tabs=$("tabs"),chain=$("chain");

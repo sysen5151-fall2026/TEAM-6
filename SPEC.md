@@ -101,7 +101,7 @@ Open values needing sponsor confirmation: 3-second display time (2.1.2); minimum
 - **From need:** 1.1.8
 - **Acceptance criterion:** MOE - Number of sampled explanations that contain a figure, weather condition or travel mode not present in the calculated result (target 0). Validation - Inspect a random sample of 50 displayed explanations in the pilot build, comparing each field by field with the calculated result; pass if none contains an unsupported figure, condition or mode. Method: Inspection.
 - **Satisfied by (model):** `UC.1.11`
-- **Skeleton status:** Exercised - C.4 `explain_result` receives only calculated values and returns a template sentence (stub; no language model). Test `test_explanation_states_only_calculated_facts`.
+- **Skeleton status:** Exercised - C.4 `explain_result` receives only calculated values (estimate, baseline, difference, factor source and version, reason) and returns a template sentence (stub; no language model). Tests `test_explanation_contains_required_facts` and `test_explanation_states_only_calculated_facts`.
 
 
 ## Group 2.2
