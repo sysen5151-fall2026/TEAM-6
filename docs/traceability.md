@@ -1,7 +1,7 @@
 # Model-to-product traceability
 
 Chain: **Stakeholder -> Need (SND 1.x.x) -> Requirement (SRD 2.x.x, in [SPEC.md](../SPEC.md)) -> UC.1 action -> code -> test.**
-Requirement-to-action links come from the `satisfies` relationships in the Innoslate export `EcoCommute 10.4.xml`.
+Requirement-to-action links come from the `satisfies` relationships in the current Innoslate export `docs/model/EcoCommute_10.6_C4-explanation-req.xml`.
 
 ## Worked example (the one to show live)
 
