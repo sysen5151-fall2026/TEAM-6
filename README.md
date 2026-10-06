@@ -22,7 +22,7 @@ The nominal scenario assumes an existing account and consent, valid supported in
 | Path | What it is |
 |---|---|
 | [Project home page](https://sysen5151-fall2026.github.io/TEAM-6/) ([source](docs/index.html)) | Live site with an interactive commute demo, UC.1 walkthrough and traceability explorer (GitHub Pages, served from `/docs`) |
-| [Demo deck](https://sysen5151-fall2026.github.io/TEAM-6/demo/) ([source](docs/demo/index.html)) | Click-through, pixel-farm presentation of the whole project (NEXT button or arrow keys; `S` = short mode; `L` = English / 中文; works offline as a single file) |
+| [Demo deck](https://sysen5151-fall2026.github.io/TEAM-6/demo/) ([source](docs/demo/index.html)) | Click-through, pixel-farm presentation of the whole project (NEXT button or arrow keys; menu = short mode / auto-play / full screen; top-left button = English / 中文; works offline as a single file) |
 | [SPEC.md](SPEC.md) | Stakeholder requirements (28: 27 from the SRD plus 2.1.10) with acceptance criteria and model links |
 | [docs/context.md](docs/context.md) | Boundary, interface inventory, component-to-directory map |
 | [docs/walking-skeleton.md](docs/walking-skeleton.md) | UC.1 call order; what is real vs stubbed |
