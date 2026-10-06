@@ -29,10 +29,10 @@ Boundary directories use asset-based names (BMA Section 7.9).
 | C.1 Web Front End | `src/c1_web_front_end` | Presents entry fields, forwards the request, displays the result | Stub (plain text, no web layer) |
 | C.2 Application Service | `src/c2_application_service` | Estimation, always-drive baseline, recommendation rules | Real logic, placeholder factors |
 | C.3 Data Adapter | `src/c3_data_adapter` | Factor store, trip store, weather access | Stub (in-memory, hard-coded) |
-| C.4 Explanation Model | `src/c4_explanation_model` | Explains an already-calculated result | Stub (hard-coded sentence) |
+| C.4 Explanation Model | `src/c4_explanation_model` | Explains an already-calculated result (need 1.1.8, requirement 2.1.10) | Stub (sentence template fed only calculated values; no language model) |
 | X.1 Commuter (external) | `src/x1_commuter_sim` | Scripted simulation that drives UC.1 | Simulation |
 | X.3 Open-Meteo (external) | `src/x3_open_meteo_stub` | Returns the forecast | Stub (fixed dry forecast) |
 
 X.2, X.4 and X.5 do not take part in UC.1 and have no code yet.
 
-**Model update:** `docs/model/EcoCommute_10.5_C1-C4.xml` adds the internal assets C.1-C.4 under C.0 (decomposes / decomposed by) and re-points the UC.1 performers: UC.1.2 and UC.1.11 -> C.1; UC.1.5, UC.1.8, UC.1.9, UC.1.10 -> C.2; UC.1.6 -> C.3. C.4 is modeled but performs no action yet (see docs/traceability.md, open item O-1). UC.1.1, 1.3, 1.4, 1.12 stay with X.1; UC.1.7 stays with X.3; OP.1-OP.5 and UC.2 stay with C.0. Import this file into Innoslate so the model matches the code.
+**Model update:** `docs/model/EcoCommute_10.6_C4-explanation-req.xml` adds the internal assets C.1-C.4 under C.0 (decomposes / decomposed by) and re-points the UC.1 performers: UC.1.2 and UC.1.11 -> C.1; UC.1.5, UC.1.8, UC.1.9, UC.1.10 -> C.2; UC.1.6 -> C.3. C.4 also performs UC.1.11 (explanation text), which satisfies requirement 2.1.10 traced from need 1.1.8. UC.1.1, 1.3, 1.4, 1.12 stay with X.1; UC.1.7 stays with X.3; OP.1-OP.5 and UC.2 stay with C.0. Import this file into Innoslate so the model matches the code.

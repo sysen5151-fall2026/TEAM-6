@@ -42,6 +42,17 @@ class TestUC1EndToEnd(unittest.TestCase):
         self.assertIn("one-way distance per logged trip", out)
         self.assertIn("Estimated difference", out)
 
+    def test_explanation_states_only_calculated_facts(self):  # SRD 2.1.10
+        import re
+
+        out = run_uc1(mode="bus", distance_km=10)
+        explanation = out.splitlines()[-1]
+        shown = set(re.findall(r"\d+(?:\.\d+)?", "\n".join(out.splitlines()[:-1])))
+        self.assertTrue(re.findall(r"\d+(?:\.\d+)?", explanation))
+        for number in re.findall(r"\d+(?:\.\d+)?", explanation):
+            self.assertIn(number, shown)  # every figure in the text is in the calculated result
+        self.assertIn("estimate, not verified avoided emissions", explanation)
+
     def test_baseline_difference_for_greener_mode(self):  # SRD 2.1.2, 2.4.3
         out = run_uc1(mode="bus", distance_km=10)
         self.assertIn("Estimated CO2e for this trip: 1050 g", out)

@@ -16,6 +16,19 @@ Rule: every GenAI-assisted change is logged here with the tool, the (constrained
 | Not generated / not claimed | Reviewed emission factors; a working local language model; a web UI; off-nominal behavior |
 | Human review | **Pending.** Reviewer name and date: ____________ . Checklist: (1) OpsCon in README matches BMA 7.1; (2) context.md matches BMA 4.3; (3) SPEC statements match the SRD; (4) call order matches the Sequence Diagram; (5) `python -m src.main` and tests pass on a second machine. |
 
+## Entry 002 - 2026-10-05 - C.4 explanation need/requirement, model 10.6
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `feat/c4-explanation-requirement` |
+| Prompt (summary, originally Chinese) | Add one requirement for C.4 and give an updated Innoslate XML; update the Canvas submission. |
+| Constraining sources | Entry 001 outputs; Innoslate export `EcoCommute 10.5_C1-C4`; SND/SRD wording conventions (need: "I need ... so that ..."; requirement: one "shall", measurable MOE, validation, method); BMA 7.9 (C.4 may only explain a calculated result) and risk R8 |
+| What it produced | Need 1.1.8 and requirement 2.1.10 with trace/satisfy/perform links in `docs/model/EcoCommute_10.6_C4-explanation-req.xml` (script-patched XML, 2 entities and 12 relationships added, nothing removed); `explain_result()` now takes only calculated values; new test; regenerated SPEC.md (28 requirements); doc updates |
+| Not claimed | The Stakeholder Needs report (docx/pdf) is not updated: it still says 20 needs and 27 requirements |
+| Human review | **Pending.** Reviewer and date: ____________ . Check the requirement wording and the XML import. |
+
 ## Entry template
 
 | Field | Value |

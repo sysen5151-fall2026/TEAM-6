@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EcoCommute - Team 6, SYSEN 5151</title>
+<meta name="description" content="EcoCommute: a lightweight commute carbon-footprint and greener-option assistant. Systems engineering project, Cornell SYSEN 5151, Team 6.">
+<style>
+:root{
+  --bg:#f5f2e9; --bg2:#ece8da; --card:#ffffff; --ink:#10261d; --muted:#53665c; --line:#d9d4c3;
+  --forest:#14532d; --leaf:#2f8f5b; --mint:#d3ead9; --sky:#2a7ba6; --skyl:#d6e9f3;
+  --sun:#f0a734; --sunl:#fbe8c4; --clay:#c4553b; --clayl:#f6dcd4; --violet:#6a5bb3; --violetl:#e4e0f4;
+  --shadow:0 1px 2px rgba(16,38,29,.06),0 8px 28px rgba(16,38,29,.07);
+  --r:18px; --maxw:1120px;
+}
+:root[data-theme="dark"]{
+  --bg:#0b1612; --bg2:#101f19; --card:#142720; --ink:#e7f1ea; --muted:#9bb2a5; --line:#254238;
+  --forest:#7fd6a0; --leaf:#4fbf80; --mint:#173a2a; --sky:#6cc0ea; --skyl:#15303f; --sun:#f5b84d; --sunl:#3b2f14;
+  --clay:#f08a72; --clayl:#3f201a; --violet:#a99cf0; --violetl:#26224a;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.35);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0b1612; --bg2:#101f19; --card:#142720; --ink:#e7f1ea; --muted:#9bb2a5; --line:#254238;
+    --forest:#7fd6a0; --leaf:#4fbf80; --mint:#173a2a; --sky:#6cc0ea; --skyl:#15303f; --sun:#f5b84d; --sunl:#3b2f14;
+    --clay:#f08a72; --clayl:#3f201a; --violet:#a99cf0; --violetl:#26224a;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.35);
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "Segoe UI Variable","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--sky)}
+img,svg{max-width:100%}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 20px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--forest);color:#fff;padding:8px 14px;border-radius:8px;z-index:100}
+.skip:focus{left:8px}
+:focus-visible{outline:3px solid var(--sun);outline-offset:2px;border-radius:6px}
+
+/* nav */
+header.nav{position:sticky;top:0;z-index:50;backdrop-filter:saturate(1.4) blur(12px);background:color-mix(in srgb,var(--bg) 82%,transparent);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;gap:18px;height:62px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.02em;color:var(--ink);text-decoration:none;font-size:1.1rem}
+.brand svg{width:30px;height:30px}
+.nav nav{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap}
+.nav nav a{color:var(--muted);text-decoration:none;font-size:.92rem;padding:6px 11px;border-radius:999px}
+.nav nav a:hover{background:var(--mint);color:var(--ink)}
+.theme{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;width:38px;height:38px;cursor:pointer;font-size:1rem}
+@media (max-width:760px){.nav nav{display:none}.nav .wrap{justify-content:space-between}}
+
+/* hero */
+.hero{position:relative;overflow:hidden;padding:64px 0 40px;background:
+  radial-gradient(900px 400px at 85% -10%,var(--sunl),transparent 60%),
+  radial-gradient(700px 380px at -10% 10%,var(--mint),transparent 60%)}
+.hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:36px;align-items:center}
+@media (max-width:900px){.hero .wrap{grid-template-columns:1fr}}
+.eyebrow{display:inline-flex;gap:8px;align-items:center;font-size:.8rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--forest);background:var(--mint);padding:6px 12px;border-radius:999px}
+h1{font-size:clamp(2.4rem,6vw,4.2rem);line-height:1.02;letter-spacing:-.035em;margin:16px 0 14px;font-weight:850}
+h1 em{font-style:normal;background:linear-gradient(100deg,var(--leaf),var(--sky));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{font-size:1.18rem;color:var(--muted);max-width:34em;margin:0 0 24px}
+.cta{display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:12px;font-weight:700;text-decoration:none;border:1px solid transparent;cursor:pointer;font-size:1rem}
+.btn.primary{background:var(--forest);color:#fff}
+:root[data-theme="dark"] .btn.primary{color:#07140e}
+.btn.primary:hover{filter:brightness(1.12)}
+.btn.ghost{background:var(--card);color:var(--ink);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--leaf)}
+.meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;color:var(--muted);font-size:.9rem}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:4px 11px;font-size:.84rem}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.hero-art{background:var(--card);border:1px solid var(--line);border-radius:26px;box-shadow:var(--shadow);padding:10px}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-top:34px}
+@media (max-width:900px){.stats{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:520px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.stat b{display:block;font-size:1.9rem;letter-spacing:-.03em;line-height:1.1;color:var(--forest)}
+.stat span{font-size:.82rem;color:var(--muted)}
+
+/* sections */
+section{padding:72px 0}
+section.alt{background:var(--bg2)}
+.kicker{font-size:.8rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--leaf)}
+h2{font-size:clamp(1.7rem,3.4vw,2.5rem);letter-spacing:-.03em;line-height:1.1;margin:8px 0 12px}
+.sub{color:var(--muted);max-width:44em;margin:0 0 30px}
+.grid{display:grid;gap:16px}
+.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+@media (max-width:900px){.g3,.g4{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:620px){.g3,.g2,.g4{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px;box-shadow:var(--shadow)}
+.card h3{margin:10px 0 6px;font-size:1.12rem;letter-spacing:-.01em}
+.card p{margin:0;color:var(--muted);font-size:.96rem}
+.ico{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.35rem}
+
+/* demo */
+.demo{display:grid;grid-template-columns:.9fr 1.1fr;gap:18px}
+@media (max-width:900px){.demo{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px;box-shadow:var(--shadow)}
+.panel h3{margin:0 0 14px;font-size:1.05rem}
+label{display:block;font-size:.86rem;font-weight:700;margin:14px 0 6px}
+select,input[type=range]{width:100%}
+select{padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:1rem}
+input[type=range]{accent-color:var(--leaf)}
+.row{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}
+.check{display:flex;align-items:center;gap:8px;font-size:.92rem;font-weight:500;margin:0;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);cursor:pointer}
+.check input{accent-color:var(--leaf)}
+.val{font-variant-numeric:tabular-nums;font-weight:800;color:var(--forest)}
+.bars{display:grid;gap:10px;margin:6px 0 16px}
+.bar{display:grid;grid-template-columns:110px 1fr 74px;align-items:center;gap:10px;font-size:.88rem}
+.bar .track{height:16px;border-radius:999px;background:var(--bg2);overflow:hidden}
+.bar .fill{height:100%;border-radius:999px;transition:width .35s ease}
+.callout{border-radius:14px;padding:14px 16px;margin:10px 0;font-size:.95rem}
+.callout.good{background:var(--mint);border:1px solid color-mix(in srgb,var(--leaf) 45%,transparent)}
+.callout.neutral{background:var(--skyl);border:1px solid color-mix(in srgb,var(--sky) 40%,transparent)}
+.callout b{display:block;margin-bottom:2px}
+.fine{font-size:.82rem;color:var(--muted)}
+.tag{display:inline-block;font-size:.72rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:999px}
+.tag.real{background:var(--mint);color:var(--forest)}
+.tag.stub{background:var(--sunl);color:#8a5a00}
+:root[data-theme="dark"] .tag.stub{color:var(--sun)}
+.tag.sim{background:var(--violetl);color:var(--violet)}
+
+/* flow */
+.flow{display:grid;grid-template-columns:repeat(12,1fr);gap:6px;margin:6px 0 18px}
+@media (max-width:900px){.flow{grid-template-columns:repeat(6,1fr)}}
+.step{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:8px 4px;text-align:center;cursor:pointer;font:inherit;color:inherit}
+.step b{display:block;font-size:1rem}
+.step small{font-size:.68rem;color:var(--muted)}
+.step[aria-pressed="true"]{outline:3px solid var(--sun);border-color:var(--sun)}
+.step i{display:block;height:5px;border-radius:5px;margin:0 8px 6px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.84rem;color:var(--muted);margin-bottom:12px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.detail{min-height:132px}
+.detail h4{margin:0 0 4px;font-size:1.1rem}
+code{font-family:"Cascadia Mono",Consolas,Menlo,monospace;font-size:.86em;background:var(--bg2);padding:1px 6px;border-radius:6px}
+.reqs{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.reqs span{background:var(--skyl);color:var(--sky);font-weight:700;font-size:.78rem;padding:2px 8px;border-radius:999px}
+
+/* trace */
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.tab{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 16px;font:inherit;font-weight:700;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--forest);color:#fff;border-color:var(--forest)}
+:root[data-theme="dark"] .tab[aria-selected="true"]{color:#07140e}
+.chain{display:grid;grid-template-columns:repeat(6,1fr);gap:0;position:relative}
+@media (max-width:900px){.chain{grid-template-columns:1fr}}
+.link{background:var(--card);border:1px solid var(--line);padding:16px 14px;position:relative;margin-right:10px;border-radius:14px;box-shadow:var(--shadow)}
+@media (max-width:900px){.link{margin:0 0 22px}}
+.link:not(:last-child)::after{content:"";position:absolute;right:-12px;top:50%;width:14px;height:2px;background:var(--leaf)}
+@media (max-width:900px){.link:not(:last-child)::after{right:auto;left:50%;top:auto;bottom:-22px;width:2px;height:22px}}
+.link small{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.09em;font-weight:800;margin-bottom:6px}
+.link p{margin:0;font-size:.9rem;overflow-wrap:anywhere}
+
+/* arch */
+.arch{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px;box-shadow:var(--shadow)}
+
+/* table */
+table{width:100%;border-collapse:collapse;font-size:.93rem;background:var(--card);border-radius:var(--r);overflow:hidden;border:1px solid var(--line)}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--bg2);font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+.scroll{overflow-x:auto}
+
+/* terminal */
+.term{background:#0d1b15;color:#d8eadf;border-radius:16px;padding:18px 20px;font:13.5px/1.65 "Cascadia Mono",Consolas,Menlo,monospace;overflow-x:auto;box-shadow:var(--shadow);border:1px solid #1d3a2d}
+.term .p{color:#7fd6a0}.term .d{color:#8aa196}.term .h{color:#f5b84d}
+.term pre{margin:0;white-space:pre-wrap;word-break:break-word}
+
+/* roadmap */
+.road{position:relative;margin:10px 0 0;padding-left:26px}
+.road::before{content:"";position:absolute;left:8px;top:6px;bottom:6px;width:3px;background:linear-gradient(var(--leaf),var(--sky));border-radius:3px}
+.ms{position:relative;padding:0 0 22px 14px}
+.ms::before{content:"";position:absolute;left:-26px;top:5px;width:15px;height:15px;border-radius:50%;background:var(--card);border:3px solid var(--leaf)}
+.ms.now::before{background:var(--sun);border-color:var(--sun);box-shadow:0 0 0 6px color-mix(in srgb,var(--sun) 28%,transparent)}
+.ms.done::before{background:var(--leaf)}
+.ms b{display:block}.ms span{color:var(--muted);font-size:.92rem}.ms time{font-size:.8rem;font-weight:800;color:var(--leaf);letter-spacing:.05em}
+
+.person{text-align:left}
+.avatar{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#fff;font-size:1.1rem}
+footer{padding:40px 0 60px;border-top:1px solid var(--line);color:var(--muted);font-size:.9rem}
+footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-between}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="EcoCommute home">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="var(--forest)"/><path d="M8 21c4 1 9-1 12-6 1-2 1-4 1-6-4 0-8 1-10 4-2 2-2 5-3 8z" fill="var(--mint)"/><path d="M9 24c3-5 6-8 11-11" stroke="var(--sun)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+      EcoCommute
+    </a>
+    <nav aria-label="Primary">
+      <a href="#demo">Try it</a><a href="#flow">How it works</a><a href="#arch">Architecture</a><a href="#trace">Traceability</a><a href="#status">Status</a><a href="#road">Roadmap</a><a href="#team">Team</a>
+    </nav>
+    <button class="theme" id="theme" aria-label="Toggle light and dark theme" title="Toggle theme">&#9680;</button>
+  </div>
+</header>
+
+<main id="main">
+<div id="top"></div>
+<section class="hero" style="padding-top:56px">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow">SYSEN 5151 &middot; Team 6 &middot; Fall 2026</span>
+      <h1>Know what your commute costs the planet &mdash; <em>then choose better.</em></h1>
+      <p class="lead">EcoCommute is a lightweight web application that turns a few seconds of trip logging into an estimated CO<sub>2</sub>e, a fair compare-with-driving baseline, and one greener option that fits the weather and your own limits.</p>
+      <div class="cta">
+        <a class="btn primary" href="#demo">Try the commute logger &darr;</a>
+        <a class="btn ghost" href="https://github.com/sysen5151-fall2026/TEAM-6" target="_blank" rel="noopener">GitHub repository &#8599;</a>
+      </div>
+      <div class="meta">
+        <span class="chip"><span class="dot" style="background:var(--sun)"></span> Milestone 1: walking skeleton</span>
+        <span class="chip"><span class="dot" style="background:var(--leaf)"></span> Model-based (Innoslate MBSE)</span>
+        <span class="chip"><span class="dot" style="background:var(--sky)"></span> Python, standard library only</span>
+      </div>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <svg viewBox="0 0 520 380" role="img" aria-label="Illustration of a commute route from home to campus with a weather icon and a CO2 gauge">
+        <defs>
+          <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--skyl)"/><stop offset="1" stop-color="var(--mint)"/></linearGradient>
+        </defs>
+        <rect width="520" height="380" rx="20" fill="url(#sky)"/>
+        <circle cx="420" cy="70" r="34" fill="var(--sun)"/>
+        <g stroke="var(--sun)" stroke-width="4" stroke-linecap="round"><path d="M420 18v-8M420 130v8M368 70h-8M472 70h8M383 33l-6-6M457 107l6 6M457 33l6-6M383 107l-6 6"/></g>
+        <ellipse cx="330" cy="92" rx="46" ry="18" fill="#fff" opacity=".9"/><ellipse cx="300" cy="84" rx="26" ry="16" fill="#fff" opacity=".9"/>
+        <path d="M0 250 Q130 205 260 235 T520 215 V380 H0Z" fill="var(--leaf)" opacity=".35"/>
+        <path d="M0 290 Q150 250 280 280 T520 262 V380 H0Z" fill="var(--leaf)" opacity=".55"/>
+        <path d="M40 330 C140 250 230 330 330 262 S450 230 480 200" stroke="var(--forest)" stroke-width="16" fill="none" stroke-linecap="round" opacity=".92"/>
+        <path d="M40 330 C140 250 230 330 330 262 S450 230 480 200" stroke="#fff" stroke-width="3" stroke-dasharray="3 14" fill="none" stroke-linecap="round"/>
+        <g transform="translate(26 296)"><circle cx="14" cy="14" r="22" fill="#fff"/><path d="M4 16l10-9 10 9v10H4z" fill="var(--forest)"/></g>
+        <g transform="translate(450 156)"><circle cx="26" cy="26" r="28" fill="#fff"/><path d="M10 40V24l16-10 16 10v16z" fill="var(--sky)"/><rect x="22" y="30" width="8" height="10" fill="#fff"/></g>
+        <g transform="translate(36 22)">
+          <rect width="190" height="104" rx="16" fill="#fff"/>
+          <text x="16" y="28" font-size="12" font-weight="700" fill="var(--muted)" font-family="system-ui">This trip &middot; 2.5 km</text>
+          <text x="16" y="66" font-size="34" font-weight="800" fill="var(--forest)" font-family="system-ui">0 g</text>
+          <text x="80" y="66" font-size="13" fill="var(--muted)" font-family="system-ui">CO&#8322;e if you walk</text>
+          <rect x="16" y="78" width="158" height="10" rx="5" fill="var(--bg2)"/><rect x="16" y="78" width="14" height="10" rx="5" fill="var(--leaf)"/>
+          <text x="16" y="99" font-size="10" fill="var(--muted)" font-family="system-ui">vs 480 g driving (placeholder factor)</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="stats" style="grid-column:1/-1;width:100%">
+      <div class="stat"><b>7</b><span>stakeholder groups</span></div>
+      <div class="stat"><b>21</b><span>stakeholder needs</span></div>
+      <div class="stat"><b>28</b><span>stakeholder requirements</span></div>
+      <div class="stat"><b>12</b><span>actions in the primary use case</span></div>
+      <div class="stat"><b>6</b><span>modeled assets: C.0 + C.1&ndash;C.4</span></div>
+      <div class="stat"><b>10</b><span>automated tests passing</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="why">
+  <div class="wrap">
+    <div class="kicker">The problem</div>
+    <h2>People commute on habit, not on information.</h2>
+    <p class="sub">Most students and employees pick how to travel without any feedback on the environmental effect of that choice. There is no low-effort way to see a trip&rsquo;s CO<sub>2</sub>e, or to know when walking or cycling is actually reasonable given distance and weather. Institutions, meanwhile, want engagement evidence without exposing anyone&rsquo;s personal routine.</p>
+    <div class="grid g3">
+      <div class="card"><div class="ico" style="background:var(--mint)">&#9201;</div><h3>Fast to log</h3><p>Target: 80% of timed entries finished in 30 seconds or less. Manual entry, no passive GPS.</p></div>
+      <div class="card"><div class="ico" style="background:var(--skyl)">&#128161;</div><h3>Honest, explained numbers</h3><p>Every result shows its factor source, version and distance convention, and labels the saving as an <em>estimate</em>.</p></div>
+      <div class="card"><div class="ico" style="background:var(--sunl)">&#127811;</div><h3>Advice you can actually follow</h3><p>Suggestions use distance, forecast weather and your own &ldquo;not feasible&rdquo; settings. The choice always stays with you.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="demo">
+  <div class="wrap">
+    <div class="kicker">Interactive</div>
+    <h2>Log a commute, get the answer.</h2>
+    <p class="sub">A browser replica of the rules in <code>c2_application_service</code>. Same logic and the same <strong>placeholder</strong> emission factors as the Python walking skeleton &mdash; not reviewed factors, so do not quote these numbers.</p>
+    <div class="demo">
+      <div class="panel">
+        <h3>1 &middot; Your trip</h3>
+        <label for="mode">How did you travel?</label>
+        <select id="mode">
+          <option value="drive">Drive alone</option><option value="carpool">Carpool</option><option value="bus">Bus</option><option value="bike">Bike</option><option value="walk">Walk</option>
+        </select>
+        <label for="dist">One-way distance: <span class="val" id="distv">2.5 km</span></label>
+        <input id="dist" type="range" min="0.5" max="20" step="0.5" value="2.5">
+        <label>Weather forecast</label>
+        <div class="row">
+          <label class="check"><input type="radio" name="wx" value="0" checked> &#9728; Dry</label>
+          <label class="check"><input type="radio" name="wx" value="2"> &#127783; Rain</label>
+        </div>
+        <label>Modes I cannot use (feasibility settings)</label>
+        <div class="row">
+          <label class="check"><input type="checkbox" id="nfWalk"> Walking</label>
+          <label class="check"><input type="checkbox" id="nfBike"> Cycling</label>
+        </div>
+      </div>
+      <div class="panel" aria-live="polite">
+        <h3>2 &middot; Your result</h3>
+        <div class="bars" id="bars"></div>
+        <div class="callout neutral"><b id="diffTitle"></b><span id="diffText"></span></div>
+        <div class="callout good" id="altBox"><b id="altTitle"></b><span id="altText"></span></div>
+        <p class="fine" id="explain"></p>
+        <p class="fine" id="factorLine"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="flow">
+  <div class="wrap">
+    <div class="kicker">Operational concept</div>
+    <h2>One primary use case, twelve modeled actions.</h2>
+    <p class="sub">UC.1 <em>Review Commute Impact and Feasible Alternative</em>. Pick a step to see who performs it, the code that realizes it, and the requirements it satisfies. Every step exists in the Innoslate model and in the repository.</p>
+    <div class="legend" id="legend"></div>
+    <div class="flow" id="flowSteps" role="group" aria-label="UC.1 steps"></div>
+    <div class="card detail" id="stepDetail" aria-live="polite"></div>
+  </div>
+</section>
+
+<section class="alt" id="arch">
+  <div class="wrap">
+    <div class="kicker">System of interest</div>
+    <h2>What is inside the boundary &mdash; and what is not.</h2>
+    <p class="sub">C.0 EcoCommute contains the interface, service, data adapter and explanation components. The commuter and the weather service are outside: we control the software&rsquo;s response, not people&rsquo;s travel or the forecast.</p>
+    <div class="arch">
+      <svg viewBox="0 0 1040 420" role="img" aria-label="Context diagram: X.1 Commuter connects to C.1 Web Front End inside the C.0 boundary; C.1 to C.2; C.2 to C.3 and C.4; C.3 to X.3 Open-Meteo. X.2, X.4 and X.5 are external and not part of UC.1.">
+        <defs><marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--forest)"/></marker></defs>
+        <rect x="205" y="30" width="610" height="330" rx="26" fill="var(--mint)" stroke="var(--forest)" stroke-width="3" stroke-dasharray="10 7" opacity=".55"/>
+        <text x="225" y="62" font-size="15" font-weight="800" fill="var(--forest)" font-family="system-ui">C.0 EcoCommute &middot; system boundary</text>
+        <g font-family="system-ui" text-anchor="middle">
+          <g><rect x="30" y="150" width="150" height="90" rx="16" fill="var(--violetl)" stroke="var(--violet)" stroke-width="2"/><text x="105" y="187" font-size="15" font-weight="800" fill="var(--violet)">X.1 Commuter</text><text x="105" y="209" font-size="12" fill="var(--muted)">student / employee</text></g>
+          <g><rect x="235" y="150" width="150" height="90" rx="16" fill="var(--card)" stroke="var(--leaf)" stroke-width="2.5"/><text x="310" y="184" font-size="15" font-weight="800" fill="var(--ink)">C.1 Web Front</text><text x="310" y="203" font-size="15" font-weight="800" fill="var(--ink)">End</text><text x="310" y="225" font-size="11" fill="var(--muted)">entry &middot; result view</text></g>
+          <g><rect x="435" y="150" width="150" height="90" rx="16" fill="var(--card)" stroke="var(--leaf)" stroke-width="2.5"/><text x="510" y="184" font-size="15" font-weight="800" fill="var(--ink)">C.2 Application</text><text x="510" y="203" font-size="15" font-weight="800" fill="var(--ink)">Service</text><text x="510" y="225" font-size="11" fill="var(--muted)">estimate &middot; baseline &middot; rules</text></g>
+          <g><rect x="635" y="95" width="150" height="80" rx="16" fill="var(--card)" stroke="var(--leaf)" stroke-width="2.5"/><text x="710" y="130" font-size="15" font-weight="800" fill="var(--ink)">C.3 Data</text><text x="710" y="149" font-size="15" font-weight="800" fill="var(--ink)">Adapter</text><text x="710" y="166" font-size="11" fill="var(--muted)">factors &middot; trips &middot; weather</text></g>
+          <g><rect x="635" y="235" width="150" height="80" rx="16" fill="var(--card)" stroke="var(--sun)" stroke-width="2.5"/><text x="710" y="270" font-size="15" font-weight="800" fill="var(--ink)">C.4 Explanation</text><text x="710" y="289" font-size="15" font-weight="800" fill="var(--ink)">Model</text><text x="710" y="306" font-size="11" fill="var(--muted)">facts-only wording</text></g>
+          <g><rect x="860" y="95" width="150" height="80" rx="16" fill="var(--skyl)" stroke="var(--sky)" stroke-width="2"/><text x="935" y="130" font-size="15" font-weight="800" fill="var(--sky)">X.3 Open-Meteo</text><text x="935" y="152" font-size="12" fill="var(--muted)">weather forecast</text></g>
+        </g>
+        <g stroke="var(--forest)" stroke-width="2.5" fill="none" marker-end="url(#ar)">
+          <path d="M180 195H233"/><path d="M385 195H433"/><path d="M585 175L633 145"/><path d="M585 215L633 255"/><path d="M785 135H858"/>
+        </g>
+        <g font-family="system-ui" font-size="11" fill="var(--muted)" text-anchor="middle">
+          <text x="206" y="186">trip</text><text x="409" y="186">request</text><text x="590" y="138">weather</text><text x="822" y="126">query</text>
+        </g>
+        <g font-family="system-ui" font-size="12" text-anchor="middle" fill="var(--muted)">
+          <text x="105" y="330" font-weight="700" font-size="11">Outside the boundary, not in UC.1</text>
+          <text x="105" y="350">X.2 Pilot Administrator</text><text x="105" y="368">X.4 Factor Publisher</text><text x="105" y="386">X.5 Hosting Provider</text>
+        </g>
+      </svg>
+    </div>
+    <div class="grid g3" style="margin-top:16px">
+      <div class="card"><h3>Included</h3><p>Manual logging, documented CO<sub>2</sub>e estimates, weekly and monthly views, the always-drive baseline, explainable rules with feasibility controls, consent and account controls, approved institutional summaries.</p></div>
+      <div class="card"><h3>Excluded on purpose</h3><p>Native apps, passive GPS tracking, carbon credits and comprehensive transit integration. Adding any of them needs new external entities, interfaces and review.</p></div>
+      <div class="card"><h3>Why this boundary</h3><p>It keeps location exposure low, avoids a heavy supplier burden, and still lets a pilot test the real question: do commuters understand and act on the feedback?</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="trace">
+  <div class="wrap">
+    <div class="kicker">Model &harr; product</div>
+    <h2>Trace any behavior back to a stakeholder need.</h2>
+    <p class="sub">Stakeholder &rarr; need &rarr; requirement &rarr; modeled action &rarr; code &rarr; test. A test fails if any of the twelve UC.1 actions has no code, or if code claims an action that is not in the model.</p>
+    <div class="tabs" role="tablist" aria-label="Traceability examples" id="tabs"></div>
+    <div class="chain" id="chain"></div>
+  </div>
+</section>
+
+<section class="alt" id="status">
+  <div class="wrap">
+    <div class="kicker">Walking skeleton</div>
+    <h2>What really runs today &mdash; and what is a stub.</h2>
+    <p class="sub">The first increment proves one end-to-end path with clean stub boundaries. Being explicit about what is stubbed is part of the design.</p>
+    <div class="grid g2" style="align-items:start">
+      <div class="term" aria-label="Output of python -m src.main"><pre><span class="p">$</span> python -m src.main
+<span class="d">Estimated CO2e for this trip: 480 g
+Always-drive baseline: 480 g
+Estimated difference: 0 g
+Weekly total: 480 g | Monthly total: 480 g | ...
+Factor: PLACEHOLDER - not a reviewed factor (version stub-0)
+</span><span class="h">Suggested alternative: walk</span><span class="d"> - The trip is 2.5 km (under 3 km)
+and the forecast shows 0 mm of rain.
+Your trip is estimated at 480 g CO2e; driving the same
+distance would be 480 g. The difference is an estimate,
+not verified avoided emissions. ...</span>
+<span class="p">$</span> python -m unittest discover -s tests -t .
+<span class="d">Ran 10 tests ... </span><span class="p">OK</span></pre></div>
+      <div class="scroll"><table>
+        <thead><tr><th>Participant</th><th>Today</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td>X.1 Commuter</td><td><span class="tag sim">Simulated</span></td><td>Scripted driver of UC.1</td></tr>
+          <tr><td>C.1 Web Front End</td><td><span class="tag stub">Stub</span></td><td>Field list and text output; no web layer yet</td></tr>
+          <tr><td>C.2 Application Service</td><td><span class="tag real">Real</span></td><td>Distance &times; factor, always-drive baseline, rule: under 3 km and no rain &rarr; walk/bike, infeasible modes excluded</td></tr>
+          <tr><td>C.3 Data Adapter</td><td><span class="tag stub">Stub</span></td><td>Placeholder factors, in-memory trips</td></tr>
+          <tr><td>C.4 Explanation Model</td><td><span class="tag stub">Stub</span></td><td>Template fed only calculated values; no language model yet</td></tr>
+          <tr><td>X.3 Open-Meteo</td><td><span class="tag stub">Stub</span></td><td>Fixed dry forecast; no HTTP</td></tr>
+        </tbody></table></div>
+    </div>
+    <div class="grid g3" style="margin-top:16px">
+      <div class="card"><h3>Not yet</h3><p>Reviewed emission factors, a web UI, off-nominal paths (weather outage, invalid input), occupancy handling, and real source access.</p></div>
+      <div class="card"><h3>Why Python</h3><p>Standard library only, zero installs, and most of the team knows it. The stack decision is recorded in ADR&nbsp;0001; the original Next.js/SQLite plan is deferred.</p></div>
+      <div class="card"><h3>Provenance</h3><p>GenAI-assisted work is logged in the prompt log, and code generation was constrained by the requirement text in SPEC.md rather than a broad prompt.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="stake">
+  <div class="wrap">
+    <div class="kicker">Stakeholders</div>
+    <h2>Who needs EcoCommute &mdash; and why they matter.</h2>
+    <p class="sub">Seven groups identified, five carried into requirements by power and interest. Personas are illustrative and will be tested in the first stakeholder interviews.</p>
+    <div class="grid g4" id="stakeGrid"></div>
+  </div>
+</section>
+
+<section class="alt" id="road">
+  <div class="wrap">
+    <div class="kicker">Roadmap</div>
+    <h2>From a defensible baseline to a controlled pilot.</h2>
+    <div class="road">
+      <div class="ms done"><time>SEP 30, 2026</time><b>Charter and plan baseline</b><span>Sponsor baseline decision</span></div>
+      <div class="ms now"><time>OCT 7, 2026 &middot; WE ARE HERE</time><b>Milestone Check 1 &mdash; system definition and requirements baseline</b><span>SoI, OpsCon, needs and requirements, walking skeleton linked to the model</span></div>
+      <div class="ms"><time>NOV 13, 2026</time><b>Discovery and requirements complete</b><span>Reviewed needs and priorities</span></div>
+      <div class="ms"><time>DEC 18, 2026</time><b>Experience and architecture baseline</b><span>Reviewed prototype, methods and privacy approach</span></div>
+      <div class="ms"><time>MAR 19, 2027</time><b>Feature-complete MVP</b><span>Core functional review</span></div>
+      <div class="ms"><time>APR 30 &ndash; JUN 30, 2027</time><b>Pilot readiness, pilot, launch decision</b><span>Eight-week pilot; schedule overlap to be resolved</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="docs">
+  <div class="wrap">
+    <div class="kicker">Project documents</div>
+    <h2>Everything is in the repository.</h2>
+    <div class="grid g3" id="docsGrid"></div>
+  </div>
+</section>
+
+<section class="alt" id="team">
+  <div class="wrap">
+    <div class="kicker">Team 6</div>
+    <h2>Who built it.</h2>
+    <div class="grid g3" id="teamGrid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))"></div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div><b>EcoCommute</b> &mdash; SYSEN 5151 Foundations of Systems Engineering, Cornell University, Fall 2026.</div>
+    <div>Emission values on this page are placeholders for the walking skeleton, not reviewed factors. Savings are estimates, not verified avoided emissions.</div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var REPO="https://github.com/sysen5151-fall2026/TEAM-6";
+  var BLOB=REPO+"/blob/main/";
+  function $(id){return document.getElementById(id)}
+  function el(tag,attrs,html){var e=document.createElement(tag);for(var k in attrs||{})e.setAttribute(k,attrs[k]);if(html!=null)e.innerHTML=html;return e}
+
+  /* theme */
+  var root=document.documentElement;
+  try{var t=localStorage.getItem("theme");if(t)root.setAttribute("data-theme",t)}catch(e){}
+  $("theme").addEventListener("click",function(){
+    var cur=root.getAttribute("data-theme");
+    if(!cur){cur=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}
+    var next=cur==="dark"?"light":"dark";root.setAttribute("data-theme",next);
+    try{localStorage.setItem("theme",next)}catch(e){}
+  });
+
+  /* ---------- demo: mirrors src/c2_application_service/service.py ---------- */
+  var FACTORS={drive:192,carpool:96,bus:105,bike:0,walk:0};            // PLACEHOLDER g CO2e/km
+  var NAMES={drive:"Drive alone",carpool:"Carpool",bus:"Bus",bike:"Bike",walk:"Walk"};
+  var LOWER=["walk","bike"], SHORT_KM=3;
+  function pyRound(x){var f=Math.floor(x),d=x-f;if(Math.abs(d-0.5)<1e-9)return f%2===0?f:f+1;return Math.round(x)}  // matches Python round()
+  function fmt(n){return (Math.round(n*10)/10).toString()}
+  function run(){
+    var mode=$("mode").value, km=parseFloat($("dist").value), rain=parseFloat(document.querySelector("input[name=wx]:checked").value);
+    var nf={walk:$("nfWalk").checked,bike:$("nfBike").checked};
+    $("distv").textContent=fmt(km)+" km";
+    var est=pyRound(km*FACTORS[mode]), base=pyRound(km*FACTORS.drive), diff=base-est;
+    var alt="",reason="";
+    if(LOWER.indexOf(mode)>=0){reason="You already used a lowest-emission mode."}
+    else if(km>=SHORT_KM||rain>0){reason="Distance or forecast weather does not suit walking or cycling."}
+    else{
+      for(var i=0;i<LOWER.length;i++){if(!nf[LOWER[i]]){alt=LOWER[i];break}}
+      reason=alt?("The trip is "+fmt(km)+" km (under "+SHORT_KM+" km) and the forecast shows "+fmt(rain)+" mm of rain."):"Walking and cycling are marked not feasible in your settings."
+    }
+    var max=Math.max(base,est,1);
+    $("bars").innerHTML=
+      bar("This trip ("+NAMES[mode]+")",est,max,"var(--leaf)")+bar("Always-drive baseline",base,max,"var(--clay)");
+    $("diffTitle").textContent=(diff>0?"About "+diff+" g less than driving":(diff===0?"Same as driving":"About "+(-diff)+" g more than driving"));
+    $("diffText").textContent=" — an estimated difference, not verified avoided emissions.";
+    $("altTitle").textContent=alt?("Suggested alternative: "+NAMES[alt]):"No alternative suggested";
+    $("altText").textContent=reason;
+    $("altBox").className="callout "+(alt?"good":"neutral");
+    $("explain").textContent="Your trip is estimated at "+est+" g CO2e; driving the same distance would be "+base+" g. The difference is an estimate, not verified avoided emissions."+(alt?" Suggestion: "+alt+". "+reason:" "+reason);
+    $("factorLine").textContent="Factor: PLACEHOLDER — not a reviewed factor (version stub-0) · distance convention: one-way distance per logged trip.";
+  }
+  function bar(label,val,max,color){
+    return '<div class="bar"><span>'+label+'</span><div class="track"><div class="fill" style="width:'+Math.max(2,val/max*100)+'%;background:'+color+'"></div></div><b>'+val+' g</b></div>';
+  }
+  ["mode","dist","nfWalk","nfBike"].forEach(function(id){$(id).addEventListener("input",run)});
+  document.querySelectorAll("input[name=wx]").forEach(function(r){r.addEventListener("change",run)});
+  run();
+
+  /* ---------- UC.1 flow ---------- */
+  var PERF={"X.1":["Commuter (X.1)","var(--violet)"],"C.1":["Web Front End (C.1)","var(--leaf)"],"C.2":["Application Service (C.2)","var(--forest)"],"C.3":["Data Adapter (C.3)","var(--sky)"],"X.3":["Open-Meteo (X.3)","var(--sun)"],"C.4":["Explanation Model (C.4)","var(--clay)"]};
+  var STEPS=[
+    ["UC.1.1","Open Commute Entry",["X.1"],"x1_commuter_sim.open_commute_entry",["2.1.1"],"The commuter opens the entry screen."],
+    ["UC.1.2","Present Entry Fields",["C.1"],"c1_web_front_end.present_entry_fields",["2.1.1","2.1.9","2.5.3"],"The system presents mode, distance, date, occupancy and feasibility fields."],
+    ["UC.1.3","Enter Trip Details",["X.1"],"x1_commuter_sim.enter_trip_details",["2.1.1","2.5.3"],"The commuter fills the fields."],
+    ["UC.1.4","Submit Commute",["X.1"],"c1_web_front_end.submit_commute_request",["2.1.1"],"The commuter submits; the request goes to the application service."],
+    ["UC.1.5","Accept Entry and Retrieve Factor",["C.2","C.3"],"c2_application_service.process_commute, c3_data_adapter.retrieve_factor",["2.4.1"],"The entry is accepted and a stored emission factor (source, units, version) is retrieved."],
+    ["UC.1.6","Request Weather",["C.3"],"c3_data_adapter.request_weather",["2.1.4"],"A weather query for the coarse location and time leaves the boundary."],
+    ["UC.1.7","Return Weather Forecast",["X.3"],"x3_open_meteo_stub.return_weather_forecast",["2.1.4"],"Open-Meteo returns the forecast and its timestamp (stubbed: fixed dry forecast)."],
+    ["UC.1.8","Estimate Emissions and Store Trip",["C.2","C.3"],"c2_application_service.estimate_emissions, c3_data_adapter.store_trip",["2.1.2","2.4.2"],"Distance × factor gives the trip CO₂e, and the trip is stored."],
+    ["UC.1.9","Update Trends and Compare Baseline",["C.2","C.3"],"c2_application_service.compare_baseline, c3_data_adapter.update_trends",["2.1.2","2.1.6","2.4.3"],"Weekly and monthly totals update; the trip is compared with always driving the same distance."],
+    ["UC.1.10","Evaluate Feasible Alternatives",["C.2"],"c2_application_service.evaluate_alternatives",["2.1.4","2.1.5"],"Transparent rules use distance, weather and the commuter’s settings; modes marked not feasible are never suggested."],
+    ["UC.1.11","Display Commute Result",["C.1","C.4"],"c1_web_front_end.display_commute_result, c4_explanation_model.explain_result",["2.1.2","2.1.3","2.1.9","2.1.10","2.4.4"],"Impact, trend, baseline difference, method disclosure and a facts-only explanation are shown."],
+    ["UC.1.12","Review Result",["X.1"],"x1_commuter_sim.review_result",["2.1.2"],"The commuter reviews the result and keeps the choice of future travel mode."]
+  ];
+  var lg=$("legend");
+  Object.keys(PERF).forEach(function(k){lg.appendChild(el("span",null,'<i class="dot" style="background:'+PERF[k][1]+'"></i>'+PERF[k][0]))});
+  var fs=$("flowSteps");
+  STEPS.forEach(function(s,i){
+    var b=el("button",{"class":"step","aria-pressed":"false","type":"button","aria-label":"Step "+(i+1)+": "+s[1]},'<i style="background:'+PERF[s[2][0]][1]+'"></i><b>'+(i+1)+'</b><small>'+s[0]+'</small>');
+    b.addEventListener("click",function(){show(i)});fs.appendChild(b);
+  });
+  function show(i){
+    var s=STEPS[i];
+    Array.prototype.forEach.call(fs.children,function(c,j){c.setAttribute("aria-pressed",j===i?"true":"false")});
+    var who=s[2].map(function(p){return PERF[p][0]}).join(" + ");
+    $("stepDetail").innerHTML='<h4>'+s[0]+' · '+s[1]+'</h4><div class="fine">Performed by '+who+'</div><p style="margin:8px 0">'+s[5]+'</p><div class="fine">Code: <code>'+s[3].replace(/, /g,'</code> <code>')+'</code></div><div class="reqs">'+s[4].map(function(r){return '<span>SRD '+r+'</span>'}).join("")+'</div>';
+  }
+  show(10);
+
+  /* ---------- traceability ---------- */
+  var COL=["var(--violet)","var(--sky)","var(--forest)","var(--sun)","var(--leaf)","var(--clay)"];
+  var LBL=["Stakeholder","Need","Requirement","Model action","Code","Test"];
+  var CHAINS=[
+    {t:"Get advice I can use",c:["SH.1 Commuters","1.1.4 “I need suggestions for a greener way to travel that fit the weather and my own limits, so I get advice I can actually follow.”","2.1.4 one alternative with a stated reason; 2.1.5 never a mode marked not feasible","UC.1.6, UC.1.7, UC.1.10","c2_application_service.evaluate_alternatives","test_short_dry_trip_gets_walk_alternative, test_infeasible_mode_is_never_recommended, test_rain_blocks_walk_bike"]},
+    {t:"Log my commute quickly",c:["SH.1 Commuters","1.1.1 “I need to record my daily commute in a few seconds, because I will not keep using something that adds work to my morning.”","2.1.1 submit an entry in 30 s or less for at least 80% of timed tasks","UC.1.1 – UC.1.4","present_entry_fields, enter_trip_details, submit_commute_request","End-to-end run (timing needs a real UI)"]},
+    {t:"Understand my result",c:["SH.1 Commuters","1.1.8 “I need a short plain-language explanation of my trip result and the suggested alternative, so I understand what the numbers mean.”","2.1.10 explanation states only facts from the calculated result","UC.1.11 (performed by C.1 and C.4)","c4_explanation_model.explain_result","test_explanation_states_only_calculated_facts"]},
+    {t:"Compare fairly",c:["SH.4 Method Reviewers","1.4.2 “I need the always-drive comparison to use the same distance and a stated vehicle factor and occupancy, so the comparison is fair.”","2.4.3 baseline from distance, declared factor and occupancy; 2.4.4 label as estimate","UC.1.9, UC.1.11","c2_application_service.compare_baseline","test_baseline_difference_for_greener_mode"]}
+  ];
+  var tabs=$("tabs"),chain=$("chain");
+  CHAINS.forEach(function(ch,i){
+    var b=el("button",{"class":"tab",role:"tab","aria-selected":"false",type:"button"},ch.t);
+    b.addEventListener("click",function(){draw(i)});tabs.appendChild(b);
+  });
+  function draw(i){
+    Array.prototype.forEach.call(tabs.children,function(c,j){c.setAttribute("aria-selected",j===i?"true":"false")});
+    chain.innerHTML="";
+    CHAINS[i].c.forEach(function(txt,k){
+      chain.appendChild(el("div",{"class":"link",style:"border-top:4px solid "+COL[k]},'<small style="color:'+COL[k]+'">'+LBL[k]+'</small><p>'+txt+'</p>'));
+    });
+  }
+  draw(0);
+
+  /* ---------- stakeholders ---------- */
+  var SH=[
+    ["SH.1","Commuters","Primary users","Fast, private, understandable feedback and advice that fits real constraints.","var(--violet)"],
+    ["SH.2","Pilot sponsor & administrator","Buyer","Participation evidence and safe aggregates, never individual trips.","var(--sky)"],
+    ["SH.3","Company sponsor","Acquirer","Cost within $750,000, pilot evidence for the June 2027 decision, scope control.","var(--forest)"],
+    ["SH.4","Method reviewers","Method credibility","Traceable factors, a fair baseline, honest labelling of estimates.","var(--leaf)"],
+    ["SH.5","Assurance reviewers","Privacy, security, accessibility","Minimal data, recorded consent, accessibility checked before the pilot.","var(--sun)"],
+    ["SH.6","Engineering & support","Build and support","Clear interfaces and maintainability (system requirements, next phase).","var(--muted)"],
+    ["SH.7","Enabling providers","Weather, factors, hosting","Compliant use and dependency ownership (interface requirements, next phase).","var(--muted)"]
+  ];
+  SH.forEach(function(s){$("stakeGrid").appendChild(el("div",{"class":"card",style:"border-top:4px solid "+s[4]},'<div class="fine" style="font-weight:800;color:'+s[4]+'">'+s[0]+'</div><h3>'+s[1]+'</h3><div class="fine">'+s[2]+'</div><p style="margin-top:8px">'+s[3]+'</p>'))});
+
+  /* ---------- docs ---------- */
+  var DOCS=[
+    ["README","Operational concept, SoI and how to run",BLOB+"README.md"],
+    ["SPEC.md","28 stakeholder requirements with acceptance criteria",BLOB+"SPEC.md"],
+    ["Context","Boundary, interface inventory, components",BLOB+"docs/context.md"],
+    ["Walking skeleton","UC.1 call order, real vs stub",BLOB+"docs/walking-skeleton.md"],
+    ["Traceability","Need → requirement → action → code → test",BLOB+"docs/traceability.md"],
+    ["Innoslate model","Exported MBSE model (XML) with C.1–C.4",REPO+"/tree/main/docs/model"],
+    ["Prompt log","GenAI provenance record",BLOB+"docs/prompt-log.md"],
+    ["Environment & ADR","Toolchain and the Python decision",BLOB+"docs/adr/0001-initial-toolchain.md"],
+    ["Source code","src/, tests/",REPO+"/tree/main/src"]
+  ];
+  DOCS.forEach(function(d){$("docsGrid").appendChild(el("a",{"class":"card",href:d[2],target:"_blank",rel:"noopener",style:"text-decoration:none;color:inherit"},'<h3 style="margin-top:0">'+d[0]+' <span aria-hidden="true">&#8599;</span></h3><p>'+d[1]+'</p>'))});
+
+  /* ---------- team ---------- */
+  var TEAM=[
+    ["Luyu Chen","Project Manager & Integration Lead","LC","var(--forest)"],
+    ["Mingjie Fang","Quality, Risk & Documentation Lead","MF","var(--sky)"],
+    ["Karen Li","Product & Stakeholder Lead","KL","var(--violet)"],
+    ["Yinping Yin","Sustainability Data & Analysis Lead","YY","var(--leaf)"],
+    ["Yiyang Zou","Technical Architecture Lead","YZ","var(--clay)"]
+  ];
+  TEAM.forEach(function(p){$("teamGrid").appendChild(el("div",{"class":"card person"},'<div class="avatar" style="background:'+p[3]+'">'+p[2]+'</div><h3>'+p[0]+'</h3><p>'+p[1]+'</p>'))});
+})();
+</script>
+</body>
+</html>

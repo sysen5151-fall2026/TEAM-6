@@ -4,6 +4,8 @@ Status: **draft, derived from the approved Stakeholder Requirements Document (SR
 
 How to read a section: **Statement** = SRD text; **From need** = SND ID (and BMA need N-number in the report); **Acceptance criterion** = MOE target + validation criteria + method from SRD Tables 11-12; **Satisfied by (model)** = the `satisfies` relationships in the Innoslate export `EcoCommute 10.4.xml`; **Skeleton status** = what the Chapter 2 walking skeleton exercises (see [docs/traceability.md](docs/traceability.md)).
 
+Requirement 2.1.10 and its need 1.1.8 (plain-language explanation, performed by C.4) were added after the Stakeholder Needs report and exist in the Innoslate model and here; the report still lists 27 requirements and 20 needs.
+
 Not yet in this SPEC: system-level requirements for the SH.6/SH.7 needs (BMA N11), which the report defers to Architecture Definition; those will be added here as 3.x.x with a trace to the stakeholder requirements.
 
 Open values needing sponsor confirmation: 3-second display time (2.1.2); minimum aggregate group size 5 (2.2.3).
@@ -91,6 +93,15 @@ Open values needing sponsor confirmation: 3-second display time (2.1.2); minimum
 - **Acceptance criterion:** MOE - Number of unresolved WCAG 2.2 Level AA failures in the entry and result views (target 0). Validation - Accessibility audit of both views plus keyboard and assistive-technology tasks; pass if no failures remain open. Method: Inspection.
 - **Satisfied by (model):** `UC.1.11`, `UC.1.2`
 - **Skeleton status:** Not in skeleton - No web UI yet.
+
+### 2.1.10 - explain result from calculated facts
+
+- **Statement:** The EcoCommute system shall display with each trip result a plain-language explanation that states only facts contained in the calculated result: the estimated CO2e, the baseline difference, the factor source and version, and the recommendation reason.
+- **Rationale:** Commuters read a result more easily in words, but unsupported generated text would reduce trust and could overclaim savings (BMA risk R8); the explanation may only restate calculated, rule-approved facts and must not calculate emissions, invent weather or override eligibility rules. Added after the Stakeholder Needs report; exists in the Innoslate model and SPEC.md.
+- **From need:** 1.1.8
+- **Acceptance criterion:** MOE - Number of sampled explanations that contain a figure, weather condition or travel mode not present in the calculated result (target 0). Validation - Inspect a random sample of 50 displayed explanations in the pilot build, comparing each field by field with the calculated result; pass if none contains an unsupported figure, condition or mode. Method: Inspection.
+- **Satisfied by (model):** `UC.1.11`
+- **Skeleton status:** Exercised - C.4 `explain_result` receives only calculated values and returns a template sentence (stub; no language model). Test `test_explanation_states_only_calculated_facts`.
 
 
 ## Group 2.2

@@ -41,7 +41,7 @@ def process_commute(request: CommuteRequest) -> CommuteImpactResult:
         trend=trend,
         alternative_mode=alt_mode,
         alternative_reason=alt_reason,
-        explanation=explain_result(),
+        explanation=explain_result(estimated_g, baseline_g, alt_mode, alt_reason),  # C.4, SRD 2.1.10
     )
 
 

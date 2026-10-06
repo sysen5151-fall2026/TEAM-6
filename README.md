@@ -19,7 +19,8 @@ The nominal scenario assumes an existing account and consent, valid supported in
 
 | Path | What it is |
 |---|---|
-| [SPEC.md](SPEC.md) | Stakeholder requirements (27, from the SRD) with acceptance criteria and model links |
+| [docs/index.html](docs/index.html) | Project home page (open in a browser; works on GitHub Pages from `/docs`) |
+| [SPEC.md](SPEC.md) | Stakeholder requirements (28: 27 from the SRD plus 2.1.10) with acceptance criteria and model links |
 | [docs/context.md](docs/context.md) | Boundary, interface inventory, component-to-directory map |
 | [docs/walking-skeleton.md](docs/walking-skeleton.md) | UC.1 call order; what is real vs stubbed |
 | [docs/traceability.md](docs/traceability.md) | Need -> requirement -> UC.1 action -> code -> test |
