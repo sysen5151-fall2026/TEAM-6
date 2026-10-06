@@ -16,7 +16,7 @@ One user action traverses the interface, service, data/weather and decision part
 | 8 | UC.1.8 Estimate Emissions and Store Trip | C.0 (C.2, C.3) | `c2...estimate_emissions`, `c3...store_trip` |
 | 9 | UC.1.9 Update Trends and Compare Baseline | C.0 (C.2, C.3) | `c2...compare_baseline`, `c3...update_trends` |
 | 10 | UC.1.10 Evaluate Feasible Alternatives | C.0 (C.2) | `c2...evaluate_alternatives` |
-| 11 | UC.1.11 Display Commute Result | C.0 (C.1, C.4) | `c4...explain_result`, `c1...display_commute_result` -> **Commute Impact Result** |
+| 11 | UC.1.11 Display Commute Result | C.1 and C.4 | `c4...explain_result`, `c1...display_commute_result` -> **Commute Impact Result** |
 | 12 | UC.1.12 Review Result | X.1 Commuter | `x1_commuter_sim.review_result` |
 
 Every function carries `@realizes("UC.1.x")` (see `src/model_trace.py`); `tests/test_model_linkage.py` fails if a UC.1 action has no code or if code claims an action that is not in the model.
@@ -29,7 +29,7 @@ Every function carries `@realizes("UC.1.x")` (see `src/model_trace.py`); `tests/
 | C.1 Web Front End | Field list, result content | No HTML/web layer; plain text output | Walking skeleton, stubs acceptable |
 | C.2 Application Service | Distance x factor, always-drive baseline, rule `<3 km and no rain -> walk/bike` with infeasible-mode exclusion | Occupancy not handled; rule threshold still "to validate" (BMA 7.8) | Logic is deterministic and reviewed, so it is real |
 | C.3 Data Adapter | - | Placeholder factor table (not reviewed), in-memory trip list, trends without date windows | No factor review or database yet |
-| C.4 Explanation Model | - | Hard-coded sentence | BMA 7.9: no live model call at this stage |
+| C.4 Explanation Model | Contract: receives only calculated values (needs 1.1.8 / req 2.1.10) | Sentence template instead of a language model | BMA 7.9: no live model call at this stage |
 | X.3 Open-Meteo | - | Fixed dry forecast, no HTTP | No real source access yet |
 
 ## Deliberately excluded (BMA Section 7.9)

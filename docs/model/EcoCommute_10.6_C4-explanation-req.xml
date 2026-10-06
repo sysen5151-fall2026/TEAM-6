@@ -6961,6 +6961,58 @@ Source needs: 1.1.7, 1.5.3 (BMA N8)</value>
             <modifiedOn>2026-10-04T06:36:53.058Z</modifiedOn>
             <globalId>I_N46P1CNWV6PC_4G41RK2ZZ58</globalId>
         </entity>
+        <entity id="248806">
+            <name>explain result from calculated facts</name>
+            <description>The EcoCommute system shall display with each trip result a plain-language explanation that states only facts contained in the calculated result: the estimated CO2e, the baseline difference, the factor source and version, and the recommendation reason.</description>
+            <schemaClassId>I_5W7NRWTPX4K51_806APRA920YT8</schemaClassId>
+            <number>2.1.10</number>
+            <stringAttribute schemaPropertyId="I_1EPRXXNR1CG67_8XJ4J4V3N7722">
+                <value>Draft</value>
+            </stringAttribute>
+            <qualityAttribute schemaPropertyId="I_BN8Y6Z6W4HS5_8BGFTGMKXT6ZN">
+                <booleanValue>true</booleanValue>
+            </qualityAttribute>
+            <qualityAttribute schemaPropertyId="I_EET66Y6HTAKYM_AT0G54XCFHNQC">
+                <booleanValue>true</booleanValue>
+            </qualityAttribute>
+            <qualityAttribute schemaPropertyId="I_5Q6HVFSRJWH7S_A07GH9KT7MPMA">
+                <booleanValue>true</booleanValue>
+            </qualityAttribute>
+            <qualityAttribute schemaPropertyId="I_EHRR2S5AYCK52_BCHHJK40A1E68">
+                <booleanValue>true</booleanValue>
+            </qualityAttribute>
+            <qualityAttribute schemaPropertyId="I_2ZN5YC1VRGKN6_9AB7190TWNNV9">
+                <booleanValue>true</booleanValue>
+            </qualityAttribute>
+            <qualityAttribute schemaPropertyId="I_BHSSBTCP4JHSF_AG6W6REKKHVEV">
+                <booleanValue>true</booleanValue>
+            </qualityAttribute>
+            <qualityAttribute schemaPropertyId="I_EYRTN4KJVWJAX_9K391BRT89XKM">
+                <booleanValue>true</booleanValue>
+            </qualityAttribute>
+            <stringAttribute schemaPropertyId="I_A0A1JA8828HXR_BNPNE83S7ACG4">
+                <value>Rationale: Commuters read a result more easily in words, but unsupported generated text would reduce trust and could overclaim savings (BMA risk R8); the explanation may only restate calculated, rule-approved facts and must not calculate emissions, invent weather or override eligibility rules.
+MOE: Number of sampled explanations that contain a figure, weather condition or travel mode not present in the calculated result (target 0)
+MOE selection: A zero-defect count of unsupported statements directly shows whether the explanation stays inside the calculated result.
+Validation: Inspect a random sample of 50 displayed explanations in the pilot build, comparing each field by field with the calculated result; pass if none contains an unsupported figure, condition or mode.
+Verification method: Inspection
+Source needs: 1.1.8 (BMA N3)</value>
+            </stringAttribute>
+            <qualityAttribute schemaPropertyId="I_F6QPN5KYFEJW3_8HB2WHY801K76">
+                <booleanValue>true</booleanValue>
+            </qualityAttribute>
+            <qualityAttribute schemaPropertyId="I_286XDAGNBTKCD_BRFSN2ARXKZ0J">
+                <booleanValue>true</booleanValue>
+            </qualityAttribute>
+            <labelId>I_FXS74NHVAAKG6_AEWCNE0D5PF39</labelId>
+            <simulationData>
+                <type>SERIAL</type>
+            </simulationData>
+            <linkLabelId>0</linkLabelId>
+            <createdOn>2026-10-04T06:02:42.089Z</createdOn>
+            <modifiedOn>2026-10-04T06:29:59.541Z</modifiedOn>
+            <globalId>I_0VNNUXB0S0JP9_7KM8O5GKCMJ8</globalId>
+        </entity>
         <entity id="248720">
             <name>stay within the baseline cost</name>
             <description>The EcoCommute system shall cost no more than $750,000 to develop and deploy.</description>
@@ -8320,6 +8372,19 @@ Source needs: 1.5.3 (BMA N8)</value>
             <createdOn>2026-10-04T06:02:42.088Z</createdOn>
             <modifiedOn>2026-10-04T06:29:59.540Z</modifiedOn>
             <globalId>I_D2CQPHJYYADFB_C97KK6SVFBB</globalId>
+        </entity>
+        <entity id="248805">
+            <name>Understand my result in plain words</name>
+            <description>I need a short plain-language explanation of my trip result and the suggested alternative, so I understand what the numbers mean and can decide for myself.</description>
+            <schemaClassId>I_CQWQWMZXXMJ5K_9X4ZH9682HZY1</schemaClassId>
+            <number>1.1.8</number>
+            <simulationData>
+                <type>SERIAL</type>
+            </simulationData>
+            <linkLabelId>0</linkLabelId>
+            <createdOn>2026-10-04T06:02:42.088Z</createdOn>
+            <modifiedOn>2026-10-04T06:29:59.540Z</modifiedOn>
+            <globalId>I_8FF8R9WYRUZ19_JNA0V5MQSKSP</globalId>
         </entity>
         <entity id="248702">
             <name>Verify accessibility before the pilot</name>
@@ -11932,6 +11997,66 @@ Source needs: 1.1.5 (BMA N2)</value>
             <sourceId>I_3MYR1VZ30RKQ5_9P2Z4YGC6123H</sourceId>
             <schemaRelationId>I_2AF4KSGVXGKA6_B0684S6XW3JHG</schemaRelationId>
             <targetId>I_X1OBG6SFTBKDR_2IBPPVXBE1YK</targetId>
+        </relationship>
+        <relationship>
+            <sourceId>I_73S3SZZMHM48H_YH4VZQXS0XE</sourceId>
+            <schemaRelationId>I_DJN4VJZVRTK2E_AGMBRP5GV32RA</schemaRelationId>
+            <targetId>I_8FF8R9WYRUZ19_JNA0V5MQSKSP</targetId>
+        </relationship>
+        <relationship>
+            <sourceId>I_8FF8R9WYRUZ19_JNA0V5MQSKSP</sourceId>
+            <schemaRelationId>I_5VEV7YG2PYKGD_81N5PZXMSGPSW</schemaRelationId>
+            <targetId>I_73S3SZZMHM48H_YH4VZQXS0XE</targetId>
+        </relationship>
+        <relationship>
+            <sourceId>I_8FF8R9WYRUZ19_JNA0V5MQSKSP</sourceId>
+            <schemaRelationId>I_8CC8WV6P3MH3N_8H045NA2WDCCV</schemaRelationId>
+            <targetId>I_WHCSVAGKA3JV_155YSVEEMNS</targetId>
+        </relationship>
+        <relationship>
+            <sourceId>I_WHCSVAGKA3JV_155YSVEEMNS</sourceId>
+            <schemaRelationId>I_9ZF7VAADMEKA4_ATTA1F0DKRTCG</schemaRelationId>
+            <targetId>I_8FF8R9WYRUZ19_JNA0V5MQSKSP</targetId>
+        </relationship>
+        <relationship>
+            <sourceId>I_XSSXAH8VV05X_Y2ZD95NRQH83</sourceId>
+            <schemaRelationId>I_DJN4VJZVRTK2E_AGMBRP5GV32RA</schemaRelationId>
+            <targetId>I_0VNNUXB0S0JP9_7KM8O5GKCMJ8</targetId>
+        </relationship>
+        <relationship>
+            <sourceId>I_0VNNUXB0S0JP9_7KM8O5GKCMJ8</sourceId>
+            <schemaRelationId>I_5VEV7YG2PYKGD_81N5PZXMSGPSW</schemaRelationId>
+            <targetId>I_XSSXAH8VV05X_Y2ZD95NRQH83</targetId>
+        </relationship>
+        <relationship>
+            <sourceId>I_8FF8R9WYRUZ19_JNA0V5MQSKSP</sourceId>
+            <schemaRelationId>I_8CC8WV6P3MH3N_8H045NA2WDCCV</schemaRelationId>
+            <targetId>I_0VNNUXB0S0JP9_7KM8O5GKCMJ8</targetId>
+        </relationship>
+        <relationship>
+            <sourceId>I_0VNNUXB0S0JP9_7KM8O5GKCMJ8</sourceId>
+            <schemaRelationId>I_9ZF7VAADMEKA4_ATTA1F0DKRTCG</schemaRelationId>
+            <targetId>I_8FF8R9WYRUZ19_JNA0V5MQSKSP</targetId>
+        </relationship>
+        <relationship>
+            <sourceId>I_3MYR1VZ30RKQ5_9P2Z4YGC6123H</sourceId>
+            <schemaRelationId>I_D63NFCHSMGGGZ_B4YNPMT53BZC7</schemaRelationId>
+            <targetId>I_0VNNUXB0S0JP9_7KM8O5GKCMJ8</targetId>
+        </relationship>
+        <relationship>
+            <sourceId>I_0VNNUXB0S0JP9_7KM8O5GKCMJ8</sourceId>
+            <schemaRelationId>I_8BTHQ4S14MG6A_AJA5G815QWD10</schemaRelationId>
+            <targetId>I_3MYR1VZ30RKQ5_9P2Z4YGC6123H</targetId>
+        </relationship>
+        <relationship>
+            <sourceId>I_97D664AWK3RXC_ONOAICF979VJ</sourceId>
+            <schemaRelationId>I_D4YB48GP4AKT4_87HXF5J2JNX89</schemaRelationId>
+            <targetId>I_3MYR1VZ30RKQ5_9P2Z4YGC6123H</targetId>
+        </relationship>
+        <relationship>
+            <sourceId>I_3MYR1VZ30RKQ5_9P2Z4YGC6123H</sourceId>
+            <schemaRelationId>I_2AF4KSGVXGKA6_B0684S6XW3JHG</schemaRelationId>
+            <targetId>I_97D664AWK3RXC_ONOAICF979VJ</targetId>
         </relationship>
     </database>
     <preferences>

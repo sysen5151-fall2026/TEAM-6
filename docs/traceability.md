@@ -9,6 +9,8 @@ SH.1 Commuters -> need **1.1.4 Get advice I can use** ("I need suggestions for a
 
 A second chain: need **1.1.1 Log my commute quickly** -> **2.1.1** (30 s or less for 80% of timed tasks) -> UC.1.1-UC.1.4 -> `open_commute_entry`, `present_entry_fields`, `enter_trip_details`, `submit_commute_request` (timing not measurable until there is a real UI).
 
+A third chain (added in model 10.6): SH.1 -> need **1.1.8 Understand my result in plain words** -> requirement **2.1.10** (explanation states only facts from the calculated result) -> action **UC.1.11** (performed by C.1 and C.4) -> `c4_explanation_model.explain_result` -> test `test_explanation_states_only_calculated_facts`.
+
 ## UC.1 action to code
 
 | Action | Performer | Code | Requirements (model) | Test |
@@ -23,7 +25,7 @@ A second chain: need **1.1.1 Log my commute quickly** -> **2.1.1** (30 s or less
 | UC.1.8 Estimate Emissions and Store Trip | C.0 | `c2...estimate_emissions`, `c3...store_trip` | 2.1.2, 2.4.2 | `test_primary_path_runs_and_returns_result` |
 | UC.1.9 Update Trends and Compare Baseline | C.0 | `c2...compare_baseline`, `c3...update_trends` | 2.1.2, 2.1.6, 2.4.3 | `test_baseline_difference_for_greener_mode` |
 | UC.1.10 Evaluate Feasible Alternatives | C.0 | `c2...evaluate_alternatives` | 2.1.4, 2.1.5 | `test_short_dry_trip_gets_walk_alternative`, `test_infeasible_mode_is_never_recommended`, `test_long_trip_gets_no_alternative` |
-| UC.1.11 Display Commute Result | C.0 | `c1...display_commute_result`, `c4...explain_result` | 2.1.2, 2.1.3, 2.1.9, 2.4.4 | `test_result_discloses_method_and_labels_estimate` |
+| UC.1.11 Display Commute Result | C.1, C.4 | `c1...display_commute_result`, `c4...explain_result` | 2.1.2, 2.1.3, 2.1.9, 2.1.10, 2.4.4 | `test_result_discloses_method_and_labels_estimate`, `test_explanation_states_only_calculated_facts` |
 | UC.1.12 Review Result | X.1 | `x1_commuter_sim.review_result` | 2.1.2 | end-to-end |
 
 `tests/test_model_linkage.py` enforces that all twelve UC.1 actions have code and that no code refers to an action that is not in the model.
@@ -36,10 +38,10 @@ Institutional (2.2.x: UC.2), operational and retirement (2.1.7, 2.1.8, 2.3.x, 2.
 
 | ID | Item | Action / owner |
 |---|---|---|
-| O-1 | `c4_explanation_model` (explanation text) has no stakeholder need or requirement. Closest are 1.1.2 / 1.1.3 / 2.1.3. | Decide: add a need + requirement for result explanation, or drop C.4 from the build. Product & model leads, before Milestone 2. |
+| O-1 | ~~C.4 had no need or requirement.~~ **Closed:** need 1.1.8 and requirement 2.1.10 added (SPEC.md, Innoslate model 10.6); C.4 performs UC.1.11. Remaining: the real language-model call is still a stub. | Later increment. |
 | O-2 | Emission factors are placeholders (`version stub-0`), so 2.4.1 is only partially met. | Method Reviewer supplies the reviewed factor table. |
 | O-3 | Occupancy is not handled (BMA 7.8 open item); the "under 3 km and no rain" rule threshold is unvalidated. | Method reviewer / product lead. |
 | O-4 | No web UI, so 2.1.1 timing, 2.1.9 (WCAG) and 2.5.3 cannot be tested yet. | Next increment. |
 | O-5 | Off-nominal paths (weather outage, invalid input) are neither modeled nor coded. | Add to model first, then code. |
 | O-6 | System requirements for SH.6/SH.7 needs (BMA N11) are deferred to Architecture Definition. | Add to SPEC as 3.x.x. |
-| O-7 | C.1-C.4 were missing from the Innoslate export (only C.0). Fixed in `docs/model/EcoCommute_10.5_C1-C4.xml`; import it. Innoslate Intelligence will now warn that C.4 performs no action (advisory) until O-1 is decided. | Yiyang Zou: import, re-run Intelligence, redraw context/hierarchy diagrams with C.1-C.4. |
+| O-7 | C.1-C.4 were missing from the Innoslate export (only C.0). Fixed in `docs/model/EcoCommute_10.6_C4-explanation-req.xml`; import it. | Yiyang Zou: import, re-run Intelligence, redraw context/hierarchy diagrams with C.1-C.4. |
