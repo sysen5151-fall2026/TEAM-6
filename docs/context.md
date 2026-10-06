@@ -35,4 +35,4 @@ Boundary directories use asset-based names (BMA Section 7.9).
 
 X.2, X.4 and X.5 do not take part in UC.1 and have no code yet.
 
-**Model gap:** in the current Innoslate export (`EcoCommute 10.4 (1).xml`) only C.0 exists; the internal assets C.1-C.4 planned in BMA Section 7.9 are not yet modeled, and UC.1 actions are performed by C.0. The C.1-C.4 split here is the implementation structure; add C.1-C.4 under C.0 in Innoslate (and re-point the UC.1 performers) so model and code agree. See docs/traceability.md, open item O-7.
+**Model update:** `docs/model/EcoCommute_10.5_C1-C4.xml` adds the internal assets C.1-C.4 under C.0 (decomposes / decomposed by) and re-points the UC.1 performers: UC.1.2 and UC.1.11 -> C.1; UC.1.5, UC.1.8, UC.1.9, UC.1.10 -> C.2; UC.1.6 -> C.3. C.4 is modeled but performs no action yet (see docs/traceability.md, open item O-1). UC.1.1, 1.3, 1.4, 1.12 stay with X.1; UC.1.7 stays with X.3; OP.1-OP.5 and UC.2 stay with C.0. Import this file into Innoslate so the model matches the code.

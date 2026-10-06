@@ -42,4 +42,4 @@ Institutional (2.2.x: UC.2), operational and retirement (2.1.7, 2.1.8, 2.3.x, 2.
 | O-4 | No web UI, so 2.1.1 timing, 2.1.9 (WCAG) and 2.5.3 cannot be tested yet. | Next increment. |
 | O-5 | Off-nominal paths (weather outage, invalid input) are neither modeled nor coded. | Add to model first, then code. |
 | O-6 | System requirements for SH.6/SH.7 needs (BMA N11) are deferred to Architecture Definition. | Add to SPEC as 3.x.x. |
-| O-7 | Innoslate export `EcoCommute 10.4 (1).xml` has no assets C.1-C.4 (only C.0), although the code and BMA 7.9 use them. | Add C.1-C.4 under C.0 in Innoslate and assign UC.1 performers. Yiyang Zou, before Milestone 2. |
+| O-7 | C.1-C.4 were missing from the Innoslate export (only C.0). Fixed in `docs/model/EcoCommute_10.5_C1-C4.xml`; import it. Innoslate Intelligence will now warn that C.4 performs no action (advisory) until O-1 is decided. | Yiyang Zou: import, re-run Intelligence, redraw context/hierarchy diagrams with C.1-C.4. |
