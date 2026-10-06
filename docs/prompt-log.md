@@ -42,6 +42,19 @@ Rule: every GenAI-assisted change is logged here with the tool, the (constrained
 | Not claimed | 10.6 has not been imported into Innoslate or run through Intelligence |
 | Human review | **Pending.** Reviewer and date: ____________ . |
 
+## Entry 004 - 2026-10-06 - Record the Innoslate import of model 10.6
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `docs/model-10-6-verified` |
+| Prompt (summary, originally Chinese) | The team imported 10.6 into Innoslate; here is the Intelligence screenshot; record it. |
+| Constraining sources | Team screenshot of the Innoslate Intelligence dashboard (116 entities, 34 requirements, no errors, 81% pass rate) |
+| What it produced | `docs/model/intelligence-10.6.webp`; import status updated in `docs/context.md` and `docs/traceability.md` (O-7 closed) |
+| Not claimed | Diagrams still show C.0 only until they are redrawn; no human has yet reviewed the 10.6 requirement wording |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
 ## Entry template
 
 | Field | Value |
