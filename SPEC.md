@@ -2,7 +2,7 @@
 
 Status: **draft, derived from the approved Stakeholder Requirements Document (SRD)** in the Team 6 report *Stakeholder Needs and Requirements Definition* (Oct 2026), not from a loose product idea. Each section keeps the SRD ID, so SPEC.md, the Innoslate model and the code share identifiers.
 
-How to read a section: **Statement** = SRD text; **From need** = SND ID (and BMA need N-number in the report); **Acceptance criterion** = MOE target + validation criteria + method from SRD Tables 11-12; **Satisfied by (model)** = the `satisfies` relationships in the Innoslate export `EcoCommute 10.4.xml`; **Skeleton status** = what the Chapter 2 walking skeleton exercises (see [docs/traceability.md](docs/traceability.md)).
+How to read a section: **Statement** = SRD text; **From need** = SND ID (and BMA need N-number in the report); **Acceptance criterion** = MOE target + validation criteria + method from SRD Tables 11-12; **Satisfied by (model)** = the `satisfies` relationships in the Innoslate export `docs/model/EcoCommute_10.6_C4-explanation-req.xml`; **Skeleton status** = what the Chapter 2 walking skeleton exercises (see [docs/traceability.md](docs/traceability.md)).
 
 Requirement 2.1.10 and its need 1.1.8 (plain-language explanation, performed by C.4) were added after the Stakeholder Needs report and exist in the Innoslate model and here; the report still lists 27 requirements and 20 needs.
 
