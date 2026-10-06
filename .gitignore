@@ -216,3 +216,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Course submission files (upload to Canvas, not to the repository)
+Milestone_1_Canvas_Submission*.docx
+~$*.docx

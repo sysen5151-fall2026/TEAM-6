@@ -42,16 +42,29 @@ class TestUC1EndToEnd(unittest.TestCase):
         self.assertIn("one-way distance per logged trip", out)
         self.assertIn("Estimated difference", out)
 
-    def test_explanation_states_only_calculated_facts(self):  # SRD 2.1.10
+    def test_explanation_contains_required_facts(self):  # SRD 2.1.10 (what it must state)
+        explanation = run_uc1(mode="bus", distance_km=10).splitlines()[-1]
+        for fact in (
+            "1050 g",  # estimated CO2e
+            "1920 g",  # always-drive baseline
+            "estimated difference of 870 g",  # baseline difference
+            "PLACEHOLDER - not a reviewed factor",  # factor source
+            "version stub-0",  # factor version
+            "Distance or forecast weather does not suit walking or cycling.",  # recommendation reason
+            "not verified avoided emissions",
+        ):
+            self.assertIn(fact, explanation)
+
+    def test_explanation_states_only_calculated_facts(self):  # SRD 2.1.10 (what it must not add)
         import re
 
         out = run_uc1(mode="bus", distance_km=10)
         explanation = out.splitlines()[-1]
-        shown = set(re.findall(r"\d+(?:\.\d+)?", "\n".join(out.splitlines()[:-1])))
-        self.assertTrue(re.findall(r"\d+(?:\.\d+)?", explanation))
-        for number in re.findall(r"\d+(?:\.\d+)?", explanation):
+        shown = set(re.findall(r"\d+(?:\.\d+)?", " ".join(out.splitlines()[:-1])))
+        numbers = re.findall(r"\d+(?:\.\d+)?", explanation)
+        self.assertTrue(numbers)
+        for number in numbers:
             self.assertIn(number, shown)  # every figure in the text is in the calculated result
-        self.assertIn("estimate, not verified avoided emissions", explanation)
 
     def test_baseline_difference_for_greener_mode(self):  # SRD 2.1.2, 2.4.3
         out = run_uc1(mode="bus", distance_km=10)

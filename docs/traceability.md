@@ -9,7 +9,7 @@ SH.1 Commuters -> need **1.1.4 Get advice I can use** ("I need suggestions for a
 
 A second chain: need **1.1.1 Log my commute quickly** -> **2.1.1** (30 s or less for 80% of timed tasks) -> UC.1.1-UC.1.4 -> `open_commute_entry`, `present_entry_fields`, `enter_trip_details`, `submit_commute_request` (timing not measurable until there is a real UI).
 
-A third chain (added in model 10.6): SH.1 -> need **1.1.8 Understand my result in plain words** -> requirement **2.1.10** (explanation states only facts from the calculated result) -> action **UC.1.11** (performed by C.1 and C.4) -> `c4_explanation_model.explain_result` -> test `test_explanation_states_only_calculated_facts`.
+A third chain (added in model 10.6): SH.1 -> need **1.1.8 Understand my result in plain words** -> requirement **2.1.10** (explanation states only facts from the calculated result) -> action **UC.1.11** (performed by C.1 and C.4) -> `c4_explanation_model.explain_result` -> test `test_explanation_contains_required_facts` (estimate, baseline, difference, factor source and version, reason all present) and `test_explanation_states_only_calculated_facts` (no figure that is not in the calculated result).
 
 ## UC.1 action to code
 
@@ -25,10 +25,10 @@ A third chain (added in model 10.6): SH.1 -> need **1.1.8 Understand my result i
 | UC.1.8 Estimate Emissions and Store Trip | C.0 | `c2...estimate_emissions`, `c3...store_trip` | 2.1.2, 2.4.2 | `test_primary_path_runs_and_returns_result` |
 | UC.1.9 Update Trends and Compare Baseline | C.0 | `c2...compare_baseline`, `c3...update_trends` | 2.1.2, 2.1.6, 2.4.3 | `test_baseline_difference_for_greener_mode` |
 | UC.1.10 Evaluate Feasible Alternatives | C.0 | `c2...evaluate_alternatives` | 2.1.4, 2.1.5 | `test_short_dry_trip_gets_walk_alternative`, `test_infeasible_mode_is_never_recommended`, `test_long_trip_gets_no_alternative` |
-| UC.1.11 Display Commute Result | C.1, C.4 | `c1...display_commute_result`, `c4...explain_result` | 2.1.2, 2.1.3, 2.1.9, 2.1.10, 2.4.4 | `test_result_discloses_method_and_labels_estimate`, `test_explanation_states_only_calculated_facts` |
+| UC.1.11 Display Commute Result | C.1, C.4 | `c1...display_commute_result`, `c4...explain_result` | 2.1.2, 2.1.3, 2.1.9, 2.1.10, 2.4.4 | `test_result_discloses_method_and_labels_estimate`, `test_explanation_contains_required_facts`, `test_explanation_states_only_calculated_facts` |
 | UC.1.12 Review Result | X.1 | `x1_commuter_sim.review_result` | 2.1.2 | end-to-end |
 
-`tests/test_model_linkage.py` enforces that all twelve UC.1 actions have code and that no code refers to an action that is not in the model.
+`tests/test_model_linkage.py` reads the UC.1.x actions from the exported model in `docs/model/` and checks that each has `@realizes`-tagged code and that no other UC.1 ID is tagged (it does not check performers or satisfies links).
 
 ## Requirements not exercised by the skeleton
 
@@ -44,4 +44,4 @@ Institutional (2.2.x: UC.2), operational and retirement (2.1.7, 2.1.8, 2.3.x, 2.
 | O-4 | No web UI, so 2.1.1 timing, 2.1.9 (WCAG) and 2.5.3 cannot be tested yet. | Next increment. |
 | O-5 | Off-nominal paths (weather outage, invalid input) are neither modeled nor coded. | Add to model first, then code. |
 | O-6 | System requirements for SH.6/SH.7 needs (BMA N11) are deferred to Architecture Definition. | Add to SPEC as 3.x.x. |
-| O-7 | C.1-C.4 were missing from the Innoslate export (only C.0). Fixed in `docs/model/EcoCommute_10.6_C4-explanation-req.xml`; import it. | Yiyang Zou: import, re-run Intelligence, redraw context/hierarchy diagrams with C.1-C.4. |
+| O-7 | C.1-C.4 were missing from the Innoslate export (only C.0). Fixed in the export; the C.1-C.4 version (10.5) was imported and Intelligence shows no errors (81% pass, warnings only; `docs/model/intelligence-10.5-c1-c4.webp`). The 10.6 export (adds 1.1.8 / 2.1.10) is not yet imported or re-run. | Yiyang Zou: import 10.6, re-run Intelligence, add a screenshot, redraw context/hierarchy diagrams with C.1-C.4. |
