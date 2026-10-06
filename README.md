@@ -1,5 +1,7 @@
 # EcoCommute (TEAM-6) - SYSEN 5151
 
+**Project home page: <https://sysen5151-fall2026.github.io/TEAM-6/>**
+
 ## Operational Concept (OpsCon)
 
 A student or employee opens EcoCommute to record a commute. The application presents fields for mode, distance, date, occupancy when applicable and user-selected feasibility settings. The commuter submits the trip. EcoCommute accepts the entry and retrieves an applicable reviewed emission factor from its internal store. It requests weather for the approved coarse location and trip time and receives the forecast. It estimates trip CO2e, stores the record, updates weekly and monthly trends and compares the trip with a stated always-drive baseline. It evaluates transparent rules using distance, weather and the commuter's settings and displays the impact, trend, baseline difference and explanation of a feasible alternative. The commuter reviews the result and retains the choice of future travel mode.
@@ -19,7 +21,7 @@ The nominal scenario assumes an existing account and consent, valid supported in
 
 | Path | What it is |
 |---|---|
-| [docs/index.html](docs/index.html) | Project home page (open in a browser; works on GitHub Pages from `/docs`) |
+| [Project home page](https://sysen5151-fall2026.github.io/TEAM-6/) ([source](docs/index.html)) | Live site with an interactive commute demo, UC.1 walkthrough and traceability explorer (GitHub Pages, served from `/docs`) |
 | [SPEC.md](SPEC.md) | Stakeholder requirements (28: 27 from the SRD plus 2.1.10) with acceptance criteria and model links |
 | [docs/context.md](docs/context.md) | Boundary, interface inventory, component-to-directory map |
 | [docs/walking-skeleton.md](docs/walking-skeleton.md) | UC.1 call order; what is real vs stubbed |
