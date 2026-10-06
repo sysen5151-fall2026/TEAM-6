@@ -19,7 +19,7 @@ One user action traverses the interface, service, data/weather and decision part
 | 11 | UC.1.11 Display Commute Result | C.1 and C.4 | `c4...explain_result`, `c1...display_commute_result` -> **Commute Impact Result** |
 | 12 | UC.1.12 Review Result | X.1 Commuter | `x1_commuter_sim.review_result` |
 
-Every function carries `@realizes("UC.1.x")` (see `src/model_trace.py`); `tests/test_model_linkage.py` reads the UC.1.x action numbers from the Innoslate export in `docs/model/` and checks that each has at least one `@realizes`-tagged implementation and that no other UC.1 action ID is tagged. It does not check performers or satisfies links.
+Each of the twelve modeled UC.1 actions has at least one `@realizes("UC.1.x")`-tagged implementation (see `src/model_trace.py`); helper code such as `reset_store` is untagged; `tests/test_model_linkage.py` reads the UC.1.x action numbers from the Innoslate export in `docs/model/` and checks that each has at least one `@realizes`-tagged implementation and that no other UC.1 action ID is tagged. It does not check performers or satisfies links.
 
 ## Real vs stubbed
 
