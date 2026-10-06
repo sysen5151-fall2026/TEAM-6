@@ -16,8 +16,8 @@
   --parch:#f7e7b8; --parchd:#e8cf8f; --parchl:#fff6d6;
   --ink:#3b2a1a; --muted:#7a6246;
   --red:#d9534f; --blue:#4a90d9; --yellow:#f4c542; --green:#4fae3a; --purple:#8e6bbf; --orange:#f08a24; --teal:#2fa39a;
-  --px:'Press Start 2P','Courier New',monospace;
-  --body:'VT323','Courier New',monospace;
+  --px:'Press Start 2P','Courier New',"Microsoft YaHei","PingFang SC","Noto Sans CJK SC","Source Han Sans SC",SimHei,monospace;
+  --body:'VT323','Courier New',"Microsoft YaHei","PingFang SC","Noto Sans CJK SC","Source Han Sans SC",SimHei,monospace;
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;overflow:hidden;background:#17250f;color:var(--ink);font-family:var(--body);font-size:25px;line-height:1.12;-webkit-font-smoothing:none}
@@ -95,7 +95,7 @@ b,strong{font-weight:400;color:#8a2f2b}
 /* nav */
 #nav{position:absolute;left:0;right:0;bottom:0;height:72px;z-index:20;background:
   repeating-linear-gradient(90deg,var(--wood) 0 118px,var(--woodd) 118px 122px);border-top:6px solid var(--woodd)}
-#road{position:absolute;left:212px;right:350px;top:20px;height:22px;background:var(--dirt);border:4px solid var(--dirtd);box-shadow:inset 0 4px 0 rgba(255,255,255,.2)}
+#road{position:absolute;left:212px;right:440px;top:20px;height:22px;background:var(--dirt);border:4px solid var(--dirtd);box-shadow:inset 0 4px 0 rgba(255,255,255,.2)}
 #road i{position:absolute;top:-6px;width:12px;height:12px;background:var(--parch);border:3px solid var(--woodd);cursor:pointer;transform:translateX(-6px)}
 #road i.done{background:var(--green)}
 #road i:hover{background:#fff}
@@ -113,6 +113,8 @@ b,strong{font-weight:400;color:#8a2f2b}
 #auto{right:176px;width:56px;padding:6px 4px 2px;font-size:10px}
 #auto.on{background:var(--yellow)}
 #short{right:242px;width:62px;padding:6px 4px 2px;font-size:10px}
+#lang{right:312px;width:104px;padding:6px 4px 2px;font-size:11px;white-space:nowrap}
+#lang .cur{color:#c43b2f;font-weight:400;text-decoration:underline}
 #short.on{background:var(--yellow)}
 #toast{position:absolute;left:50%;top:18px;transform:translateX(-50%);z-index:60;font-family:var(--px);font-size:13px;background:var(--parch);border:5px solid var(--woodd);padding:12px 18px 9px;box-shadow:5px 5px 0 rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .25s;white-space:nowrap}
 #toast.on{opacity:1}
@@ -354,7 +356,7 @@ input[type=range]{width:100%;accent-color:#4fae3a;height:24px}
     <div class="plaque">WHO NEEDS IT &mdash; THE VILLAGERS</div>
     <p class="small" style="margin:8px 0 0">Click a villager to hear their need. Seven groups were identified; five were carried into requirements.</p>
     <div id="villagers" class="b" data-b="1"></div>
-    <div id="vbox" class="b" data-b="1"><div id="vface"></div><div class="bubble" id="vtext"></div></div>
+    <div id="vbox" class="b" data-b="1"><div id="vface"></div><div class="bubble" id="vtext" data-noi18n></div></div>
     <div class="card b" data-b="2" style="margin-top:10px">
       <p>Ranked by <b>power &times; interest</b>: Company Sponsor, Pilot Sponsor and Commuters lead the grid. Method and Assurance reviewers gate the pilot, so they are included too. Engineering and Providers become <b>system / interface requirements</b> in the next phase.</p>
     </div>
@@ -375,7 +377,7 @@ input[type=range]{width:100%;accent-color:#4fae3a;height:24px}
       <div class="bnode b pop" data-b="3" data-info="C.3 Data Adapter: factor store, trip store and weather access. Stubbed for now." style="left:660px;top:34px"><img data-spr="shed" data-s="5" alt=""><br><span class="lab">C.3 DATA</span></div>
       <div class="bnode b pop" data-b="3" data-info="C.4 Explanation Model: writes the plain-language explanation using only facts already calculated. A sentence template today, a local language model later." style="left:660px;top:182px"><img data-spr="shed" data-s="5" alt=""><br><span class="lab">C.4 EXPLAIN</span></div>
       <svg class="b" data-b="3" width="1100" height="320" style="position:absolute;left:0;top:0;pointer-events:none"><g stroke="#6b4423" stroke-width="5" fill="none" stroke-dasharray="10 8"><path d="M168 150L286 95"/><path d="M382 100L450 160"/><path d="M600 160L656 100"/><path d="M600 210L656 215"/><path d="M752 80L876 80"/></g></svg>
-      <div id="binfo" class="b" data-b="1">Click any building to read what it does.</div>
+      <div id="binfo" class="b" data-b="1" data-noi18n>Click any building to read what it does.</div>
     </div>
     <div class="row b" data-b="4" style="margin-top:8px">
       <div class="card" style="flex:1"><h3>INCLUDED</h3><p>Manual logging &middot; CO&#8322;e estimates &middot; trends &middot; always-drive baseline &middot; rules with feasibility settings &middot; consent</p></div>
@@ -389,7 +391,7 @@ input[type=range]{width:100%;accent-color:#4fae3a;height:24px}
   <div class="panel">
     <div class="plaque">THE PRIMARY USE CASE &middot; UC.1</div>
     <p class="small" style="margin:6px 0 0">Review Commute Impact and Feasible Alternative &mdash; 12 modeled actions. Watch the farmer walk through them.</p>
-    <div id="uc-cap"></div>
+    <div id="uc-cap" data-noi18n></div>
     <div id="uc-grid"><div id="uc-walker"><div class="walk" style="position:absolute;left:0;top:0"><img data-spr="farmerA" data-s="4" alt=""><img data-spr="farmerB" data-s="4" alt=""></div></div></div>
     <div class="legend" id="uc-leg"></div>
   </div>
@@ -400,10 +402,10 @@ input[type=range]{width:100%;accent-color:#4fae3a;height:24px}
   <div class="panel">
     <div class="plaque">FROM NEEDS TO TESTABLE REQUIREMENTS</div>
     <div class="bigcount b" data-b="1" style="margin-top:10px">
-      <div class="card"><span class="n" data-count="7">0</span><span class="l">stakeholder groups</span></div>
-      <div class="card"><span class="n" data-count="21">0</span><span class="l">needs, in the stakeholders&rsquo; own words</span></div>
-      <div class="card"><span class="n" data-count="28">0</span><span class="l">requirements, each with a measurable target</span></div>
-      <div class="card"><span class="n" data-count="12">0</span><span class="l">UC.1 actions that satisfy them</span></div>
+      <div class="card"><div class="n" data-count="7">0</div><div class="l">stakeholder groups</div></div>
+      <div class="card"><div class="n" data-count="21">0</div><div class="l">needs, in the stakeholders&rsquo; own words</div></div>
+      <div class="card"><div class="n" data-count="28">0</div><div class="l">requirements, each with a measurable target</div></div>
+      <div class="card"><div class="n" data-count="12">0</div><div class="l">UC.1 actions that satisfy them</div></div>
     </div>
     <div class="exwrap">
       <div class="card b pop" data-b="2"><h3>NEED 1.1.4 &middot; GET ADVICE I CAN USE</h3><p>&ldquo;I need suggestions for a greener way to travel that fit the weather and my own limits, so I get advice I can actually follow.&rdquo;</p></div>
@@ -436,7 +438,7 @@ input[type=range]{width:100%;accent-color:#4fae3a;height:24px}
     <div class="plaque">THE WALKING SKELETON &middot; ONE PATH, END TO END</div>
     <div id="archbox">
       <svg viewBox="0 0 1100 392" preserveAspectRatio="none" id="asvg"></svg>
-      <div id="ainfo">Click a building. Golden coins show data moving along the path of UC.1.</div>
+      <div id="ainfo" data-noi18n>Click a building. Golden coins show data moving along the path of UC.1.</div>
     </div>
     <div class="row b" data-b="3" style="margin-top:8px;align-items:center">
       <span class="badge b-real">REAL</span><span class="small">logic that really runs</span>
@@ -451,7 +453,7 @@ input[type=range]{width:100%;accent-color:#4fae3a;height:24px}
   <div class="panel">
     <div class="plaque">RUN IT &mdash; THIS IS REAL OUTPUT</div>
     <div class="row" style="margin-top:12px;gap:18px">
-      <div style="flex:1.45"><div id="term"></div></div>
+      <div style="flex:1.45"><div id="term" data-noi18n></div></div>
       <div id="annots" style="flex:1"></div>
     </div>
   </div>
@@ -466,7 +468,7 @@ input[type=range]{width:100%;accent-color:#4fae3a;height:24px}
       <div style="flex:.82">
         <span class="lbl">HOW DID YOU TRAVEL?</span>
         <div class="modes" id="modes"></div>
-        <span class="lbl">ONE-WAY DISTANCE: <span id="distv">2.5 km</span></span>
+        <span class="lbl" id="distlbl" data-noi18n>ONE-WAY DISTANCE: <span id="distv">2.5 km</span></span>
         <input id="dist" type="range" min="0.5" max="20" step="0.5" value="2.5">
         <span class="lbl">WEATHER</span>
         <span class="tgl sel" id="wxDry" data-wx="0">&#9728; DRY</span><span class="tgl" id="wxRain" data-wx="2">&#127783; RAIN</span>
@@ -475,12 +477,12 @@ input[type=range]{width:100%;accent-color:#4fae3a;height:24px}
       </div>
       <div style="flex:1.18" id="tryout">
         <div class="row" style="align-items:flex-start;gap:10px">
-          <div id="farmerFace"><div class="bubble" id="fsay">Hmm!</div><img id="fimg" data-spr="farmerA" data-s="6" alt="" style="margin-top:20px"></div>
-          <div style="flex:1"><div class="bars" id="bars"></div></div>
+          <div id="farmerFace"><div class="bubble" id="fsay" data-noi18n>Hmm!</div><img id="fimg" data-spr="farmerA" data-s="6" alt="" style="margin-top:20px"></div>
+          <div style="flex:1"><div class="bars" id="bars" data-noi18n></div></div>
         </div>
-        <div class="card" id="diffcard" style="margin-top:6px"><p id="difft"></p></div>
-        <div class="card" id="altcard" style="margin-top:8px;background:#d9f2c9"><p id="altt"></p></div>
-        <p class="small" id="explt" style="margin-top:6px;font-size:19px;line-height:1"></p>
+        <div class="card" id="diffcard" style="margin-top:6px"><p id="difft" data-noi18n></p></div>
+        <div class="card" id="altcard" style="margin-top:8px;background:#d9f2c9"><p id="altt" data-noi18n></p></div>
+        <p class="small" id="explt" data-noi18n style="margin-top:6px;font-size:19px;line-height:1"></p>
       </div>
     </div>
   </div>
@@ -522,7 +524,7 @@ input[type=range]{width:100%;accent-color:#4fae3a;height:24px}
         <li class="clk" data-g="Reviewed factor table due Oct 28; occupancy handling is an open item.">Reviewed factors &amp; occupancy</li>
         <li class="clk" data-g="A local language model that keeps the facts-only contract of requirement 2.1.10.">Local language model</li></ul></div>
     </div>
-    <div id="ginfo" class="card" style="margin-top:12px"><p>Tap an item to see where it lives.</p></div>
+    <div id="ginfo" class="card" style="margin-top:12px"><p id="ginfop" data-noi18n>Tap an item to see where it lives.</p></div>
     <div id="gfarm"><div class="walk" id="gwalk" style="width:60px;height:80px"><img data-spr="farmerA" data-s="5" alt=""><img data-spr="farmerB" data-s="5" alt=""></div>
       <div class="hop" style="position:absolute;left:560px;bottom:0"><img data-spr="chicken" data-s="5" alt=""></div>
       <div class="hop" style="position:absolute;left:760px;bottom:0;animation-delay:.4s"><img data-spr="chicken" data-s="4" alt=""></div></div>
@@ -592,14 +594,52 @@ input[type=range]{width:100%;accent-color:#4fae3a;height:24px}
 <div id="nav">
   <button class="nbtn" id="prev" aria-label="Previous">&#9664; BACK</button>
   <div id="road"><img id="hut" data-spr="house" data-s="3" alt=""><img id="school" data-spr="school" data-s="3" alt=""><div id="walker"><img data-spr="farmerA" data-s="4" alt=""></div></div>
+  <button class="nbtn" id="lang" data-noi18n title="Language / 语言 (L)"></button>
   <button class="nbtn" id="short" title="Short mode: key pages only (S)">SHORT</button>
   <button class="nbtn" id="auto" title="Auto-play (A)">AUTO</button>
-  <button class="nbtn pulse" id="next" aria-label="Next">NEXT &#9654;</button>
+  <button class="nbtn pulse" id="next" data-noi18n aria-label="Next">NEXT &#9654;</button>
 </div>
-<div id="toast"></div>
-<div id="help"><div class="panel"><div class="plaque">HOW TO PLAY</div><p class="txt" style="margin-top:14px">&#9654; / SPACE / ENTER &mdash; next<br>&#9664; / BACKSPACE &mdash; back<br>CLICK the road dots &mdash; jump to a page<br>S &mdash; <b>short mode</b>: only the 7 key pages<br>A &mdash; auto-play &nbsp; F &mdash; full screen &nbsp; ? &mdash; this help<br>Click the buildings, villagers, tabs and toggles to explore.</p><p class="small">Press any key or click to close.</p></div></div>
+<div id="toast" data-noi18n></div>
+<div id="help"><div class="panel"><div class="plaque">HOW TO PLAY</div><p class="txt" style="margin-top:14px">&#9654; / SPACE / ENTER &mdash; next<br>&#9664; / BACKSPACE &mdash; back<br>CLICK the road dots &mdash; jump to a page<br>S &mdash; <b>short mode</b>: only the 7 key pages<br>L &mdash; language: English / 中文<br>A &mdash; auto-play &nbsp; F &mdash; full screen &nbsp; ? &mdash; this help<br>Click the buildings, villagers, tabs and toggles to explore.</p><p class="small">Press any key or click to close.</p></div></div>
 </div></div>
 <style>
+/*ZH_CSS*/
+#stage.zh .plaque{font-size:18px;line-height:1.5;letter-spacing:1px}
+#stage.zh .kick,#stage.zh .card h3,#stage.zh .lbl,#stage.zh .badge,#stage.zh .chip,#stage.zh .tab,#stage.zh .link .k,#stage.zh .ms .d,#stage.zh .bed h3,#stage.zh .links b,#stage.zh .anode .lab,#stage.zh .bnode .lab,#stage.zh #fence span{font-size:14px;letter-spacing:0}
+#stage.zh .nbtn{font-size:13px}
+#stage.zh #lang,#stage.zh #short,#stage.zh #auto{font-size:11px}
+#stage.zh .lead{font-size:26px}
+#stage.zh .card p,#stage.zh .small,#stage.zh .txt,#stage.zh .bubble,#stage.zh .annot,#stage.zh .bed li,#stage.zh .link .v,#stage.zh .step .nm,#stage.zh .ltab td,#stage.zh #binfo,#stage.zh #ainfo,#stage.zh #uc-cap,#stage.zh .stat div,#stage.zh .evid div,#stage.zh .rl,#stage.zh .ms,#stage.zh .vil,#stage.zh .modebtn,#stage.zh .tgl,#stage.zh .bars .bar,#stage.zh .legend{font-size:21px;line-height:1.25}
+#stage.zh .small{font-size:19px}
+#stage.zh .card p{font-size:20px}
+#stage.zh .link .v small{font-size:17px}
+#stage.zh .t-sign h1{font-size:50px}
+#stage.zh .t-sign p{font-size:27px}
+#stage.zh .t-sub{font-size:12px}
+#stage.zh .t-hint{font-size:13px}
+#stage.zh .bubble{font-size:21px}
+#stage.zh #vbox .bubble{font-size:23px}
+#stage.zh .stat b{font-size:20px}
+#stage.zh .bigcount .l{font-size:18px}
+#stage.zh .ltab td{font-size:17px}
+#stage.zh .ltab th{font-size:11px}
+#stage.zh .step .nm{font-size:19px;min-height:48px}
+#stage.zh .legend{font-size:17px}
+#stage.zh #ginfo p{font-size:22px}
+#stage.zh .exwrap .card p{font-size:18px;line-height:1.2}
+#stage.zh .annot{font-size:19px}
+#stage.zh #explt{font-size:15px}
+#stage.zh .team .rl{font-size:17px}
+#stage.zh .ms{font-size:16px}
+#stage.zh .ms .d{font-size:11px;white-space:nowrap;letter-spacing:0}
+#stage.zh .ms{width:190px;margin-left:-7px}
+#stage.zh .link .v{font-size:19px}
+#stage.zh .bed li{font-size:22px}
+#stage.zh #uc-cap{font-size:22px}
+#stage.zh .steps4 .card p{font-size:19px}
+#stage.zh .quest .card .t{font-size:18px}
+#stage.zh .bars .bar{grid-template-columns:150px 1fr 74px;font-size:19px}
+#stage.zh #farmerFace .bubble{font-size:17px}
 #fence{height:290px}
 .bnode .lab{white-space:nowrap}
 #s-req .exwrap{margin-top:8px}
@@ -686,6 +726,35 @@ function $(id){return document.getElementById(id)}
 function el(t,a,h){var e=document.createElement(t);for(var k in (a||{}))e.setAttribute(k,a[k]);if(h!=null)e.innerHTML=h;return e}
 function spriteImg(name,scale,pal){var i=el('img',{alt:'','data-spr':name,'data-s':scale});if(pal)i.dataset.pal=pal;paint({querySelectorAll:function(){return [i]}});return i}
 
+/* ================= I18N ================= */
+var LANG='en',ZH={},ZD={};
+function tx(s){return LANG==='zh'&&ZD[s]!==undefined?ZD[s]:s}
+function norm(s){return s.replace(/\s+/g,' ').trim()}
+var INL={B:1,STRONG:1,SPAN:1,BR:1,SUB:1,SUP:1,I:1,SMALL:1,EM:1,CODE:1,U:1};
+function leafInline(e){if(!e.textContent.trim())return false;var all=e.querySelectorAll('*');for(var i=0;i<all.length;i++){if(!INL[all[i].tagName])return false}return true}
+function applyOne(e){var v=(LANG==='zh')?ZH[e.dataset.k]:e.dataset.en;if(v!==undefined)e.innerHTML=v}
+function tag(e,keys){
+  if(!e||e.nodeType!==1)return;
+  var t=e.tagName;if(t==='SCRIPT'||t==='STYLE'||t==='svg'||t==='IMG'||t==='CANVAS'||e.dataset.noi18n!==undefined)return;
+  if(e.dataset.k!==undefined){applyOne(e);return}
+  if(leafInline(e)){var k=norm(e.innerHTML);if(keys)keys.push(k);if(ZH[k]!==undefined){e.dataset.en=e.innerHTML;e.dataset.k=k;applyOne(e)}return}
+  for(var i=0;i<e.children.length;i++)tag(e.children[i],keys);
+}
+var NAMESZ={drive:'\u72ec\u81ea\u5f00\u8f66',carpool:'\u62fc\u8f66',bus:'\u516c\u4ea4',bike:'\u9a91\u8f66',walk:'\u6b65\u884c'};
+var selV=0,infoB=null,infoA=null,infoG=null,ucB=0,runB=0,curTry=false;
+function showB(){var b=$('binfo');b.textContent=infoB?tx(infoB):tx('Click any building to read what it does.')}
+function showA(){var b=$('ainfo');b.innerHTML=infoA?tx(infoA):tx('Click a building. Golden coins show data moving along the path of UC.1.')}
+function showG(){var p=$('ginfop');if(infoG)p.innerHTML='<b>'+infoG.textContent+':</b> '+tx(infoG.dataset.g);else p.innerHTML=tx('Tap an item to see where it lives.')}
+function ucCapRefresh(){$('uc-cap').innerHTML=tx(UCCAP[ucB])}
+function runPlaceholder(){if(runB===0)$('term').innerHTML='<span class="dim">'+tx('Press NEXT to run the skeleton...')+'</span><span class="cur"></span>'}
+function setLang(l){
+  LANG=l;stage.classList.toggle('zh',l==='zh');document.documentElement.lang=(l==='zh'?'zh-CN':'en');
+  tag(stage);
+  $('lang').innerHTML=(l==='zh'?'<span>EN</span> | <b class="cur">\u4e2d\u6587</b>':'<b class="cur">EN</b> | <span>\u4e2d\u6587</span>');
+  selVil(selV);drawChain();ucCapRefresh();showB();showA();showG();tryRun();runPlaceholder();updateNav();
+}
+function toggleLang(){setLang(LANG==='zh'?'en':'zh');toast(LANG==='zh'?'\u5df2\u5207\u6362\u4e3a\u4e2d\u6587':'Switched to English')}
+
 /* ================= WORLD ================= */
 var N=0,STRIP=7200;
 function rnd(seed){var s=seed;return function(){s=(s*16807)%2147483647;return (s-1)/2147483646}}
@@ -725,7 +794,7 @@ function updateNav(){
   var o=order(),k=Math.max(0,o.indexOf(si)),pct=o.length>1?k/(o.length-1):0;
   $('walker').style.left=(pct*100)+'%';
   Array.prototype.slice.call($('road').querySelectorAll('i')).forEach(function(d,i){d.classList.toggle('done',i<=k)});
-  $('next').innerHTML=(k===o.length-1&&bi===builds(slides[si]))?'AGAIN &#8635;':'NEXT &#9654;';
+  $('next').innerHTML=(k===o.length-1&&bi===builds(slides[si]))?tx('AGAIN &#8635;'):tx('NEXT &#9654;');
   $('strip').style.transform='translateX('+(-si*400)+'px)';
   $('hills').style.transform='translateX('+(-si*160)+'px)';
   $('hills2').style.transform='translateX('+(-si*260)+'px)';
@@ -736,7 +805,7 @@ function toggleShort(){
   shortOn=!shortOn;$('short').classList.toggle('on',shortOn);renderDots();
   var o=order();
   if(shortOn&&o.indexOf(si)<0){var t=o.filter(function(i){return i>si})[0];show(t===undefined?o[0]:t,0,false)}else updateNav();
-  toast(shortOn?'SHORT MODE: '+o.length+' KEY PAGES':'FULL MODE: ALL '+N+' PAGES');
+  toast(LANG==='zh'?(shortOn?'\u7cbe\u7b80\u6a21\u5f0f\uff1a'+o.length+' \u4e2a\u5173\u952e\u9875':'\u5b8c\u6574\u6a21\u5f0f\uff1a\u5168\u90e8 '+N+' \u9875'):(shortOn?'SHORT MODE: '+o.length+' KEY PAGES':'FULL MODE: ALL '+N+' PAGES'));
 }
 function show(n,startB,back){
   var old=slides[si];
@@ -776,11 +845,13 @@ var STAKE=[
  ['SH.7','Providers','Weather, factors, hosting','We need our terms of use, versions and dependencies respected. (Next phase: interface requirements.)','y:#aab3b8,r:#e7d9b0,b:#6b757b',false]
 ];
 hooks['s-stake']={enter:function(){selVil(0)}};
+var STAKEZ=[];
 function selVil(i){
-  var v=STAKE[i];
+  selV=i;var v=STAKE[i];
   document.querySelectorAll('.vil').forEach(function(b,j){b.classList.toggle('sel',i===j)});
   $('vface').innerHTML='';var im=spriteImg('farmerA',7,v[4]);im.className='hop';$('vface').appendChild(im);
-  $('vtext').innerHTML='<span class="kick">'+v[0]+' &middot; '+v[2].toUpperCase()+(v[5]?' &middot; IN THE REQUIREMENTS':' &middot; NEXT PHASE')+'</span><br><b>'+v[1]+':</b> &ldquo;'+v[3]+'&rdquo;';
+  var zh=LANG==='zh',z=zh?STAKEZ[i]:null,nm=z?z[0]:v[1],rl=z?z[1]:v[2].toUpperCase(),nd=z?z[2]:v[3];
+  $('vtext').innerHTML='<span class="kick">'+v[0]+' &middot; '+rl+' &middot; '+tx(v[5]?'IN THE REQUIREMENTS':'NEXT PHASE')+'</span><br><b>'+nm+':</b> &ldquo;'+nd+'&rdquo;';
 }
 function buildStake(){
   var box=$('villagers');
@@ -793,7 +864,7 @@ function buildStake(){
   });
 }
 function buildBoundary(){
-  document.querySelectorAll('.bnode').forEach(function(n){n.addEventListener('click',function(){$('binfo').textContent=n.dataset.info})});
+  document.querySelectorAll('.bnode').forEach(function(n){n.addEventListener('click',function(){infoB=n.dataset.info;showB()})});
 }
 
 /* ---- UC.1 ---- */
@@ -818,7 +889,7 @@ function buildUC(){
     g.appendChild(c);
   });
   var lg=$('uc-leg');
-  [['X.1','Commuter'],['C.1','Front end'],['C.2','Service'],['C.3','Data'],['X.3','Open-Meteo'],['C.4','Explanation']].forEach(function(p){lg.appendChild(el('span',null,'<i style="background:'+PERFC[p[0]]+'"></i>'+p[0]+' '+p[1]))});
+  [['X.1','Commuter'],['C.1','Front end'],['C.2','Service'],['C.3','Data'],['X.3','Open-Meteo'],['C.4','Explanation']].forEach(function(p){lg.appendChild(el('span',null,'<i style="background:'+PERFC[p[0]]+'"></i><div class="lt">'+p[0]+' '+p[1]+'</div>'))});
 }
 function ucSet(i,cur){
   document.querySelectorAll('.step').forEach(function(s,j){s.classList.toggle('on',j<=i);s.classList.toggle('cur',cur&&j===i)});
@@ -830,7 +901,7 @@ hooks['s-uc1']={
   leave:function(){ucTimers.forEach(clearTimeout);ucTimers=[]},
   build:function(b,prev){
     ucTimers.forEach(clearTimeout);ucTimers=[];
-    $('uc-cap').innerHTML=UCCAP[b];
+    ucB=b;ucCapRefresh();
     var from=UCRANGE[b][0],to=UCRANGE[b][1];
     if(b===0){ucSet(-1,false);document.querySelectorAll('.step').forEach(function(s){s.classList.remove('on','cur')});$('uc-walker').style.display='none';return}
     $('uc-walker').style.display='block';
@@ -854,7 +925,7 @@ var CHAINS=[
  {t:'Understand the result',c:[['SH.1 Commuters','Primary users'],['1.1.8','Understand my result in plain words'],['2.1.10','Explanation states only facts from the calculated result'],['UC.1.11','Display result (C.1 + C.4)'],['explain_result','src/c4_explanation_model/explainer.py'],['test_explanation_contains_required_facts','+ test_explanation_states_only_calculated_facts']]},
  {t:'Fair comparison',c:[['SH.4 Method reviewers','Credibility'],['1.4.2','Compare against a fair baseline'],['2.4.3 + 2.4.4','Declared baseline; differences labelled as estimates'],['UC.1.9, 1.11','Compare baseline, display'],['compare_baseline','src/c2_application_service/service.py'],['test_baseline_difference_for_greener_mode','tests/']]}
 ];
-var CK=['STAKEHOLDER','NEED','REQUIREMENT','MODEL ACTION','CODE','TEST'],CCOL=['#8e6bbf','#4a90d9','#4fae3a','#f08a24','#d9534f','#2fa39a'],tsel=0;
+var CKZ=['\u5229\u76ca\u76f8\u5173\u65b9','\u9700\u6c42','\u8981\u6c42','\u6a21\u578b\u884c\u52a8','\u4ee3\u7801','\u6d4b\u8bd5'],CK=['STAKEHOLDER','NEED','REQUIREMENT','MODEL ACTION','CODE','TEST'],CCOL=['#8e6bbf','#4a90d9','#4fae3a','#f08a24','#d9534f','#2fa39a'],tsel=0;
 function drawChain(){
   var ch=$('chain'),leaf=$('leaf');
   Array.prototype.slice.call(ch.children).forEach(function(c){if(c!==leaf)ch.removeChild(c)});
@@ -864,20 +935,20 @@ function drawChain(){
     ch.appendChild(d);
   });
   document.querySelectorAll('.tab').forEach(function(t,j){t.classList.toggle('sel',j===tsel)});
-  traceShow(bi);
+  tag(ch);traceShow(bi);
 }
 function traceShow(b){
   var k=Math.min(b,6);
   for(var i=0;i<6;i++){var l=$('lk'+i);if(l)l.classList.toggle('on',i<k)}
   var l=$('lk'+Math.max(k-1,0)),leaf=$('leaf');
   if(l&&k>0){leaf.style.left=(l.offsetLeft+l.offsetWidth/2-20)+'px';leaf.style.display='block'}else leaf.style.display='none';
-  $('tcap').innerHTML=b===0?'Pick an example above, then press NEXT.':(b<6?'Following the leaf: <b>'+CK[k-1]+'</b>':(b===6?'All six links found &mdash; the chain is complete.':'Every link is a real artifact: model entity, SPEC.md section, source file and test.'));
+  $('tcap').innerHTML=b===0?tx('Pick an example above, then press NEXT.'):(b<6?tx('Following the leaf:')+' <b>'+(LANG==='zh'?CKZ[k-1]:CK[k-1])+'</b>':(b===6?tx('All six links found &mdash; the chain is complete.'):tx('Every link is a real artifact: model entity, SPEC.md section, source file and test.')));
 }
 hooks['s-trace']={enter:function(){tsel=0;drawChain()},build:function(b){traceShow(b)}};
 function buildTrace(){
   var t=$('tabs');
   CHAINS.forEach(function(c,i){var b=el('button',{'class':'tab','type':'button'},c.t.toUpperCase());b.addEventListener('click',function(){tsel=i;drawChain()});t.appendChild(b)});
-  var cap=el('p',{'class':'small','id':'tcap'});cap.style.marginTop='8px';cap.style.fontSize='24px';document.querySelector('#s-trace .panel').appendChild(cap);
+  var cap=el('p',{'class':'small','id':'tcap','data-noi18n':''});cap.style.marginTop='8px';cap.style.fontSize='24px';document.querySelector('#s-trace .panel').appendChild(cap);
   drawChain();
 }
 
@@ -904,7 +975,7 @@ function buildArch(){
     var d=el('div',{'class':'anode b pop'});d.dataset.b='1';d.style.left=n.x+'px';d.style.top=n.y+'px';
     d.appendChild(spriteImg(n.spr,n.s));
     d.appendChild(el('br'));d.appendChild(el('span',{'class':'lab'},n.id+' <span class="badge '+n.bc+'" style="font-size:8px;padding:3px 4px 1px;margin-left:3px">'+n.badge+'</span>'));
-    d.addEventListener('click',function(){$('ainfo').innerHTML=n.info});box.appendChild(d);
+    d.addEventListener('click',function(){infoA=n.info;showA()});box.appendChild(d);
   });
 }
 
@@ -933,9 +1004,9 @@ function typeLines(lines,done){
 }
 var termBase=[];
 function runBuild(b,prev){
-  var t=$('term');clearInterval(typeT);
+  runB=b;var t=$('term');clearInterval(typeT);
   document.querySelectorAll('#annots .annot').forEach(function(a){a.classList.toggle('on',b>=3)});
-  if(b===0){t.innerHTML='<span class="dim">Press NEXT to run the skeleton...</span><span class="cur"></span>';return}
+  if(b===0){runPlaceholder();return}
   if(prev===b-1&&b===1){var L=TERM.slice();var out=[],li=0,ci=0;
     typeT=setInterval(function(){if(li>=L.length){clearInterval(typeT);return}
       var x=L[li],st=x[1].length>90?10:(x[0]==='p'?1:4);ci+=st;
@@ -962,19 +1033,23 @@ function pyRound(x){var f=Math.floor(x),d=x-f;if(Math.abs(d-.5)<1e-9)return f%2=
 function fmt(n){return (Math.round(n*10)/10).toString()}
 function tryRun(){
   var km=+$('dist').value,nfW=$('nfWalk').classList.contains('sel'),nfB=$('nfBike').classList.contains('sel');
-  $('distv').textContent=fmt(km)+' km';
-  var est=pyRound(km*FACT[tmode]),base=pyRound(km*FACT.drive),diff=base-est,alt='',reason='';
-  if(tmode==='walk'||tmode==='bike')reason='You already used a lowest-emission mode.';
-  else if(km>=3||twx>0)reason='Distance or forecast weather does not suit walking or cycling.';
-  else{alt=!nfW?'walk':(!nfB?'bike':'');reason=alt?('The trip is '+fmt(km)+' km (under 3 km) and the forecast shows '+fmt(twx)+' mm of rain.'):'Walking and cycling are marked not feasible in your settings.'}
+  var zh=LANG==='zh';$('distlbl').innerHTML=tx('ONE-WAY DISTANCE:')+' <span id="distv">'+fmt(km)+(zh?' \u516c\u91cc':' km')+'</span>';
+  var est=pyRound(km*FACT[tmode]),base=pyRound(km*FACT.drive),diff=base-est,alt='',rEn='',rZh='';
+  if(tmode==='walk'||tmode==='bike'){rEn='You already used a lowest-emission mode.';rZh=tx(rEn)}
+  else if(km>=3||twx>0){rEn='Distance or forecast weather does not suit walking or cycling.';rZh=tx(rEn)}
+  else{alt=!nfW?'walk':(!nfB?'bike':'');
+    if(alt){rEn='The trip is '+fmt(km)+' km (under 3 km) and the forecast shows '+fmt(twx)+' mm of rain.';rZh='这趟行程 '+fmt(km)+' 公里(不到 3 公里),预报降雨 '+fmt(twx)+' 毫米。'}
+    else{rEn='Walking and cycling are marked not feasible in your settings.';rZh=tx(rEn)}}
+  var reason=zh?rZh:rEn;
+  var NM=zh?NAMESZ:NAMES;
   var max=Math.max(est,base,1);
   function bar(l,v,c){return '<div class="bar"><span>'+l+'</span><div class="track"><div class="fill" style="width:'+Math.max(2,v/max*100)+'%;background:'+c+'"></div></div><b>'+v+' g</b></div>'}
-  $('bars').innerHTML=bar('This trip ('+NAMES[tmode]+')',est,'#4fae3a')+bar('Always driving',base,'#d9534f');
-  $('difft').innerHTML=diff>0?'About <b>'+diff+' g</b> less than driving &mdash; an <b>estimated</b> difference.':(diff===0?'<b>Same as driving</b> &mdash; an estimated difference of 0 g.':'About <b>'+(-diff)+' g</b> more than driving (estimated).');
-  $('altt').innerHTML=alt?('Suggested alternative: <b>'+NAMES[alt]+'</b> &mdash; '+reason):('No alternative suggested &mdash; '+reason);
+  $('bars').innerHTML=bar(zh?'本次:'+NM[tmode]:'This trip ('+NM[tmode]+')',est,'#4fae3a')+bar(zh?'\u4e00\u76f4\u5f00\u8f66':'Always driving',base,'#d9534f');
+  $('difft').innerHTML=zh?(diff>0?'\u6bd4\u5f00\u8f66\u5c11\u7ea6 <b>'+diff+' g</b> \u2014\u2014 \u8fd9\u662f<b>\u4f30\u7b97</b>\u5dee\u503c\u3002':(diff===0?'<b>\u4e0e\u5f00\u8f66\u76f8\u540c</b> \u2014\u2014 \u4f30\u7b97\u5dee\u503c\u4e3a 0 g\u3002':'\u6bd4\u5f00\u8f66\u591a\u7ea6 <b>'+(-diff)+' g</b>\uff08\u4f30\u7b97\uff09\u3002')):(diff>0?'About <b>'+diff+' g</b> less than driving &mdash; an <b>estimated</b> difference.':(diff===0?'<b>Same as driving</b> &mdash; an estimated difference of 0 g.':'About <b>'+(-diff)+' g</b> more than driving (estimated).'));
+  $('altt').innerHTML=zh?(alt?'\u5efa\u8bae\u6539\u4e3a\uff1a<b>'+NM[alt]+'</b> \u2014\u2014 '+reason:'\u6ca1\u6709\u63a8\u8350\u66ff\u4ee3\u65b9\u5f0f \u2014\u2014 '+reason):(alt?('Suggested alternative: <b>'+NM[alt]+'</b> &mdash; '+reason):('No alternative suggested &mdash; '+reason));
   $('altcard').style.background=alt?'#d9f2c9':'#e6eef3';
-  $('explt').textContent='Explanation (C.4): Your trip is estimated at '+est+' g CO2e; driving the same distance would be '+base+' g, an estimated difference of '+diff+' g (an estimate, not verified avoided emissions). Factor: PLACEHOLDER - not a reviewed factor, version stub-0. '+(alt?'Suggestion: '+alt+'. '+reason:reason);
-  $('fsay').textContent=twx>0?'Brr, rain!':(alt?'Walk it! ♥':(diff>0?'Nice trip!':'Hmm...'));
+  $('explt').textContent=(zh?'C.4 \u89e3\u91ca\uff08\u7a0b\u5e8f\u8f93\u51fa\uff0c\u4fdd\u6301\u82f1\u6587\uff09\uff1a':'Explanation (C.4): ')+'Your trip is estimated at '+est+' g CO2e; driving the same distance would be '+base+' g, an estimated difference of '+diff+' g (an estimate, not verified avoided emissions). Factor: PLACEHOLDER - not a reviewed factor, version stub-0. '+(alt?'Suggestion: '+alt+'. '+rEn:rEn);
+  $('fsay').textContent=zh?(twx>0?'下雨了!':(alt?'走路吧!♥':(diff>0?'不错!':'\u55ef\u2026\u2026'))):(twx>0?'Brr, rain!':(alt?'Walk it! \u2665':(diff>0?'Nice trip!':'Hmm...')));
 }
 function buildTry(){
   var m=$('modes');
@@ -1000,7 +1075,7 @@ var LINK=[
 function buildLink(){var tb=$('ltb');LINK.forEach(function(r){var tr=el('tr',null,'<td>'+r[0]+'</td><td>'+r[1]+'</td><td><span class="mono">'+r[2]+'</span></td>');tr.addEventListener('mouseenter',function(){tr.classList.add('hl')});tr.addEventListener('mouseleave',function(){tr.classList.remove('hl')});tb.appendChild(tr)})}
 
 /* ---- status ---- */
-function buildStatus(){document.querySelectorAll('.clk').forEach(function(li){li.addEventListener('click',function(){$('ginfo').innerHTML='<p><b>'+li.textContent+':</b> '+li.dataset.g+'</p>'})})}
+function buildStatus(){document.querySelectorAll('.clk').forEach(function(li){li.addEventListener('click',function(){infoG=li;showG()})})}
 
 /* ---- quest ---- */
 var QUEST=[['1 MISSION / SOI / BOUNDARY','Mission, SoI, interface inventory and in/out reasoning (BMA &sect;4).'],['2 OPSCON &amp; BEHAVIOR','UC.1 as use case, action, activity and sequence diagrams.'],['3 STAKEHOLDER NEEDS','7 groups, 6 personas, power&ndash;interest grid, 21 needs.'],['4 REQUIREMENTS BASELINE','28 requirements with measures, validation and traceability.'],['5 WALKING SKELETON','One path runs through all 12 UC.1 actions.'],['6 MODEL-TO-PRODUCT LINKAGE','SPEC.md, traceability table, @realizes tags and the linkage test.']];
@@ -1037,7 +1112,7 @@ function init(){
   slides=Array.prototype.slice.call(document.querySelectorAll('.slide'));N=slides.length;
   buildWorld();buildStake();buildBoundary();buildUC();buildTrace();buildArch();buildRun();buildTry();buildLink();buildStatus();buildQuest();buildRoad();buildTeam();
   paint();
-  renderDots();$('short').addEventListener('click',toggleShort);
+  renderDots();$('short').addEventListener('click',toggleShort);$('lang').addEventListener('click',toggleLang);
   $('next').addEventListener('click',next);$('prev').addEventListener('click',prev);
   $('again').addEventListener('click',function(e){e.preventDefault();show(0,0,true)});
   $('auto').addEventListener('click',toggleAuto);
@@ -1049,19 +1124,25 @@ function init(){
     else if(k==='Home'){jump(0)}else if(k==='End'){var o=order();jump(o[o.length-1])}
     else if(k==='a'||k==='A'){toggleAuto()}
     else if(k==='s'||k==='S'){toggleShort()}
+    else if(k==='l'||k==='L'){toggleLang()}
     else if(k==='f'||k==='F'){if(!document.fullscreenElement)document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();else document.exitFullscreen()}
     else if(k==='?'||k==='h'||k==='H'){$('help').classList.add('on')}
   });
   $('help').addEventListener('click',function(){$('help').classList.remove('on')});
   addEventListener('resize',fit);fit();
-  show(0,0,false);
-  window.__deck={next:next,prev:prev,jump:jump,toggleShort:toggleShort,state:function(){return {si:si,bi:bi,N:N,shortOn:shortOn,order:order()}}};
+  show(0,0,false);setLang('en');
+  window.__deck={setLang:setLang,keys:function(){var ks=[];for(var t=0;t<CHAINS.length;t++){tsel=t;drawChain()}tsel=0;drawChain();var tmp=ZH;ZH={};tag(stage,ks);ZH=tmp;return ks},attrs:function(){var a=[];document.querySelectorAll('[data-info],[data-g]').forEach(function(e){a.push(e.dataset.info||e.dataset.g)});return a.concat(ANODES.map(function(n){return n.info}),UCCAP)},next:next,prev:prev,jump:jump,toggleShort:toggleShort,state:function(){return {si:si,bi:bi,N:N,shortOn:shortOn,order:order()}}};
 }
 function toggleAuto(){
   var b=$('auto');
   if(autoT){clearInterval(autoT);autoT=null;b.classList.remove('on');return}
   b.classList.add('on');autoT=setInterval(function(){var o=order();if(o.indexOf(si)===o.length-1&&bi===builds(slides[si])){toggleAuto();return}next()},7000);
 }
+/*ZH_BEGIN*/
+Object.assign(ZH,{"Know what your commute costs the planet — then choose better.": "了解你的通勤给地球带来的代价——然后做出更好的选择。", "TEAM 6 · SYSEN 5151 · MILESTONE CHECK 1 · OCT 7, 2026": "第 6 组 · SYSEN 5151 · 里程碑检查 1 · 2026 年 10 月 7 日", "▶ PRESS NEXT OR THE RIGHT-ARROW KEY": "▶ 点击“下一页”或按右方向键", "Hi! Click NEXT to follow our farmer to school.": "你好!点“下一页”,跟着小农夫一起去学校吧。", "THE PROBLEM": "问题", "Commuting runs on <b>habit</b>, not <b>information</b>.": "通勤靠的是<b>习惯</b>,而不是<b>信息</b>。", "NO FEEDBACK": "没有反馈", "People choose how to travel without ever seeing the CO₂ their trip produced.": "人们选择出行方式时,从没看到过这趟行程产生了多少 CO₂。", "HARD TO JUDGE": "难以判断", "Is walking or cycling realistic today? It depends on distance, weather and personal limits.": "今天走路或骑车现实吗?这取决于距离、天气和个人条件。", "INSTITUTIONS NEED EVIDENCE": "机构需要证据", "Universities and employers want engagement data — without exposing anyone’s routine.": "高校和雇主需要参与度数据——但不能暴露任何人的日常行程。", "<b>69.2%</b>of US workers drove alone in 2024": "<b>69.2%</b>的美国上班族在 2024 年独自开车", "<b>~28%</b>of US greenhouse-gas emissions come from transportation (2022)": "<b>约 28%</b>的美国温室气体排放来自交通运输(2022 年)", "<b>27.2 min</b>mean one-way US commute": "<b>27.2 分钟</b>美国单程通勤的平均时长", "National figures quoted in our project proposal. They motivate the project; they do not measure local pilot demand or our own reduction.": "以上是我们项目提案中引用的全国数据。它们说明了做这个项目的动机,但并不能衡量本地试点的需求或我们自身的减排量。", "MISSION &amp; SYSTEM OF INTEREST": "使命与目标系统(SoI)", "Help commuters understand their <b>estimated impact</b> and consider <b>practical lower-carbon options</b> — while giving institutions <b>approved, privacy-safe</b> engagement information.": "帮助通勤者了解自己的<b>估算影响</b>,并考虑<b>切实可行的低碳选择</b>——同时为机构提供<b>经批准、保护隐私</b>的参与度信息。", "SYSTEM OF INTEREST": "目标系统(SoI)", "<b>C.0 EcoCommute</b> — a lightweight responsive web application.": "<b>C.0 EcoCommute</b>——一个轻量级的响应式网页应用。", "WHO USES IT": "谁来使用", "Students and employees who commute regularly. Institutions see approved aggregate summaries only.": "经常通勤的学生和员工。机构只能看到经批准的汇总数据。", "1 LOG": "1 记录", "Mode &amp; distance in seconds": "几秒钟记下方式和距离", "2 ESTIMATE": "2 估算", "Trip CO₂e from a stored factor": "用已存的因子算出这趟的 CO₂e", "3 COMPARE": "3 对比", "Fair always-drive baseline": "公平的“一直开车”基线", "4 TRACK": "4 追踪", "Weekly &amp; monthly trends": "每周和每月趋势", "5 SUGGEST": "5 建议", "A feasible greener option": "一个可行的更绿色选择", "WHO NEEDS IT — THE VILLAGERS": "谁需要它——村民们", "Click a villager to hear their need. Seven groups were identified; five were carried into requirements.": "点一点村民,听听他们的需求。我们识别了七类利益相关方,其中五类被纳入了要求。", "SH.1<br>Commuters": "SH.1<br>通勤者", "★ CARRIED": "★ 已纳入", "SH.2<br>Pilot sponsor &amp; administrator": "SH.2<br>试点赞助方与管理员", "SH.3<br>Company sponsor": "SH.3<br>公司赞助方", "SH.4<br>Method reviewers": "SH.4<br>方法评审员", "SH.5<br>Assurance reviewers": "SH.5<br>保障评审员", "SH.6<br>Engineering &amp; support": "SH.6<br>工程与支持", "SH.7<br>Providers": "SH.7<br>外部供应方", "Ranked by <b>power × interest</b>: Company Sponsor, Pilot Sponsor and Commuters lead the grid. Method and Assurance reviewers gate the pilot, so they are included too. Engineering and Providers become <b>system / interface requirements</b> in the next phase.": "按<b>权力 × 利益</b>排序:公司赞助方、试点赞助方和通勤者位居前列。方法评审员和保障评审员决定试点能否开始,所以也被纳入。工程与供应方将在下一阶段成为<b>系统/接口要求</b>。", "WHAT IS INSIDE — AND WHAT IS NOT": "边界之内——与边界之外", "<span>SYSTEM BOUNDARY · C.0 ECOCOMMUTE</span>": "<span>系统边界 · C.0 ECOCOMMUTE</span>", "X.1 COMMUTER": "X.1 通勤者", "C.1 FRONT END": "C.1 前端", "C.2 SERVICE": "C.2 服务", "C.3 DATA": "C.3 数据", "C.4 EXPLAIN": "C.4 解释", "INCLUDED": "包含", "Manual logging · CO₂e estimates · trends · always-drive baseline · rules with feasibility settings · consent": "手动记录 · CO₂e 估算 · 趋势 · “一直开车”基线 · 带可行性设置的规则 · 知情同意", "EXCLUDED ON PURPOSE": "有意排除", "Native apps · passive GPS · carbon credits · full transit integration (each would need new interfaces and review)": "原生 App · 被动 GPS 定位 · 碳信用 · 完整的公共交通集成(每一项都需要新的接口和评审)", "THE PRIMARY USE CASE · UC.1": "主用例 · UC.1", "Review Commute Impact and Feasible Alternative — 12 modeled actions. Watch the farmer walk through them.": "查看通勤影响与可行的替代方式——共 12 个已建模的行动。看小农夫一步步走过它们。", "Open Commute Entry": "打开通勤录入页", "Present Entry Fields": "展示录入字段", "Enter Trip Details": "填写行程信息", "Submit Commute": "提交通勤记录", "Accept Entry &amp; Retrieve Factor": "接收录入并取排放因子", "Request Weather": "请求天气", "Return Weather Forecast": "返回天气预报", "Estimate Emissions &amp; Store Trip": "估算排放并保存行程", "Update Trends &amp; Compare Baseline": "更新趋势并对比基线", "Evaluate Feasible Alternatives": "评估可行的替代方式", "Display Commute Result": "显示通勤结果", "Review Result": "查看结果", "X.1 Commuter": "X.1 通勤者", "C.1 Front end": "C.1 前端", "C.2 Service": "C.2 服务", "C.3 Data": "C.3 数据", "X.3 Open-Meteo": "X.3 Open-Meteo 天气", "C.4 Explanation": "C.4 解释", "FROM NEEDS TO TESTABLE REQUIREMENTS": "从需求到可检验的要求", "stakeholder groups": "类利益相关方", "needs, in the stakeholders’ own words": "条需求,用利益相关方自己的话写成", "requirements, each with a measurable target": "条要求,每条都有可衡量的目标", "UC.1 actions that satisfy them": "个 UC.1 行动来满足它们", "NEED 1.1.4 · GET ADVICE I CAN USE": "需求 1.1.4 · 获得我用得上的建议", "“I need suggestions for a greener way to travel that fit the weather and my own limits, so I get advice I can actually follow.”": "“我需要一些既适合天气、又符合我自身条件的更绿色出行建议,这样我得到的才是我真能照着做的建议。”", "REQ 2.1.4": "要求 2.1.4", "The system <b>shall</b> provide, for each accepted trip with an eligible lower-emission option, one alternative travel mode with a stated reason based on trip distance, forecast weather and the Commuter’s feasibility settings.": "系统<b>应</b>为每一次被接受的、存在合适低排放选项的行程,给出一个替代出行方式并说明理由,理由基于行程距离、天气预报和通勤者的可行性设置。", "REQ 2.1.5": "要求 2.1.5", "The system <b>shall</b> exclude from its recommendations every travel mode that the Commuter has marked as not feasible.": "系统<b>应</b>在推荐中排除通勤者标记为不可行的所有出行方式。", "HOW WE KNOW IT IS MET": "怎么确认它被满足", "2.1.5: <b>0</b> recommendations containing an excluded mode (rule test set). 2.1.4: <b>80%+</b> of surveyed commuters rate the advice feasible. Every requirement has one “shall”, a measurable target, a validation method, and a trace to a need and an action.": "2.1.5:推荐中包含被排除方式的次数为 <b>0</b>(规则测试集)。2.1.4:<b>80% 以上</b>的受访通勤者认为建议可行。每条要求都有一个“应”、一个可衡量的目标、一种验证方法,并追溯到一条需求和一个行动。", "TRACE ANY BEHAVIOR BACK TO A NEED": "任何行为都能追溯回一条需求", "Stakeholder → need → requirement → modeled action → code → test. Pick an example, then press NEXT to walk the chain.": "利益相关方 → 需求 → 要求 → 模型行动 → 代码 → 测试。先选一个例子,再点“下一页”沿链走一遍。", "ADVICE I CAN USE": "我用得上的建议", "LOG QUICKLY": "快速记录", "UNDERSTAND THE RESULT": "看懂结果", "FAIR COMPARISON": "公平对比", "STAKEHOLDER": "利益相关方", "SH.1 Commuters<small>Primary users</small>": "SH.1 通勤者<small>主要用户</small>", "NEED": "需求", "1.1.4<small>Get advice I can use</small>": "1.1.4<small>获得我用得上的建议</small>", "REQUIREMENT": "要求", "2.1.4 + 2.1.5<small>One alternative with a reason; never a mode marked not feasible</small>": "2.1.4 + 2.1.5<small>给出一个带理由的替代方式;绝不推荐被标记为不可行的方式</small>", "MODEL ACTION": "模型行动", "UC.1.6, 1.7, 1.10<small>Request weather, forecast, evaluate alternatives</small>": "UC.1.6, 1.7, 1.10<small>请求天气、天气预报、评估替代方式</small>", "CODE": "代码", "TEST": "测试", "test_infeasible_mode_is_never_recommended<small>tests/ · plus test_rain_blocks_walk_bike</small>": "test_infeasible_mode_is_never_recommended<small>tests/ · 另有 test_rain_blocks_walk_bike</small>", "1.1.1<small>Log my commute quickly</small>": "1.1.1<small>快速记录我的通勤</small>", "2.1.1<small>30 s or less for 80% of timed entry tasks</small>": "2.1.1<small>80% 的计时录入任务在 30 秒内完成</small>", "UC.1.1 – 1.4<small>Open, present, enter, submit</small>": "UC.1.1 – 1.4<small>打开、展示、填写、提交</small>", "present_entry_fields, enter_trip_details, submit_commute_request<small>c1 front end + commuter sim</small>": "present_entry_fields, enter_trip_details, submit_commute_request<small>c1 前端 + 通勤者模拟</small>", "End-to-end run<small>Timing needs the real UI (open item)</small>": "端到端运行<small>计时需要真正的界面(待办项)</small>", "1.1.8<small>Understand my result in plain words</small>": "1.1.8<small>用大白话看懂我的结果</small>", "2.1.10<small>Explanation states only facts from the calculated result</small>": "2.1.10<small>解释只陈述计算结果中的事实</small>", "UC.1.11<small>Display result (C.1 + C.4)</small>": "UC.1.11<small>显示结果(C.1 + C.4)</small>", "SH.4 Method reviewers<small>Credibility</small>": "SH.4 方法评审员<small>可信度</small>", "1.4.2<small>Compare against a fair baseline</small>": "1.4.2<small>与公平的基线对比</small>", "2.4.3 + 2.4.4<small>Declared baseline; differences labelled as estimates</small>": "2.4.3 + 2.4.4<small>声明的基线;差值标注为估算</small>", "UC.1.9, 1.11<small>Compare baseline, display</small>": "UC.1.9, 1.11<small>对比基线、显示结果</small>", "THE WALKING SKELETON · ONE PATH, END TO END": "行走骨架(walking skeleton)· 一条端到端的路径", "<span class=\"badge b-real\">REAL</span><span class=\"small\">logic that really runs</span> <span class=\"badge b-stub\" style=\"margin-left:14px\">STUB</span><span class=\"small\">hard-coded stand-in</span> <span class=\"badge b-sim\" style=\"margin-left:14px\">SIM</span><span class=\"small\">scripted actor</span>": "<span class=\"badge b-real\">真实</span><span class=\"small\">真正运行的逻辑</span> <span class=\"badge b-stub\" style=\"margin-left:14px\">占位</span><span class=\"small\">写死的替身</span> <span class=\"badge b-sim\" style=\"margin-left:14px\">模拟</span><span class=\"small\">脚本演员</span>", "RUN IT — THIS IS REAL OUTPUT": "运行它——这是真实的输出(程序输出为英文)", "<span class=\"chip\">2.1.2</span>Estimated CO₂e and the difference from always driving.": "<span class=\"chip\">2.1.2</span>估算的 CO₂e,以及与一直开车的差值。", "<span class=\"chip\">2.1.3</span>Factor source, version and distance convention are shown.": "<span class=\"chip\">2.1.3</span>显示因子来源、版本和距离口径。", "<span class=\"chip\">2.1.4</span>One feasible alternative — with its reason.": "<span class=\"chip\">2.1.4</span>一个可行的替代方式——并附上理由。", "<span class=\"chip\">2.4.4</span>The difference is labelled an <b>estimate</b>, not avoided emissions.": "<span class=\"chip\">2.4.4</span>差值被标注为<b>估算</b>,而不是已避免的排放。", "<span class=\"chip\">2.1.10</span>The explanation states only calculated facts.": "<span class=\"chip\">2.1.10</span>解释只陈述已计算出的事实。", "<span class=\"chip\">2.4.1</span>Honest note: factors are placeholders, so this one is only partly met.": "<span class=\"chip\">2.4.1</span>如实说明:因子是占位值,所以这一条只部分满足。", "LOG A COMMUTE — TRY IT YOURSELF": "记录一次通勤——自己试试", "A browser copy of the C.2 rules, with the same placeholder factors as the Python skeleton. Do not quote these numbers.": "这是 C.2 规则在浏览器里的副本,使用与 Python 骨架相同的占位因子。请不要引用这些数字。", "HOW DID YOU TRAVEL?": "你怎么出行的?", "Drive": "开车", "Carpool": "拼车", "Bus": "公交", "Bike": "骑车", "Walk": "步行", "WEATHER": "天气", "☀ DRY": "☀ 晴", "🌧 RAIN": "🌧 雨", "MODES I CANNOT USE": "我不能用的方式", "NO WALKING": "不能步行", "NO CYCLING": "不能骑车", "MODEL ⇄ PRODUCT LINKAGE": "模型 ⇄ 产品的关联", "PERFORMER": "执行者", "CODE THAT REALIZES IT": "实现它的代码", "UC.1.1 Open Commute Entry": "UC.1.1 打开通勤录入页", "UC.1.2 Present Entry Fields": "UC.1.2 展示录入字段", "UC.1.3 Enter Trip Details": "UC.1.3 填写行程信息", "UC.1.4 Submit Commute": "UC.1.4 提交通勤记录", "UC.1.5 Accept Entry &amp; Retrieve Factor": "UC.1.5 接收录入并取排放因子", "UC.1.6 Request Weather": "UC.1.6 请求天气", "UC.1.7 Return Weather Forecast": "UC.1.7 返回天气预报", "UC.1.8 Estimate Emissions &amp; Store Trip": "UC.1.8 估算排放并保存行程", "UC.1.9 Update Trends &amp; Compare Baseline": "UC.1.9 更新趋势并对比基线", "UC.1.10 Evaluate Feasible Alternatives": "UC.1.10 评估可行的替代方式", "UC.1.11 Display Commute Result": "UC.1.11 显示通勤结果", "UC.1.12 Review Result": "UC.1.12 查看结果", "THE MODEL IS THE SOURCE": "模型是源头", "Asset names in the model are the directory names in the repository: <span class=\"mono\">c1_web_front_end</span> … <span class=\"mono\">c4_explanation_model</span>.": "模型里的资产名,就是仓库里的目录名:<span class=\"mono\">c1_web_front_end</span> … <span class=\"mono\">c4_explanation_model</span>。", "AN AUTOMATIC CHECK": "自动检查", "A test reads UC.1.x from the exported model and checks that each action has code tagged <span class=\"mono\">@realizes</span> — and that no tagged action is missing from the model.": "一个测试会读取导出的模型中的 UC.1.x,检查每个行动都有带 <span class=\"mono\">@realizes</span> 标记的代码——并且代码里标记的行动都存在于模型中。", "HONEST LIMIT": "如实说明的局限", "It does not check performers or satisfies links; those are traced by hand in SPEC.md.": "它不检查执行者或“满足”关系;这些在 SPEC.md 中靠人工追溯。", "THE GARDEN · WHAT IS REAL, STUB OR NEXT": "花园 · 哪些是真实的、占位的、接下来要做的", "HARVESTED · REAL": "已收获 · 真实", "CO₂e calculation": "CO₂e 计算", "Always-drive baseline": "“一直开车”基线", "Recommendation rules": "推荐规则", "Tests &amp; model linkage": "测试与模型关联", "GROWING · STUB": "生长中 · 占位", "Web front end": "网页前端", "Emission factors": "排放因子", "Weather forecast": "天气预报", "Explanation text": "解释文字", "SEEDS · NEXT": "种子 · 下一步", "Off-nominal paths": "非正常路径", "Institutional summaries": "机构汇总", "Reviewed factors &amp; occupancy": "审核后的因子与乘车人数", "Local language model": "本地语言模型", "QUEST LOG · MILESTONE 1 CHECKLIST": "任务日志 · 里程碑 1 检查清单", "Our own rating against the course rubric. The TAs make the final determination.": "这是我们对照课程评分标准的自评。最终结论由助教判定。", "1 MISSION / SOI / BOUNDARY": "1 使命 / SoI / 边界", "Mission, SoI, interface inventory and in/out reasoning (BMA §4).": "使命、SoI、接口清单,以及纳入/排除的理由(BMA §4)。", "<span class=\"badge b-real\">PROFICIENT</span>": "<span class=\"badge b-real\">达标</span>", "2 OPSCON &amp; BEHAVIOR": "2 运行概念与行为", "UC.1 as use case, action, activity and sequence diagrams.": "UC.1 的用例图、行动图、活动图和顺序图。", "3 STAKEHOLDER NEEDS": "3 利益相关方需求", "7 groups, 6 personas, power–interest grid, 21 needs.": "7 类利益相关方、6 个人物画像、权力—利益网格、21 条需求。", "4 REQUIREMENTS BASELINE": "4 要求基线", "28 requirements with measures, validation and traceability.": "28 条要求,带度量指标、验证方法和可追溯性。", "5 WALKING SKELETON": "5 行走骨架", "One path runs through all 12 UC.1 actions.": "一条路径贯穿 UC.1 全部 12 个行动。", "6 MODEL-TO-PRODUCT LINKAGE": "6 模型到产品的关联", "SPEC.md, traceability table, @realizes tags and the linkage test.": "SPEC.md、追溯表、@realizes 标记和关联测试。", "<b>0 errors</b>Innoslate Intelligence on the imported model: warnings only, 81% pass rate": "<b>0 个错误</b>已导入模型的 Innoslate Intelligence 检查:只有警告,通过率 81%", "<b>12 / 12</b>automated tests pass: UC.1 end-to-end, requirement checks, model linkage": "<b>12 / 12</b>自动化测试通过:UC.1 端到端、要求检查、模型关联", "<b>28</b>requirements in SPEC.md, each with source need, acceptance criterion and satisfying actions": "<b>28</b>条要求写在 SPEC.md 里,每条都有来源需求、验收标准和满足它的行动", "HOW WE USED GENAI — ON A SHORT LEASH": "我们如何使用生成式 AI——严格受控", "We did <b>not</b> prompt for “the whole project”. Every AI-assisted change starts from approved requirement text.": "我们<b>没有</b>让 AI“一次生成整个项目”。每一次 AI 辅助的改动,都从已批准的要求文本出发。", "MODEL FIRST": "先建模型", "Mission, boundary, use case, needs and requirements were built in Innoslate before any code.": "使命、边界、用例、需求和要求,都先在 Innoslate 里建好,然后才写代码。", "SPEC FROM REQUIREMENTS": "由要求生成 SPEC", "SPEC.md is generated from the 28 stakeholder requirements, keeping their IDs.": "SPEC.md 由 28 条利益相关方要求生成,保留它们的编号。", "CONSTRAINED PROMPTS": "受约束的提示词", "Each prompt names the source text and the stub rules, and is recorded in the prompt log (4 entries so far).": "每条提示词都写明来源文本和占位(stub)规则,并记录在提示词日志里(目前 4 条)。", "HUMAN REVIEW": "人工审核", "Teammates check outputs against the model. Sign-off on the log entries is in progress.": "队友对照模型检查输出。日志条目的签字确认正在进行中。", "PROMPT LOG · docs/prompt-log.md": "提示词日志 · docs/prompt-log.md", "001 · REPO + WALKING SKELETON": "001 · 仓库 + 行走骨架", "002 · C.4 NEED + REQUIREMENT, MODEL 10.6": "002 · C.4 的需求与要求,模型 10.6", "003 · FIXES AFTER REVIEW": "003 · 评审后的修正", "004 · MODEL 10.6 IMPORT RECORD": "004 · 模型 10.6 导入记录", "Each entry records the tool, the prompt, the requirement text that constrained it, what it produced, and what it does not claim.": "每条记录都写明所用工具、提示词、约束它的要求文本、产出了什么,以及哪些并不声称。", "THE ROAD AHEAD": "前方的路", "SEP 30, 2026": "2026 年 9 月 30 日", "Charter &amp; plan baseline": "章程与计划基线", "OCT 7, 2026": "2026 年 10 月 7 日", "MILESTONE CHECK 1: we are here": "里程碑检查 1:我们在这里", "NOV 13, 2026": "2026 年 11 月 13 日", "Discovery &amp; requirements complete": "调研与要求完成", "DEC 18, 2026": "2026 年 12 月 18 日", "Experience &amp; architecture baseline": "体验与架构基线", "MAR 19, 2027": "2027 年 3 月 19 日", "Feature-complete MVP": "功能完整的 MVP", "APR – JUN 2027": "2027 年 4–6 月", "Pilot &amp; launch decision": "试点与上线决定", "BY OCT 14": "10 月 14 日前", "Approve the toolchain decision, protect main, finish human review, redraw the model diagrams with C.1–C.4.": "批准工具链决定、保护 main 分支、完成人工审核、用 C.1–C.4 重画模型图。", "BY OCT 21": "10 月 21 日前", "Model the off-nominal weather path and UC.2; fix requirement 2.3.1 wording.": "为天气不可用这条非正常路径和 UC.2 建模;修正要求 2.3.1 的措辞。", "BY OCT 28": "10 月 28 日前", "Reviewed emission factors replace the placeholders; first stakeholder conversation.": "用审核后的排放因子替换占位值;进行第一次利益相关方交流。", "THANK YOU! — TEAM 6": "谢谢!——第 6 组", "Project Manager &amp; Integration Lead": "项目经理兼整合负责人", "Quality, Risk &amp; Documentation Lead": "质量、风险与文档负责人", "Product &amp; Stakeholder Lead": "产品与利益相关方负责人", "Sustainability Data &amp; Analysis Lead": "可持续数据与分析负责人", "Technical Architecture Lead": "技术架构负责人", "<b>PROJECT HOME PAGE</b>sysen5151-fall2026.github.io/TEAM-6": "<b>项目主页</b>sysen5151-fall2026.github.io/TEAM-6", "<b>REPOSITORY</b>github.com/sysen5151-fall2026/TEAM-6": "<b>代码仓库</b>github.com/sysen5151-fall2026/TEAM-6", "<b>REPLAY</b>Back to the first page": "<b>重播</b>回到第一页", "Questions? Click around the villagers, buildings and tabs — everything on these pages is live.": "有问题吗?可以点点村民、建筑和标签页——这些页面上的内容都是可交互的。", "Try it: <span class=\"mono\">python -m src.main</span> · Tests: <span class=\"mono\">python -m unittest discover -s tests -t .</span>": "试一试:<span class=\"mono\">python -m src.main</span> · 测试:<span class=\"mono\">python -m unittest discover -s tests -t .</span>", "◀ BACK": "◀ 上一页", "SHORT": "精简", "AUTO": "自动", "HOW TO PLAY": "操作说明", "▶ / SPACE / ENTER — next<br>◀ / BACKSPACE — back<br>CLICK the road dots — jump to a page<br>S — <b>short mode</b>: only the 7 key pages<br>L — language: English / 中文<br>A — auto-play &nbsp; F — full screen &nbsp; ? — this help<br>Click the buildings, villagers, tabs and toggles to explore.": "▶ / 空格 / 回车 —— 下一页<br>◀ / 退格 —— 上一页<br>点击底部小路上的圆点 —— 跳到某一页<br>S —— <b>精简模式</b>:只播放 7 个关键页<br>L —— 语言:English / 中文<br>A —— 自动播放 &nbsp; F —— 全屏 &nbsp; ? —— 本帮助<br>点一点建筑、村民、标签和开关来探索。", "Press any key or click to close.": "按任意键或点击关闭。", "X.1 <span class=\"badge b-sim\" style=\"font-size:8px;padding:3px 4px 1px;margin-left:3px\">SIM</span>": "X.1 <span class=\"badge b-sim\" style=\"font-size:11px;padding:2px 4px 1px;margin-left:3px\">模拟</span>", "C.1 <span class=\"badge b-stub\" style=\"font-size:8px;padding:3px 4px 1px;margin-left:3px\">STUB</span>": "C.1 <span class=\"badge b-stub\" style=\"font-size:11px;padding:2px 4px 1px;margin-left:3px\">占位</span>", "C.3 <span class=\"badge b-stub\" style=\"font-size:8px;padding:3px 4px 1px;margin-left:3px\">STUB</span>": "C.3 <span class=\"badge b-stub\" style=\"font-size:11px;padding:2px 4px 1px;margin-left:3px\">占位</span>", "X.3 <span class=\"badge b-stub\" style=\"font-size:8px;padding:3px 4px 1px;margin-left:3px\">STUB</span>": "X.3 <span class=\"badge b-stub\" style=\"font-size:11px;padding:2px 4px 1px;margin-left:3px\">占位</span>", "C.4 <span class=\"badge b-stub\" style=\"font-size:8px;padding:3px 4px 1px;margin-left:3px\">STUB</span>": "C.4 <span class=\"badge b-stub\" style=\"font-size:11px;padding:2px 4px 1px;margin-left:3px\">占位</span>", "C.2 <span class=\"badge b-real\" style=\"font-size:8px;padding:3px 4px 1px;margin-left:3px\">REAL</span>": "C.2 <span class=\"badge b-real\" style=\"font-size:11px;padding:2px 4px 1px;margin-left:3px\">真实</span>"});
+Object.assign(ZD,{"X.1 Commuter (outside): a student or employee. Gives mode, distance, date, occupancy and feasibility settings; receives estimate, trend, baseline difference, advice and explanation.": "X.1 通勤者(边界之外):学生或员工。提供出行方式、距离、日期、乘车人数和可行性设置;接收估算、趋势、基线差值、建议和解释。", "X.3 Open-Meteo (outside): free weather API. We send an approved coarse location and time, and get a forecast and its timestamp.": "X.3 Open-Meteo(边界之外):免费的天气 API。我们发送经批准的粗略位置和时间,得到天气预报及其时间戳。", "Not part of the main use case: X.2 Pilot Administrator (approved aggregate summaries), X.4 Emission Factor Publisher (reviewed factor files), X.5 Hosting Provider (runs the service).": "不属于主用例:X.2 试点管理员(经批准的汇总数据)、X.4 排放因子发布方(审核过的因子文件)、X.5 托管方(运行服务)。", "C.1 Web Front End: presents the entry fields, forwards the trip and displays the result. Today a plain-text stub.": "C.1 网页前端:展示录入字段、转发行程并显示结果。目前是纯文本的占位实现。", "C.2 Application Service: estimates emissions, builds the always-drive baseline and applies the recommendation rules. Real logic.": "C.2 应用服务:估算排放、建立“一直开车”基线并应用推荐规则。是真实的逻辑。", "C.3 Data Adapter: factor store, trip store and weather access. Stubbed for now.": "C.3 数据适配器:因子库、行程库和天气访问。目前是占位实现。", "C.4 Explanation Model: writes the plain-language explanation using only facts already calculated. A sentence template today, a local language model later.": "C.4 解释模型:只使用已经计算出的事实来写白话解释。目前是句子模板,以后换成本地语言模型。", "Distance × factor in c2_application_service.estimate_emissions.": "距离 × 因子,在 c2_application_service.estimate_emissions 中实现。", "Same distance, declared drive factor, occupancy 1 — compare_baseline.": "相同距离、声明的开车因子、乘车人数为 1 —— compare_baseline。", "Under 3 km and no rain gives walk or bike; modes the user marked not feasible are never suggested.": "不到 3 公里且不下雨时建议步行或骑车;用户标记为不可行的方式绝不会被推荐。", "12 tests, including the model-linkage check that reads the exported model.": "12 个测试,包括读取导出模型的模型关联检查。", "Plain-text output; no HTML yet. Requirements 2.1.1, 2.1.9 and 2.5.3 need the real UI.": "目前是纯文本输出,还没有 HTML。要求 2.1.1、2.1.9 和 2.5.3 需要真正的界面。", "Placeholder values (version stub-0), labelled ‘not a reviewed factor’. Requirement 2.4.1 is only partly met.": "占位数值(版本 stub-0),标注为“非审核因子”。要求 2.4.1 只部分满足。", "X.3 returns a fixed dry forecast; no HTTP call yet.": "X.3 返回固定的晴天预报;还没有真正的 HTTP 调用。", "Receives only calculated values (needs 1.1.8 / req 2.1.10) but is a sentence template, not a language model.": "只接收已计算的数值(需求 1.1.8 / 要求 2.1.10),但目前是句子模板,不是语言模型。", "Weather outage and invalid input are not modeled or coded yet. Model first, then code.": "天气不可用和输入无效这两种情况还没有建模,也没有编码。先建模型,再写代码。", "UC.2 (approved aggregate summary) and the operational actions OP.1–OP.5.": "UC.2(经批准的汇总数据)以及运行类行动 OP.1–OP.5。", "Reviewed factor table due Oct 28; occupancy handling is an open item.": "审核后的因子表计划 10 月 28 日完成;乘车人数的处理是待办项。", "A local language model that keeps the facts-only contract of requirement 2.1.10.": "一个本地语言模型,并且遵守要求 2.1.10“只陈述事实”的约定。", "X.1 Commuter &mdash; scripted simulation that performs UC.1.1, 1.3, 1.4 and 1.12 (src/x1_commuter_sim).": "X.1 通勤者 —— 脚本模拟,负责执行 UC.1.1、1.3、1.4 和 1.12(src/x1_commuter_sim)。", "C.1 Web Front End &mdash; presents the entry fields and displays the result as plain text (UC.1.2, 1.11). No web layer yet.": "C.1 网页前端 —— 展示录入字段,并以纯文本显示结果(UC.1.2、1.11)。还没有网页层。", "C.2 Application Service &mdash; distance &times; factor, always-drive baseline, recommendation rules (UC.1.5, 1.8, 1.9, 1.10). Real, deterministic logic.": "C.2 应用服务 —— 距离 × 因子、“一直开车”基线、推荐规则(UC.1.5、1.8、1.9、1.10)。真实的确定性逻辑。", "C.3 Data Adapter &mdash; placeholder factor table, in-memory trip list, weather access (UC.1.5, 1.6). Not reviewed data.": "C.3 数据适配器 —— 占位因子表、内存中的行程列表、天气访问(UC.1.5、1.6)。数据未经审核。", "X.3 Open-Meteo &mdash; returns a fixed dry forecast (UC.1.7). No real HTTP call yet.": "X.3 Open-Meteo —— 返回固定的晴天预报(UC.1.7)。还没有真正的 HTTP 调用。", "C.4 Explanation Model &mdash; sentence template that receives only calculated values (UC.1.11). A language model comes later.": "C.4 解释模型 —— 只接收已计算数值的句子模板(UC.1.11)。语言模型以后再接入。", "Press NEXT to start the walk.": "点“下一页”,开始这一段路程。", "<b>ENTER</b> &middot; steps 1&ndash;4: the commuter opens the form, fills in mode, distance, date and settings, and submits.": "<b>录入</b> &middot; 第 1–4 步:通勤者打开表单,填写出行方式、距离、日期和设置,然后提交。", "<b>COMPUTE</b> &middot; steps 5&ndash;9: the service fetches a factor, asks Open-Meteo for weather, estimates CO&#8322;e, stores the trip, updates trends and compares with always driving.": "<b>计算</b> &middot; 第 5–9 步:服务取得排放因子,向 Open-Meteo 请求天气,估算 CO&#8322;e,保存行程,更新趋势,并与“一直开车”对比。", "<b>DECIDE</b> &middot; steps 10&ndash;12: rules pick a feasible greener option, the result is shown with an explanation, and the commuter keeps the choice.": "<b>决定</b> &middot; 第 10–12 步:规则挑出一个可行的更绿色选择,结果连同解释一起显示,通勤者保留最终选择权。", "Click any building to read what it does.": "点任意一栋建筑,看看它是做什么的。", "Click a building. Golden coins show data moving along the path of UC.1.": "点一点建筑。金币表示数据沿着 UC.1 的路径流动。", "Tap an item to see where it lives.": "点一项,看看它在哪里。", "IN THE REQUIREMENTS": "已纳入要求", "NEXT PHASE": "下一阶段", "Pick an example above, then press NEXT.": "先在上面选一个例子,再点“下一页”。", "Following the leaf:": "跟着叶子走:", "All six links found &mdash; the chain is complete.": "六个环节都找到了——这条链是完整的。", "Every link is a real artifact: model entity, SPEC.md section, source file and test.": "每个环节都是真实存在的:模型实体、SPEC.md 章节、源文件和测试。", "Press NEXT to run the skeleton...": "点“下一页”运行骨架……", "ONE-WAY DISTANCE:": "单程距离:", "You already used a lowest-emission mode.": "你已经在用排放最低的方式了。", "Distance or forecast weather does not suit walking or cycling.": "距离或天气预报不适合步行或骑车。", "Walking and cycling are marked not feasible in your settings.": "你在设置里把步行和骑车都标成了不可行。", "NEXT &#9654;": "下一页 &#9654;", "AGAIN &#8635;": "重播 &#8635;"});
+STAKEZ=[["通勤者", "主要用户", "我需要几秒钟就能记下通勤,看到它排放了多少,并得到符合天气和我自身条件的建议。"], ["试点赞助方与管理员", "买方", "我需要给委员会看的参与证据——以及绝不会暴露任何一个人行程的汇总数据。"], ["公司赞助方", "出资方", "我需要产品控制在 75 万美元预算内,并在 2027 年 6 月上线决定之前拿到试点证据。"], ["方法评审员", "可信度", "我需要每个数字都能追溯到公开的排放因子,有公平的基线,并把节省量标注为估算。"], ["保障评审员", "隐私与无障碍", "我需要在试点开始前,记录好知情同意、只保留最少的数据,并检查无障碍。"], ["工程与支持", "建设与支持", "我需要清晰的接口,以及维护和退役这项服务的计划。(下一阶段:系统要求。)"], ["外部供应方", "天气、因子、托管", "我们需要你们遵守我们的使用条款、版本和依赖关系。(下一阶段:接口要求。)"]];
+/*ZH_END*/
 init();
 })();
 </script>
