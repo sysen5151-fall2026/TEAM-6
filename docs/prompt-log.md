@@ -68,6 +68,20 @@ Rule: every GenAI-assisted change is logged here with the tool, the (constrained
 | Not generated / not claimed | The Generate Requirements script was not run (statements follow its pattern); the 3 s display time and minimum group size 5 are SRD proposals; first-level mechanisms are not allocated yet (next chapter); team contributions are a draft from README roles |
 | Human review | Team accepted the contribution table and the proposed values. Intelligence on the re-imported 10.7 model (the committed XML already contains the patch): 81% pass, no errors, warnings only (`docs/ch4-ch5/diagrams/innoslate_intelligence.png`). Reviewer and date: ____________ . |
 
+## Entry 006 - 2026-10-18 - Final Chapter 4 and 5 report for Canvas
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5; final wording and layout edit with Codex (per the output location of the edited file; confirm) |
+| Requested by | Luyu Chen |
+| Branch | `docs/ch4-ch5-v5-readable-diagrams` |
+| Prompt (summary, originally Chinese) | Replace the report figures with the team's own Innoslate screenshots (requirements diagram in four parts, traceability matrix, spider diagrams); then review the edited final report for Canvas and sync the repository. |
+| Constraining sources | The Innoslate model 10.7 as imported by the team; the team's screenshots; the System Requirements Definition rubric |
+| What it produced | `docs/ch4-ch5/EcoCommute_Team6_Ch4-Ch5_System_Requirements_Definition_Final.docx` (replaces the draft v5); `docs/ch4-ch5/diagrams/` (Innoslate screenshots); pointers to the 10.7 export in `docs/context.md` and `docs/traceability.md`; open item O-8 |
+| Changes made by the team in the final edit | The 3 s display time and minimum group size 5 are marked TBD pending sponsor approval (assumptions, considerations and the two requirement rows); figures re-laid out for portrait pages; contribution table confirmed |
+| Not claimed | The sponsor has not confirmed the TBD values; first-level mechanisms are still unallocated |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
 ## Entry template
 
 | Field | Value |
