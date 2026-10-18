@@ -77,7 +77,7 @@ Rule: every GenAI-assisted change is logged here with the tool, the (constrained
 | Branch | `docs/ch4-ch5-v5-readable-diagrams` |
 | Prompt (summary, originally Chinese) | Replace the report figures with the team's own Innoslate screenshots (requirements diagram in four parts, traceability matrix, spider diagrams); then review the edited final report for Canvas and sync the repository. |
 | Constraining sources | The Innoslate model 10.7 as imported by the team; the team's screenshots; the System Requirements Definition rubric |
-| What it produced | `docs/ch4-ch5/EcoCommute_Team6_Ch4-Ch5_System_Requirements_Definition_Final.docx` (replaces the draft v5); `docs/ch4-ch5/diagrams/` (Innoslate screenshots); pointers to the 10.7 export in `docs/context.md` and `docs/traceability.md`; open item O-8 |
+| What it produced | `docs/ch4-ch5/EcoCommute_Team6_Ch4-Ch5_System_Requirements_Definition_Final.docx` (replaces the draft v5; adds a table of contents and sections 4.2 Comparison with Stakeholder Requirements, 4.3 Verification Criteria and 4.4 Results Summary after comparing the outline with the TA's example report structure); `docs/ch4-ch5/diagrams/` (Innoslate screenshots); pointers to the 10.7 export in `docs/context.md` and `docs/traceability.md`; open item O-8 |
 | Changes made by the team in the final edit | The 3 s display time and minimum group size 5 are marked TBD pending sponsor approval (assumptions, considerations and the two requirement rows); figures re-laid out for portrait pages; contribution table confirmed |
 | Not claimed | The sponsor has not confirmed the TBD values; first-level mechanisms are still unallocated |
 | Human review | **Pending.** Reviewer and date: ____________ . |
