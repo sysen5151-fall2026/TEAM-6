@@ -1,7 +1,7 @@
 # Model-to-product traceability
 
 Chain: **Stakeholder -> Need (SND 1.x.x) -> Requirement (SRD 2.x.x, in [SPEC.md](../SPEC.md)) -> UC.1 action -> code -> test.**
-Requirement-to-action links come from the `satisfies` relationships in the current Innoslate export `docs/model/EcoCommute_10.6_C4-explanation-req.xml`.
+Requirement-to-action links come from the `satisfies` relationships in the Innoslate export `docs/model/EcoCommute_10.6_C4-explanation-req.xml`; the current export, `docs/model/EcoCommute_10.7_C4-C5_system_requirements.xml`, keeps these links and adds the system requirements (3.x.x) and the F.x functions that satisfy them (report in `docs/ch4-ch5/`).
 
 ## Worked example (the one to show live)
 
@@ -45,3 +45,4 @@ Institutional (2.2.x: UC.2), operational and retirement (2.1.7, 2.1.8, 2.3.x, 2.
 | O-5 | Off-nominal paths (weather outage, invalid input) are neither modeled nor coded. | Add to model first, then code. |
 | O-6 | System requirements for SH.6/SH.7 needs (BMA N11) are deferred to Architecture Definition. | Add to SPEC as 3.x.x. |
 | O-7 | C.1-C.4 were missing from the Innoslate export (only C.0). **Closed:** fixed in the export, and the 10.6 export (adds 1.1.8 / 2.1.10) was imported; Intelligence shows no errors, only warnings (81% pass; `docs/model/intelligence-10.6.webp`). Remaining: redraw the context, hierarchy and action diagrams with C.1-C.4. | Yiyang Zou, by Oct 14. |
+| O-8 | The Chapter 4 first-level functions F.2.0-F.2.7 are not yet mapped to modules or mechanisms (eight functions against components C.1-C.4); no requirement or test columns for the 3.x.x system requirements yet. | Allocate functions to mechanisms and extend this table in the next chapter (risk TR.9 in the Chapter 4-5 report). |

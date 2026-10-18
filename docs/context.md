@@ -1,6 +1,6 @@
 # Context: boundary and interface inventory
 
-Source: Team 6 Business or Mission Analysis (BMA) Sections 4.1-4.5 and 7.9; Stakeholder Needs and Requirements report (updated diagrams in its Appendix B). The authoritative model is the Innoslate project; its latest export in this repository is `docs/model/EcoCommute_10.6_C4-explanation-req.xml`.
+Source: Team 6 Business or Mission Analysis (BMA) Sections 4.1-4.5 and 7.9; Stakeholder Needs and Requirements report (updated diagrams in its Appendix B). The authoritative model is the Innoslate project; its latest export in this repository is `docs/model/EcoCommute_10.7_C4-C5_system_requirements.xml` (10.7 keeps all 10.6 content and adds the Chapter 4 and 5 functional architecture and system requirements: Metafunction F.1-F.6, first-level functions F.2.0-F.2.7, input/outputs IO.1-IO.22 and the system requirements document 3; see `docs/ch4-ch5/`). The 10.6 export is kept for history.
 
 ## System of Interest
 
