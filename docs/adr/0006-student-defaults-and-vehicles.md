@@ -1,6 +1,6 @@
 # ADR 0006: Student defaults, owned vehicles, and a reserved bus card
 
-Status: **Proposed - needs team review and merge approval** (date: 2026-10-27). Replaces the "limits" part of [ADR 0004](0004-feasibility-filter-and-recommendation.md).
+Status: **Proposed - needs team review and merge approval** (date: 2026-10-27). Replaces the "limits" part of [ADR 0004](0004-feasibility-filter-and-recommendation.md). The reserved bus card is replaced by [ADR 0007](0007-tcat-gtfs-bus-data.md).
 
 ## Context
 

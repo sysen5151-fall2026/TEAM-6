@@ -280,6 +280,20 @@ Rule: every GenAI-assisted change is logged here with the tool, the (constrained
 | Not claimed | The thresholds (30 min walk, 45 min bike or scooter), the scooter factor (20 g per km) and the scooter using the bike route and speed are project assumptions. **SPEC.md 2.1.11 and model 10.9 still describe a typed bus time and were not changed**; the team must update them. Weather rules are unchanged. The scooter is assumed electric. Checked in the in-app browser at a narrow width; position was simulated; the card pop-in animation was caught mid-way in one screenshot |
 | Human review | **Pending.** Reviewer and date: ____________ . |
 
+## Entry 022 - 2026-10-27 - TCAT bus schedule from the real GTFS feed
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `feat/tcat-transit` |
+| Prompt (summary, originally Chinese) | Build the bus part on TCAT's own data, with real routes, stops, shapes, direction and which routes run on which days (some stop on weekends); raise other points to watch. |
+| Constraining sources | The TCAT GTFS zip downloaded from `s3.amazonaws.com/tcat-gtfs/tcat-ny-us.zip` on 2026-10-27 (1.5 MB, feed version 20260922); the Mobility Database listing of the feed (no licence stated) |
+| What it produced | `src/c3_data_adapter/gtfs_store.py` (import to SQLite, unit detection, service days, queries) and `src/update_transit.py` (download and build); `src/c2_application_service/bus_planner.py` (direct rides, after-midnight trips, reasons for no bus); the bus row in `plan_commute` and `confirm_trip`; the "Leaving" field, a real bus card, bus line and stops on the map, `/route-lines` with the bus; ADR 0007; `tests/gtfs_fixture.py` (an invented feed with the same quirks) and `tests/test_transit.py`, plus web tests; startup line about the schedule; `tzdata` for Windows; `data/` git-ignored |
+| Findings from the data | Distances are in feet (found by comparing with the drawn lines; read as metres they would be 3.28 times too long); 23,534 stop times are past 24:00:00; one service per weekday group and one exception (2026-11-26, no service); routes 10, 36, 65, 81 and 82 have no weekend service, 115 runs only at weekends; wheelchair and bike fields are all unknown; no transfers or real-time feed |
+| Not claimed | Direct rides only, no transfers; walking legs are straight lines times 1.25; the bus factor is still the placeholder 105 g per km; the schedule is not live; the feed's terms of use were not found, so the data is not committed; walking speed, 900 m reach and the one-minute slack are project assumptions; checked against the real feed at a few places and times, not against TCAT's own trip planner; **SPEC.md 2.1.11 and model 10.9 still describe a typed bus time and were not changed** |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
 ## Entry template
 
 | Field | Value |

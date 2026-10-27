@@ -111,12 +111,58 @@ class Recommendation:  # result of the feasibility filter and ranking
 
 
 @dataclass(frozen=True)
+class BusStop:
+    stop_id: str
+    name: str
+    lat: float
+    lon: float
+
+
+@dataclass(frozen=True)
+class BusItinerary:  # one direct bus ride from the schedule, with the walks at both ends
+    route_id: str
+    route_name: str  # the number riders see, e.g. "30"
+    color: str  # route colour, six hex digits without "#"
+    text_color: str
+    headsign: str  # where the bus says it is going
+    direction_id: int  # -1 when the feed does not say
+    board: BusStop
+    alight: BusStop
+    leave_time: str  # when to set off from the start, "HH:MM"
+    depart_time: str  # bus leaves the boarding stop
+    arrive_time: str  # bus reaches the stop where you get off
+    arrive_destination: str
+    walk_to_m: int
+    walk_from_m: int
+    walk_to_min: int
+    walk_from_min: int
+    wait_min: int
+    ride_min: int
+    ride_km: float  # along the route, from the feed's own distances
+    total_min: int  # from leaving to arriving, waiting included
+    service_date: str  # YYYY-MM-DD the schedule applies to
+    next_departures: tuple  # later "HH:MM" departures of the same route from the same stop
+    path: tuple  # ((lat, lon), ...) of the ride, stop to stop
+    feed_version: str
+
+
+@dataclass(frozen=True)
+class BusResult:
+    itinerary: "BusItinerary | None"  # a bus on the requested day at or after the requested time
+    status: str  # "ok", "not_installed", "outside_feed", "no_stop_near_start", "no_stop_near_destination",
+    #              "no_direct_route", "no_service_that_day", "no_more_that_day"
+    note: str  # plain-language reason shown on the bus card
+    later: "BusItinerary | None" = None  # the next bus on a later day when there is none on the requested day
+
+
+@dataclass(frozen=True)
 class CommutePlan:  # everything the compare page shows
     origin: "Place | None"
     destination: "Place | None"
     comparisons: tuple
     recommendation: "Recommendation | None"
     errors: tuple
+    bus: "BusResult | None" = None
 
 
 @dataclass(frozen=True)

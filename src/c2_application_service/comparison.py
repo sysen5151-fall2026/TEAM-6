@@ -1,5 +1,5 @@
 from src.c3_data_adapter import geocode, get_route_options, retrieve_factor
-from src.interfaces import CommuteRequest, ModeComparison, Place, RouteOption
+from src.interfaces import BusItinerary, CommuteRequest, ModeComparison, Place, RouteOption
 from src.model_trace import realizes
 
 MIN_DISTANCE_KM = 0.05  # origin and destination closer than this are treated as the same place
@@ -69,3 +69,20 @@ def preview_routes(origin: Place, dest: Place):
     if min(o.distance_km for o in options) < MIN_DISTANCE_KM:
         return (), "Start and destination are the same place."
     return options, ""
+
+
+def bus_comparison(itinerary: BusItinerary, drive: ModeComparison) -> ModeComparison:
+    """The bus as one more row of the comparison.
+
+    Distance is the ride along the route; the time runs from leaving to arriving, so the
+    walks and the wait are in it. The difference is against driving the drive route.
+    """
+    co2e_g = round(itinerary.ride_km * _factor_g_per_km("bus"))
+    return ModeComparison(
+        mode="bus",
+        distance_km=itinerary.ride_km,
+        duration_min=itinerary.total_min,
+        co2e_g=co2e_g,
+        difference_g=drive.co2e_g - co2e_g,
+        source=f"TCAT schedule (feed {itinerary.feed_version}); time includes walking and waiting",
+    )

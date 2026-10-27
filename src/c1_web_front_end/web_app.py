@@ -10,6 +10,7 @@ Run:  python -m src.main_web
 
 import math
 from datetime import date as _date
+from datetime import datetime
 
 from flask import Flask, jsonify, redirect, render_template, request, url_for
 
@@ -17,7 +18,9 @@ from src.c2_application_service import (
     campus_goal,
     confirm_trip,
     evaluate_badges,
+    find_bus,
     load_demo_trips,
+    local_now,
     plan_commute,
     preview_routes,
 )
@@ -36,6 +39,24 @@ def parse_have(form) -> tuple:
     return tuple(v for v in VEHICLES if v in form.getlist("have"))
 
 
+WHEN_FORMATS = ("%Y-%m-%dT%H:%M", "%Y-%m-%dT%H:%M:%S")
+
+
+def parse_when(raw) -> tuple:
+    """The leaving time from the form as (datetime, error). Empty means now, Ithaca time."""
+    raw = (raw or "").strip()
+    if not raw:
+        return local_now(), ""
+    for fmt in WHEN_FORMATS:
+        try:
+            when = datetime.strptime(raw, fmt)
+        except ValueError:
+            continue
+        if 2020 <= when.year <= 2100:
+            return when, ""
+    return None, "Enter when you are leaving as a date and a time."
+
+
 def _percent(into_next_g: float, goal_g: float) -> int:
     return round(100 * into_next_g / goal_g)
 
@@ -52,13 +73,18 @@ def _map_places(plan) -> list:
 
 @realizes("UC.3.6")
 def render_plan(values, plan=None, errors=()):
+    when, _ = parse_when(values.get("when"))
+    when = when or local_now()
+    today = _date.today()
     return render_template(
         "plan.html",
         active="plan",
         live_search=place_search_is_live(),
         map_places=_map_places(plan),
         vehicles=VEHICLES,
-        today=_date.today().isoformat(),
+        today=today.isoformat(),
+        when_value=when.strftime("%Y-%m-%dT%H:%M"),
+        confirm_date=min(when.date(), today).isoformat(),  # a trip can only be confirmed once it has happened
         restore_have=request.method == "GET",
         values=values,
         plan=plan,
@@ -88,20 +114,25 @@ def plan_page():
         errors.append("Enter where you are starting from.")
     if not destination:
         errors.append("Enter where you are going.")
+    when, when_error = parse_when(values.get("when"))
+    if when_error:
+        errors.append(when_error)
     if errors:
         return render_plan(values, errors=errors)
 
-    plan = plan_commute(origin, destination, have=parse_have(request.form))
+    plan = plan_commute(origin, destination, have=parse_have(request.form), when=when)
     return render_plan(values, plan=plan, errors=plan.errors)
 
 
 def confirm_page():
+    when, _ = parse_when(request.form.get("when"))  # a bad value means "now"
     trip, new_badges, errors = confirm_trip(
         request.form.get("origin", ""),
         request.form.get("destination", ""),
         request.form.get("mode", ""),
         request.form.get("date", ""),
         parse_have(request.form),
+        when,
     )
     if errors:
         return render_plan(form_values(), errors=errors)
@@ -171,18 +202,38 @@ def _coordinate(name: str, low: float, high: float) -> float:
     return value
 
 
+def _bus_json(result) -> dict:
+    """The bus for the map: its line and stops when there is one, else why not."""
+    out = {"status": result.status, "note": result.note}
+    bus = result.itinerary
+    if bus:
+        out.update(
+            route=bus.route_name, color=bus.color, headsign=bus.headsign,
+            depart=bus.depart_time, arrive=bus.arrive_time, leave=bus.leave_time,
+            walk_to_min=bus.walk_to_min, ride_min=bus.ride_min, walk_from_min=bus.walk_from_min,
+            board={"name": bus.board.name, "lat": bus.board.lat, "lon": bus.board.lon},
+            alight={"name": bus.alight.name, "lat": bus.alight.lat, "lon": bus.alight.lon},
+            path=[[lat, lon] for lat, lon in bus.path],
+        )
+    return out
+
+
 def route_lines_api():
-    """Drive, walk and bike lines between two points, for the map."""
+    """Drive, walk and bike lines between two points, and the bus if there is one, for the map."""
     try:
         origin = Place("", _coordinate("olon", -180, 180), _coordinate("olat", -90, 90), "map")
         dest = Place("", _coordinate("dlon", -180, 180), _coordinate("dlat", -90, 90), "map")
     except (KeyError, ValueError):
         return jsonify({"error": "Give olat, olon, dlat and dlon as coordinates."}), 400
+    when, when_error = parse_when(request.args.get("when"))
+    if when_error:
+        return jsonify({"error": when_error}), 400
     options, error = preview_routes(origin, dest)
     if error:
         return jsonify({"error": error}), 400
     return jsonify(
         {
+            "bus": _bus_json(find_bus(origin, dest, when)),
             "routes": [
                 {
                     "mode": o.mode,
