@@ -87,9 +87,11 @@ class TestPlanPage(unittest.TestCase):
         self.assertIn('name="have" value="scooter"', page)
         self.assertNotRegex(page, r'name="have" value="(bike|scooter)"\s+checked')  # nothing ticked by default
 
-    def test_a_bus_card_is_reserved_but_cannot_be_chosen(self):
-        page = self.client.post("/", data=PLACES).get_data(as_text=True)
-        self.assertIn("Coming soon", page)
+    def test_without_transit_data_the_bus_card_says_why_and_cannot_be_chosen(self):
+        page = self.client.post("/", data=PLACES).get_data(as_text=True)  # no index in the tests
+        self.assertIn("No bus", page)
+        self.assertIn("Bus times are not installed yet", page)
+        self.assertIn("python -m src.update_transit", page)
         self.assertIn("Not available yet", page)
         self.assertNotIn('name="mode" value="bus"', page)
 
@@ -178,6 +180,112 @@ class TestPlanPage(unittest.TestCase):
     def test_my_location_can_be_the_start_of_a_plan(self):
         page = self.client.post("/", data={"origin": "My location (42.4440, -76.4830)", "destination": "Ithaca Commons"}).data
         self.assertIn(b"Choose this way", page)
+
+
+@unittest.skipIf(create_app is None, "Flask not installed")
+class TestPlanPageWithBus(unittest.TestCase):
+    """The plan page with the invented transit feed (its stops sit at the Arts Quad and the Commons)."""
+
+    @classmethod
+    def setUpClass(cls):
+        from tests import gtfs_fixture
+
+        cls.store, _, _ = gtfs_fixture.build_fixture_store()
+
+    def setUp(self):
+        reset_confirmed()
+        self.addCleanup(reset_confirmed)
+        env = mock.patch.dict(os.environ)
+        env.start()
+        os.environ.pop("ORS_API_KEY", None)
+        self.addCleanup(env.stop)
+        weather = mock.patch("src.c3_data_adapter.weather_adapter._http_json", side_effect=OSError)
+        weather.start()
+        self.addCleanup(weather.stop)
+        store = mock.patch("src.c2_application_service.bus_planner.open_store", return_value=self.store)
+        store.start()
+        self.addCleanup(store.stop)
+        self.client = create_app().test_client()
+
+    def post(self, when, **extra):
+        return self.client.post("/", data={**PLACES, "when": when, **extra}).get_data(as_text=True)
+
+    def test_the_form_asks_when_you_are_leaving(self):
+        page = self.client.get("/").get_data(as_text=True)
+        self.assertIn('id="when" name="when" type="datetime-local" required', page)
+        self.assertRegex(page, r'name="when" type="datetime-local" required value="\d{4}-\d\d-\d\dT\d\d:\d\d"')
+
+    def test_a_bad_leaving_time_is_a_message_not_a_crash(self):
+        for bad in ("tomorrow", "2026-13-40T99:99", "1999-01-01T10:00"):
+            with self.subTest(when=bad):
+                page = self.post(bad)
+                self.assertIn('role="alert"', page)
+                self.assertIn("Enter when you are leaving", page)
+                self.assertNotIn("Choose this way", page)
+
+    def test_the_bus_card_shows_the_real_line_stops_and_times(self):
+        page = self.post("2026-06-03T07:00")
+        self.assertIn('name="mode" value="bus"', page)
+        self.assertIn(">30</span> to Downtown", page)  # the route chip and where the bus says it goes
+        self.assertIn("Bus 07:30 → 07:40", page)
+        self.assertIn("to Stop A1", page)
+        self.assertIn("from Stop B1", page)
+        self.assertIn("Leave by", page)
+        self.assertIn("Next: 08:00, 08:30, 09:00", page)
+        self.assertIn("published TCAT schedule", page)
+        self.assertIn("background:#ab6339", page)  # the route's own colour
+        self.assertNotIn("No bus", page)
+
+    def test_a_saturday_uses_the_weekend_timetable(self):
+        page = self.post("2026-06-06T09:30")
+        self.assertIn(">115</span>", page)
+        self.assertIn("Bus 10:00", page)
+
+    def test_when_there_is_no_bus_the_card_says_why_and_when_the_next_one_is(self):
+        page = self.post("2026-06-03T23:59")
+        self.assertIn("No bus", page)
+        self.assertIn("No more TCAT buses", page)
+        self.assertIn("The next one is route 30", page)
+        self.assertNotIn('name="mode" value="bus"', page)
+
+    def test_the_leaving_time_is_kept_for_the_confirm_step(self):
+        page = self.post("2026-06-03T07:00")
+        self.assertIn('<input type="hidden" name="when" value="2026-06-03T07:00">', page)
+
+    def test_the_bus_can_be_chosen_and_recorded(self):
+        response = self.client.post("/confirm", data={**PLACES, "mode": "bus", "date": "2026-06-03", "when": "2026-06-03T07:00"})
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.headers["Location"].startswith("/done/0"))
+        again = self.client.post("/confirm", data={**PLACES, "mode": "bus", "date": "2026-06-03", "when": "2026-06-03T23:59"})
+        self.assertEqual(again.status_code, 200)  # no bus at that time: a message, not a trip
+        self.assertIn('role="alert"', again.get_data(as_text=True))
+
+    def test_the_route_lines_endpoint_includes_the_bus_line_and_stops(self):
+        reply = self.client.get("/route-lines?olat=42.4491&olon=-76.4835&dlat=42.4396&dlon=-76.4968&when=2026-06-03T07:00")
+        self.assertEqual(reply.status_code, 200)
+        bus = reply.get_json()["bus"]
+        self.assertEqual((bus["status"], bus["route"], bus["depart"], bus["arrive"]), ("ok", "30", "07:30", "07:40"))
+        self.assertEqual(bus["color"], "ab6339")
+        self.assertGreaterEqual(len(bus["path"]), 3)
+        self.assertEqual((bus["board"]["name"], bus["alight"]["name"]), ("Stop A1", "Stop B1"))
+        self.assertEqual(len(reply.get_json()["routes"]), 3)  # the other ways are unchanged
+
+    def test_the_route_lines_endpoint_says_why_there_is_no_bus(self):
+        reply = self.client.get("/route-lines?olat=42.4491&olon=-76.4835&dlat=42.4396&dlon=-76.4968&when=2027-02-01T09:00")
+        bus = reply.get_json()["bus"]
+        self.assertEqual(bus["status"], "outside_feed")
+        self.assertIn("covers", bus["note"])
+        self.assertNotIn("path", bus)
+
+    def test_the_route_lines_endpoint_rejects_a_bad_time_and_defaults_to_now(self):
+        base = "/route-lines?olat=42.4491&olon=-76.4835&dlat=42.4396&dlon=-76.4968"
+        self.assertEqual(self.client.get(base + "&when=soon").status_code, 400)
+        self.assertEqual(self.client.get(base).status_code, 200)  # no time given: now
+
+    def test_the_page_script_draws_the_bus_and_redraws_when_the_time_changes(self):
+        page = self.client.get("/").get_data(as_text=True)
+        for needle in ("&when=", "bus.path", "sw-bus", 'whenInput.addEventListener("change", refresh)'):
+            self.assertIn(needle, page)
 
 
 if __name__ == "__main__":

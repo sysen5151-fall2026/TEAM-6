@@ -65,6 +65,14 @@ The **Plan** page shows drive and walk (and bike or scooter when ticked) distanc
 
 The same page recommends one mode ([ADR 0004](docs/adr/0004-feasibility-filter-and-recommendation.md)): it rules out ways using current weather at the start (Open-Meteo, no key) and a time limit (walk 30 min, bike or scooter 45 min), then picks the lowest estimated CO2e among what is left and says why; ties go to walk, then bike, then scooter ([ADR 0006](docs/adr/0006-student-defaults-and-vehicles.md)). A student is assumed to have no bike: under **What I have with me** you tick a bike or a scooter (remembered in your browser) to compare them. **Start from my location** sits under the From box. The bus is a "Coming soon" card until bus data is connected; there is no transit routing.
 
+**Bus (TCAT).** The bus comes from TCAT's published GTFS schedule ([ADR 0007](docs/adr/0007-tcat-gtfs-bus-data.md)). Build the local index once (and again when TCAT publishes a new schedule; the current one runs to 2026-12-19):
+
+```powershell
+.venv\Scripts\python -m src.update_transit
+```
+
+It downloads the feed (about 1.5 MB), checks it and writes `data/tcat/tcat.sqlite` (git ignores `data/`: the feed's terms for redistribution were not found, so each machine builds its own). The server prints whether the schedule was found. The **Leaving** date and time decides which services run (weekday, weekend, holiday exceptions) and which bus is next; the bus card shows the real route, stops, times and when to leave, and the map draws the ride. Direct rides only; times are the timetable, not live positions. Without the index the bus card says so.
+
 Choose a way with **Choose this way** and the **Achievements** and **Garden** pages ([ADR 0005](docs/adr/0005-badges-and-campus-tree.md)) shows eight rule-based badges with their conditions and a campus tree goal (22 kg estimated difference per tree, a project assumption). **Load sample trips** adds invented records for a demonstration; the campus share is sample data and is labelled on the page.
 
 ```powershell

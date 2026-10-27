@@ -12,7 +12,7 @@ def _earned(trips) -> dict:
 
 
 @realizes("UC.3.8")
-def confirm_trip(origin_text: str, destination_text: str, mode: str, day: str, have=()):
+def confirm_trip(origin_text: str, destination_text: str, mode: str, day: str, have=(), when=None):
     """Record a trip the Commuter says they took.
 
     The distance and emissions are recomputed here from the places and mode, never
@@ -25,7 +25,7 @@ def confirm_trip(origin_text: str, destination_text: str, mode: str, day: str, h
     if trip_date > date.today():
         return None, (), ["A trip that has not happened yet can't be confirmed."]
 
-    plan = plan_commute(origin_text, destination_text, have=have)
+    plan = plan_commute(origin_text, destination_text, have=have, when=when)
     if plan.errors:
         return None, (), list(plan.errors)
     row = next((c for c in plan.comparisons if c.mode == mode), None)

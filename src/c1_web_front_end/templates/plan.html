@@ -28,6 +28,13 @@
     .legend .sw-bike { border-color:#2f7de1; border-top-style:dashed; }
     .legend .sw-walk { border-color:#1f8a5b; border-top-style:dotted; border-top-width:4px; }
     .legend li.warn { font-weight:600; color:var(--muted); }
+    .whenrow { display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px; margin-top:12px; }
+    .whenrow label { margin:0; }
+    .whenrow input { width:auto; }
+    .route-chip { display:inline-block; min-width:2.2em; padding:0 8px; border-radius:8px; border:2px solid var(--line); font-weight:900; text-align:center; }
+    .busline { margin:6px 0 0; font-weight:800; }
+    ul.steps { text-align:left; }
+    .legend .sw-bus { border-top-width:6px; border-top-style:solid; }
     .herebtn { width:100%; margin-top:8px; }
     .herenote { margin:6px 0 0; }
     fieldset.mine { margin:14px 0 0; padding:10px 14px 12px; border:2.5px dashed var(--line); border-radius:14px; }
@@ -65,6 +72,11 @@
         <input id="destination" name="destination" type="text" autocomplete="off" required maxlength="100"
                placeholder="e.g. Cornell Arts Quad" value="{{ values.get('destination', '') }}">
       </div>
+    </div>
+    <div class="whenrow">
+      <label for="when">🕒 Leaving</label>
+      <input id="when" name="when" type="datetime-local" required value="{{ when_value }}">
+      <span class="note">Bus times depend on this.</span>
     </div>
     {% if not live_search %}
     <p class="note searchmode" id="searchmode">📴 Offline list only (no ORS key set): only a few sample places can be found. Set ORS_API_KEY and restart to search anywhere.</p>
@@ -112,10 +124,11 @@
       <input type="hidden" name="origin" value="{{ values.get('origin', '') }}">
       <input type="hidden" name="destination" value="{{ values.get('destination', '') }}">
       {% for v in values.get('have', []) %}<input type="hidden" name="have" value="{{ v }}">{% endfor %}
+      <input type="hidden" name="when" value="{{ when_value }}">
       <p class="step">Now pick your way 👇 <span class="note">Choosing records the trip as done.</span></p>
       <div class="datepick">
         <label for="trip_date">📅 Date of this trip</label>
-        <input id="trip_date" name="date" type="date" required max="{{ today }}" value="{{ values.get('date') or today }}">
+        <input id="trip_date" name="date" type="date" required max="{{ today }}" value="{{ values.get('date') or confirm_date }}">
       </div>
       <div class="modes">
         {% for c in plan.comparisons %}
@@ -130,25 +143,40 @@
             <li>💨 {{ '%g'|format(c.co2e_g) }} g CO2e</li>
             <li class="save">{% if c.difference_g > 0 %}🌱 about {{ '%g'|format(c.difference_g) }} g less than driving{% else %}the driving baseline{% endif %}</li>
           </ul>
+          {% if c.mode == 'bus' and plan.bus and plan.bus.itinerary %}
+          {% set b = plan.bus.itinerary %}
+          <p class="busline"><span class="route-chip" style="background:#{{ b.color }};color:#{{ b.text_color }}">{{ b.route_name }}</span> to {{ b.headsign }}</p>
+          <ul class="steps">
+            <li>🚶 {{ b.walk_to_min }} min ({{ b.walk_to_m }} m) to {{ b.board.name }}</li>
+            <li>🕒 Bus {{ b.depart_time }} → {{ b.arrive_time }} ({{ b.ride_min }} min)</li>
+            <li>🚶 {{ b.walk_from_min }} min ({{ b.walk_from_m }} m) from {{ b.alight.name }}</li>
+            <li>⏱️ Leave by {{ b.leave_time }}, arrive about {{ b.arrive_destination }}</li>
+            {% if b.next_departures %}<li>Next: {{ b.next_departures|join(', ') }}</li>{% endif %}
+          </ul>
+          {% endif %}
           {% if out %}<p class="why">Ruled out: {{ out[0][1] }}</p>{% endif %}
           <button class="btn small {{ 'alt' if c.mode == rec.mode else 'ghost' }}" type="submit" name="mode" value="{{ c.mode }}">Choose this way</button>
         </article>
         {% endfor %}
 
-        <article class="card mode soon" aria-label="Bus, coming soon">
-          <span class="tag no">Coming soon</span>
+        {% if not (plan.comparisons | selectattr('mode', 'equalto', 'bus') | list) %}
+        <article class="card mode soon" aria-label="Bus, not available">
+          <span class="tag no">No bus</span>
           <div class="emoji" aria-hidden="true">{{ m.mode('bus') }}</div>
           <h3>bus</h3>
           <div class="time">–</div>
-          <ul><li>🗓️ Campus bus times are not connected yet</li></ul>
-          <p class="why">Until they are, the bus is not compared or recommended.</p>
+          <p class="why">{{ plan.bus.note if plan.bus and plan.bus.note else 'Bus times are not available.' }}</p>
           <button class="btn small ghost" type="button" disabled>Not available yet</button>
         </article>
+        {% endif %}
       </div>
     </form>
     {% set missing = vehicles | reject('in', values.get('have', [])) | list %}
     {% if missing %}
     <p class="note">Have a {{ missing | join(' or a ') }}? Tick it under “What I have with me” and compare again.</p>
+    {% endif %}
+    {% if plan.comparisons | selectattr('mode', 'equalto', 'bus') | list %}
+    <p class="note">Bus times are the published TCAT schedule, not live bus positions, so a late bus is not shown. Transfers are not planned.</p>
     {% endif %}
     <p class="note" style="margin-top:16px">Each way uses its own route distance. "Less than driving" is an estimate against driving the drive route, not verified avoided emissions. Emission factors are placeholders.
       Route data: {{ plan.comparisons|rejectattr('mode', 'equalto', 'scooter')|map(attribute='source')|unique|join('; ') }}.
@@ -176,7 +204,8 @@
     var STORE = "ecocommute.have";
     var picked = { origin: null, destination: null };
     var combos = {};
-    var here = null, routeSeq = 0, lastRoutes = null;
+    var here = null, routeSeq = 0, lastRoutes = null, lastBus = null;
+    var whenInput = document.getElementById("when");
     var card = document.getElementById("mapcard");
     var status = document.getElementById("mapstatus");
     var legend = document.getElementById("legend");
@@ -200,9 +229,13 @@
     function say(text) { status.textContent = text; }
     function tell(text) { hereNote.textContent = text; hereNote.hidden = !text; }
     function clearLegend() { legend.textContent = ""; legend.hidden = true; }
-    function legendRow(cls, text) {
+    function legendRow(cls, text, color) {
       var li = document.createElement("li");
-      if (cls) { var sw = document.createElement("span"); sw.className = "sw sw-" + cls; li.appendChild(sw); }
+      if (cls) {
+        var sw = document.createElement("span"); sw.className = "sw sw-" + cls;
+        if (color) sw.style.borderColor = color;
+        li.appendChild(sw);
+      }
       else li.className = "warn";
       li.appendChild(document.createTextNode(text));
       legend.appendChild(li); legend.hidden = false;
@@ -222,8 +255,8 @@
     }
 
     // Draw the routes for the ways the Commuter can use. A scooter shares the bike route.
-    function drawRoutes(routes, refit) {
-      lastRoutes = routes;
+    function drawRoutes(routes, refit, bus) {
+      lastRoutes = routes; lastBus = bus || null;
       lines.clearLayers(); clearLegend();
       var all = [], estimated = false;
       function route(mode) { return routes.filter(function (r) { return r.mode === mode; })[0]; }
@@ -235,6 +268,15 @@
       }
       var drive = route("drive"), walk = route("walk"), bike = route("bike");
       if (drive) line(drive);
+      if (bus && bus.path) {  // the bus: its own line in the route colour, with the stops it uses
+        var tint = "#" + bus.color;
+        L.polyline(bus.path, { color: tint, weight: 7, opacity: 0.9 }).addTo(lines);
+        bus.path.forEach(function (p) { all.push(p); });
+        [bus.board, bus.alight].forEach(function (stop) {
+          L.circleMarker([stop.lat, stop.lon], { radius: 6, color: "#fff", weight: 2, fillColor: tint, fillOpacity: 1 })
+            .bindTooltip(stop.name).addTo(lines);
+        });
+      }
       if (bike && (owns("bike") || owns("scooter"))) line(bike);
       if (walk) line(walk);
       [["drive", drive, "drive"], ["walk", walk, "walk"],
@@ -243,6 +285,12 @@
         legendRow(row[2], LABEL[row[0]] + " " + row[1].distance_km + " km, " + row[1].duration_min + " min" +
                           (row[0] === "scooter" ? " (bike route)" : ""));
       });
+      if (bus && bus.path) {
+        legendRow("bus", "🚌 Route " + bus.route + " to " + bus.headsign + ": " + bus.depart + " → " + bus.arrive +
+                         " (walk " + bus.walk_to_min + " min, ride " + bus.ride_min + " min, walk " + bus.walk_from_min + " min)", "#" + bus.color);
+      } else if (bus && bus.note) {
+        legendRow("", "🚌 " + bus.note);
+      }
       if (estimated) legendRow("", "Dashed straight lines are estimates: no routing answer was available.");
       if (refit) fitEverything(all);
     }
@@ -259,12 +307,13 @@
       if (!(picked.origin && picked.destination)) { fitEverything(); return; }
       legendRow("", "Drawing the routes…");
       var q = "olat=" + picked.origin.lat + "&olon=" + picked.origin.lon +
-              "&dlat=" + picked.destination.lat + "&dlon=" + picked.destination.lon;
+              "&dlat=" + picked.destination.lat + "&dlon=" + picked.destination.lon +
+              "&when=" + encodeURIComponent(whenInput ? whenInput.value : "");
       fetch("/route-lines?" + q)
         .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
         .then(function (res) {
           if (seq !== routeSeq) return;  // the choice changed while this was loading
-          if (res.ok) drawRoutes(res.d.routes, true);
+          if (res.ok) drawRoutes(res.d.routes, true, res.d.bus);
           else { clearLegend(); legendRow("", res.d.error || "Could not draw the routes."); fitEverything(); }
         })
         .catch(function () {
@@ -416,7 +465,7 @@
           localStorage.setItem(STORE, JSON.stringify(Array.prototype.filter.call(boxes, function (b) { return b.checked; })
             .map(function (b) { return b.value; })));
         } catch (e) { /* ignore */ }
-        if (lastRoutes) drawRoutes(lastRoutes, false);
+        if (lastRoutes) drawRoutes(lastRoutes, false, lastBus);
       });
     });
 
@@ -427,6 +476,7 @@
     combo(document.getElementById("origin"), "origin");
     combo(document.getElementById("destination"), "destination");
     hereBtn.addEventListener("click", startHere);
+    if (whenInput) whenInput.addEventListener("change", refresh);  // the bus depends on the time
     document.getElementById("locate").addEventListener("click", function () { locate(); });
     refresh();
     locate();  // the browser asks for permission; saying no just leaves the campus view
