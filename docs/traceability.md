@@ -30,6 +30,21 @@ A third chain (added in model 10.6): SH.1 -> need **1.1.8 Understand my result i
 
 `tests/test_model_linkage.py` reads the UC.1.x actions from the exported model in `docs/model/` and checks that each has `@realizes`-tagged code and that no other UC.1 ID is tagged (it does not check performers or satisfies links).
 
+## Web pages and use case UC.3 (draft model 10.9)
+
+The browser pages go beyond the modeled UC.1 log-a-trip flow. Model 10.9 ([docs/model/10.9-changes.md](model/10.9-changes.md)) adds the needs, requirements and use case UC.3 for them as **drafts imported into Innoslate; Intelligence gave 81% with no errors after two errors in the first import were fixed**. Chain: need 1.1.9 Compare every way before I choose -> requirement **2.1.11** -> system requirements 3.1.1.8, 3.1.1.9, 3.1.2.5, 3.1.2.6, 3.2.9, 3.2.10, 3.3.1.9 -> actions **UC.3.2-UC.3.6** -> `route_adapter.get_route_options`, `compare_modes`, `recommend_mode`, `render_plan` -> tests in `tests/test_web_app.py` and `tests/test_routes.py`. Needs 1.1.10 / 1.1.11 / 1.2.4 lead to 2.1.12-2.1.14 and 2.2.5 the same way.
+
+| Action | Performer | Code | Requirements (model 10.9) | Test |
+|---|---|---|---|---|
+| UC.3.3 Request Routes | C.3 | `c3...geocode`, `get_route_options` | 2.1.11 | `tests/test_routes.py` |
+| UC.3.5 Compare Modes and Recommend | C.2, C.4 | `c2...compare_modes`, `recommend_mode`, `plan_commute`; `c4...explain_recommendation` | 2.1.11, 2.1.4, 2.1.5 | `tests/test_routes.py`, `tests/test_recommend.py`, `tests/test_web_app.py` |
+| UC.3.6 Present Comparison | C.1 | `c1...web_app.render_plan` | 2.1.11 | `tests/test_web_app.py` |
+| UC.3.8 Record Trip and Update Progress | C.2, C.3 | `c2...confirm_trip`, `c3...add_confirmed` | 2.1.12, 2.1.13, 2.1.14, 2.2.5 | `tests/test_achievements.py` |
+| UC.3.9 Display Trip Result and Badges | C.1 | `c1...web_app.done_page` | 2.1.13 | `tests/test_achievements.py` |
+| UC.3.10 Present Progress Pages | C.1, C.2 | `c1...web_app.achievements_page`, `garden_page`; `c2...evaluate_badges`, `campus_goal` | 2.1.13, 2.2.5 | `tests/test_achievements.py` |
+
+UC.3.1, UC.3.2, UC.3.7 and UC.3.11 are performed by the Commuter and UC.3.4 by the Route Service, so no code claims them. `tests/test_model_linkage.py` checks the rest against the model, and `tests/test_model_10_9.py` checks the structure of the 10.9 file.
+
 ## Requirements not exercised by the skeleton
 
 Institutional (2.2.x: UC.2), operational and retirement (2.1.7, 2.1.8, 2.3.x, 2.5.1, 2.5.2: OP.1-OP.5) requirements are outside the UC.1 nominal path; SPEC.md marks them "Not in skeleton". No code claims to implement them.
@@ -41,8 +56,10 @@ Institutional (2.2.x: UC.2), operational and retirement (2.1.7, 2.1.8, 2.3.x, 2.
 | O-1 | ~~C.4 had no need or requirement.~~ **Closed:** need 1.1.8 and requirement 2.1.10 added (SPEC.md, Innoslate model 10.6); C.4 performs UC.1.11. Remaining: the real language-model call is still a stub. | Later increment. |
 | O-2 | Emission factors are placeholders (`version stub-0`), so 2.4.1 is only partially met. | Method Reviewer supplies the reviewed factor table. |
 | O-3 | Occupancy is not handled (BMA 7.8 open item); the "under 3 km and no rain" rule threshold is unvalidated. | Method reviewer / product lead. |
-| O-4 | No web UI, so 2.1.1 timing, 2.1.9 (WCAG) and 2.5.3 cannot be tested yet. | Next increment. |
+| O-4 | A web UI now exists (Flask, ADR 0002), but 2.1.1 timing, 2.1.9 (WCAG) and 2.5.3 have not been measured or audited against it; the pages were only checked by hand in one browser. | Measure and audit next. |
 | O-5 | Off-nominal paths (weather outage, invalid input) are neither modeled nor coded. | Add to model first, then code. |
 | O-6 | System requirements for SH.6/SH.7 needs (BMA N11) are deferred to Architecture Definition. | Add to SPEC as 3.x.x. |
 | O-7 | C.1-C.4 were missing from the Innoslate export (only C.0). **Closed:** fixed in the export, and the 10.6 export (adds 1.1.8 / 2.1.10) was imported; Intelligence shows no errors, only warnings (81% pass; `docs/model/intelligence-10.6.webp`). Remaining: redraw the context, hierarchy and action diagrams with C.1-C.4. | Yiyang Zou, by Oct 14. |
 | O-8 | The Chapter 4 first-level functions F.2.0-F.2.7 are not yet mapped to modules or mechanisms (eight functions against components C.1-C.4); no requirement or test columns for the 3.x.x system requirements yet. | Allocate functions to mechanisms and extend this table in the next chapter (risk TR.9 in the Chapter 4-5 report). |
+| O-9 | The web flow (plan, choose, done, garden, achievements), the Route Service, badges and the campus tree goal are now **drafted in model 10.9** (needs 1.1.9-1.1.11, 1.2.4; requirements 2.1.11-2.1.14, 2.2.5 and 14 system requirements; X.6; UC.3; TR.10-TR.12) and the file was imported (Intelligence 81%, no errors), but the function architecture was not extended, and the Chapter 4-7 reports describe 10.7 and 10.8. | The team decides whether the web flow needs functions of its own. |
+| O-10 | Confirmed trips keep the start and destination labels, finer than the coarse location 2.5.1 and 3.4.5.2 require (risk TR.10); the 22 kg per tree has no cited source (TR.12). | Decide what location detail is stored; cite or replace the conversion. |

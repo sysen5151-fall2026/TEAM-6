@@ -22,13 +22,13 @@ The nominal scenario assumes an existing account and consent, valid supported in
 | Path | What it is |
 |---|---|
 | [Project home page](https://sysen5151-fall2026.github.io/TEAM-6/) ([source](docs/index.html)) | Live site with an interactive commute demo, UC.1 walkthrough and traceability explorer (GitHub Pages, served from `/docs`) |
-| [SPEC.md](SPEC.md) | Stakeholder requirements (28: 27 from the SRD plus 2.1.10) with acceptance criteria and model links |
+| [SPEC.md](SPEC.md) | Stakeholder requirements (33: 27 from the SRD, 2.1.10, and five web-flow drafts 2.1.11-2.1.14 and 2.2.5) with acceptance criteria and model links |
 | [docs/context.md](docs/context.md) | Boundary, interface inventory, component-to-directory map |
 | [docs/walking-skeleton.md](docs/walking-skeleton.md) | UC.1 call order; what is real vs stubbed |
 | [docs/traceability.md](docs/traceability.md) | Need -> requirement -> UC.1 action -> code -> test |
 | [docs/environment.md](docs/environment.md), [docs/adr/](docs/adr/) | Toolchain and decisions |
 | [docs/ch6-ch7/](docs/ch6-ch7/) | Chapter 6 and 7 report (Architecture Definition: Function: UC.1 trace, first-level IDEF0, hierarchy, N2, requirements traceability) as `.docx` and `.pdf`, its Innoslate figures and the scripts that build it (`scripts/`) |
-| [docs/model/](docs/model/) | Innoslate exports: 10.6, 10.7 (and the 24 Oct 2026 re-export) and 10.8 (10.7 plus the two trace edits, restored risk links) |
+| [docs/model/](docs/model/) | Innoslate exports: 10.6, 10.7 (and the 24 Oct 2026 re-export), 10.8 (10.7 plus the two trace edits, restored risk links) and 10.9 (10.8 plus the web-flow needs, requirements, route service, UC.3 and risks; [changes](docs/model/10.9-changes.md); imported into Innoslate, Intelligence 81% with no errors) |
 | [docs/prompt-log.md](docs/prompt-log.md) | GenAI provenance log (required by the course) |
 | `src/c1_web_front_end` ... `src/c4_explanation_model` | Internal assets C.1-C.4 |
 | `src/x1_commuter_sim`, `src/x3_open_meteo_stub` | Simulated external actor X.1 and stubbed external system X.3 |
@@ -47,7 +47,32 @@ python -m unittest discover -s tests -t .
 
 `python -m src.main` runs UC.1 once, end to end, with stubs. Do not run `python src/main.py` (package imports need `-m`).
 
-**Status (Milestone 1):** one stubbed end-to-end path for UC.1; emission factors are placeholders, there is no web UI, no persistence, no real weather call and no language model yet. See [docs/walking-skeleton.md](docs/walking-skeleton.md).
+## Run the web entry
+
+Needs Flask (see [ADR 0002](docs/adr/0002-flask-web-entry.md)); the commands above need nothing installed.
+
+```powershell
+python -m venv .venv
+.venv\Scripts\python -m pip install -r requirements.txt
+.venv\Scripts\python -m src.main_web
+```
+
+Then open <http://127.0.0.1:5000>. Emission factors are still placeholders and trips are kept in memory only.
+
+The pages: **Plan** (start and destination are required; every way is compared and one is recommended; you then choose the way you took), a **done** page after choosing (estimated saving, campus tree progress, and a popup for any new badge), **Garden** (an animated campus garden with one tree per reached goal) and **Achievements** (your trip history, earned badges and badges still to go). The earlier "log a trip with a typed distance" web form was removed; the command-line UC.1 path (`python -m src.main`) is unchanged.
+
+The **Plan** page shows drive, walk and bike distance, time and CO2e between two places ([ADR 0003](docs/adr/0003-openrouteservice-with-fallback.md)). To use OpenRouteService, get a free key from openrouteservice.org and set it before starting the server; without it the page uses a labelled estimate between sample places (Cornell Arts Quad, Collegetown, Ithaca Commons, Cornell Gates Hall, Upson Hall, Duffield Hall, Olin Library, Willard Straight Hall). The From and To boxes suggest matching places as you type; with a key they also use the ORS autocomplete. The live service was checked once on 2026-10-27; ORS plans to move to `api.heigit.org`, so set `ORS_BASE_URL` if the old host stops working.
+
+The same page recommends one mode ([ADR 0004](docs/adr/0004-feasibility-filter-and-recommendation.md)): it rules out modes using current weather at the start (Open-Meteo, no key), the modes you mark not feasible and your extra-minutes limit, then picks the lowest estimated CO2e among what is left and says why. Bus time is typed in by the Commuter; there is no transit routing.
+
+Choose a way with **Choose this way** and the **Achievements** and **Garden** pages ([ADR 0005](docs/adr/0005-badges-and-campus-tree.md)) shows eight rule-based badges with their conditions and a campus tree goal (22 kg estimated difference per tree, a project assumption). **Load sample trips** adds invented records for a demonstration; the campus share is sample data and is labelled on the page.
+
+```powershell
+$env:ORS_API_KEY = "your-key"
+.venv\Scripts\python -m src.main_web
+```
+
+**Status (Milestone 1):** one stubbed end-to-end path for UC.1; emission factors are placeholders, the web UI is a single minimal page (see below), there is no persistence, no real weather call and no language model yet. See [docs/walking-skeleton.md](docs/walking-skeleton.md).
 
 ## Team
 

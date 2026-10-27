@@ -6,6 +6,8 @@ How to read a section: **Statement** = SRD text; **From need** = SND ID (and BMA
 
 Requirement 2.1.10 and its need 1.1.8 (plain-language explanation, performed by C.4) were added after the Stakeholder Needs report and exist in the Innoslate model and here; the report still lists 27 requirements and 20 needs.
 
+Requirements 2.1.11-2.1.14 and 2.2.5, with their needs 1.1.9-1.1.11 and 1.2.4, describe the web flow (compare every way between two places, confirm the trip, badges, shared campus tree). They are **drafts proposed in Innoslate model 10.9** (see [docs/model/10.9-changes.md](docs/model/10.9-changes.md)), are not in the SRD report, and their targets are proposals for the team to confirm.
+
 Not yet in this SPEC: system-level requirements for the SH.6/SH.7 needs (BMA N11), which the report defers to Architecture Definition; those will be added here as 3.x.x with a trace to the stakeholder requirements.
 
 Open values needing sponsor confirmation: 3-second display time (2.1.2); minimum aggregate group size 5 (2.2.3).
@@ -104,6 +106,43 @@ Open values needing sponsor confirmation: 3-second display time (2.1.2); minimum
 - **Skeleton status:** Exercised - C.4 `explain_result` receives only calculated values (estimate, baseline, difference, factor source and version, reason) and returns a template sentence (stub; no language model). Tests `test_explanation_contains_required_facts` and `test_explanation_states_only_calculated_facts`.
 
 
+### 2.1.11 - compare travel modes between two places
+
+- **Statement:** The EcoCommute system shall require a start place and a destination place and show on one screen, for walking, cycling and driving, and for bus when the Commuter enters a door-to-door time, the route distance, travel time, estimated CO2e and estimated difference from the always-drive baseline, each based on that mode's own route.
+- **Rationale:** Typed distances are rarely right, and the same two places give different distances on foot, by bike and by car; a per-mode route keeps each estimate honest and lets the Commuter weigh time against emissions.
+- **From need:** 1.1.9
+- **Acceptance criterion:** MOE - Percentage of test Commuters who name the lowest-emission feasible option from the screen (proposed target 80% or more). Validation - Usability session with reference routes whose distances per mode are known; compare displayed figures with the reference. Method: Demonstration and Test.
+- **Satisfied by (model):** `UC.3`, `UC.3.1`, `UC.3.2`, `UC.3.3`, `UC.3.4`, `UC.3.5`, `UC.3.6`
+- **Status:** Draft (model 10.9). Exercised in the Plan page: `tests/test_web_app.py`, `tests/test_routes.py`. Routed distances were checked once against the live Route Service; without a key the page shows a labelled estimate between sample places. Bus uses the drive distance (assumption) and a time the Commuter enters.
+
+### 2.1.12 - count only trips the Commuter confirms
+
+- **Statement:** The EcoCommute system shall add a trip to the Commuter's progress only after the Commuter chooses the way they took.
+- **Rationale:** A plan is not a trip; counting only confirmed trips keeps trends, badges and the campus goal tied to what people actually did.
+- **From need:** 1.1.5, 1.1.9
+- **Acceptance criterion:** MOE - Trips counted toward progress that the Commuter did not confirm (target 0). Validation - State test over every path that can add a trip; inspect stored trips against confirmations. Method: Test.
+- **Satisfied by (model):** `UC.3`, `UC.3.7`, `UC.3.8`
+- **Status:** Draft (model 10.9). Exercised: `tests/test_achievements.py` (confirmation recomputes the numbers from the places and refuses duplicates, future dates and unknown modes).
+
+### 2.1.13 - award badges by published rules
+
+- **Statement:** The EcoCommute system shall award each badge only when its stated condition is met by the Commuter's counted trips and shall show every badge's condition and progress.
+- **Rationale:** Rewards motivate only when the Commuter can see why they were earned; fixed, visible rules also make the awards reproducible.
+- **From need:** 1.1.5, 1.1.10
+- **Acceptance criterion:** MOE - Badges awarded or withheld contrary to their stated condition in a rule test set (target 0). Validation - Boundary-value and repeat-run tests for each rule; check that the same trips always give the same badges. Method: Test.
+- **Satisfied by (model):** `UC.3.8`, `UC.3.9`, `UC.3.10`, `UC.3.11`
+- **Status:** Draft (model 10.9). Exercised: `TestBadgeRules` in `tests/test_achievements.py`. Badge thresholds are project assumptions.
+
+### 2.1.14 - ignore repeated and excess trips
+
+- **Statement:** The EcoCommute system shall count a repeated trip once and shall not count more than two trips on one day or more than 50 km of any one trip toward badges and the campus goal.
+- **Rationale:** Limits stop a badge or a campus tree from being earned by repetition or by one very long trip, which would overclaim savings. The two trips per day and 50 km limits are current project assumptions to confirm.
+- **From need:** 1.1.10, 1.4.3
+- **Acceptance criterion:** MOE - Counted trips that break a limit in a seeded test set (target 0). Validation - Seed trips just inside and outside each limit; compare the counted set with the expected set. Method: Test.
+- **Satisfied by (model):** `UC.3.8`
+- **Status:** Draft (model 10.9). Exercised: `TestAntiGaming` in `tests/test_achievements.py`.
+
+
 ## Group 2.2
 
 ### 2.2.1 - provide participation summary
@@ -141,6 +180,16 @@ Open values needing sponsor confirmation: 3-second display time (2.1.2); minimum
 - **Acceptance criterion:** MOE - Measured monthly availability (target 99.5% or more). Validation - Define the measurement period and exclusions before the pilot; monitor a successful service check every minute; report monthly. Method: Analysis.
 - **Satisfied by (model):** `OP.2`
 - **Skeleton status:** Not in skeleton - Outside the UC.1 nominal path (institutional, operational or retirement behavior).
+
+
+### 2.2.5 - show shared campus progress
+
+- **Statement:** The EcoCommute system shall show the campus's cumulative estimated difference toward the next tree and the number of trees reached, using only counted trips and labelling the figures as estimates.
+- **Rationale:** A shared, visible goal gives every trip a collective meaning without ranking individuals. The estimated difference per tree and the planting arrangement are assumptions to confirm with the sponsor.
+- **From need:** 1.1.11, 1.2.4
+- **Acceptance criterion:** MOE - Displayed campus totals that differ from the sum of counted trips (target 0). Validation - Recompute the campus total from seeded trips and compare it with the displayed figures; inspect the labels. Method: Test and Inspection.
+- **Satisfied by (model):** `UC.3.8`, `UC.3.10`, `UC.3.11`
+- **Status:** Draft (model 10.9). Exercised: `TestCampusGoal` and the garden page test in `tests/test_achievements.py`. The campus share (126 trips, 41 students, 14.3 kg) is sample data, labelled as such on the page; the 22 kg per tree has no cited source (risk TR.12).
 
 
 ## Group 2.3

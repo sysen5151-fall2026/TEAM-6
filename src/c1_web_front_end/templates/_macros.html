@@ -1,0 +1,23 @@
+{% macro mode(name) %}{{ {'drive': '🚗', 'carpool': '🧑‍🤝‍🧑', 'bus': '🚌', 'bike': '🚲', 'walk': '🚶'}.get(name, '🧭') }}{% endmacro %}
+
+{% macro by(name) %}{{ {'drive': 'by car', 'carpool': 'by carpool', 'bus': 'by bus', 'bike': 'by bike', 'walk': 'on foot'}.get(name, 'this way') }}{% endmacro %}
+
+{% macro badge(icon) %}{{ {'walk': '👣', 'leaf': '🍃', 'calendar-check': '📅', 'map-pin': '📍', 'target': '🎯', 'car-off': '🏞️', 'flame': '🔥', 'seeding': '🌱'}.get(icon, '🏅') }}{% endmacro %}
+
+{# One tree in the garden, drawn upward from (0, 0). scale < 1 draws a sapling. #}
+{% macro tree(scale=1, delay=0) %}
+<g class="grow-in" style="--d:{{ delay }}s">
+  <ellipse cx="0" cy="4" rx="{{ 28 * scale }}" ry="{{ 7 * scale }}" fill="#000" opacity=".16"/>
+  <g transform="scale({{ scale }})">
+    <rect x="-7" y="-46" width="14" height="50" rx="5" fill="#8a5a3c"/>
+    <g class="sway" style="--d:{{ delay }}s">
+      <circle cx="-22" cy="-52" r="24" fill="#3cbc7c"/>
+      <circle cx="22" cy="-52" r="24" fill="#3cbc7c"/>
+      <circle cx="0" cy="-70" r="32" fill="#2fa36b"/>
+      <circle cx="-9" cy="-80" r="11" fill="#7fe0a8" opacity=".65"/>
+      <circle cx="16" cy="-58" r="4.5" fill="#ff7a5c"/>
+      <circle cx="-18" cy="-44" r="4.5" fill="#ffc83d"/>
+    </g>
+  </g>
+</g>
+{% endmacro %}

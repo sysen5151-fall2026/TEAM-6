@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block title %}Trip done - EcoCommute{% endblock %}
+{% block content %}
+  {% set saved = trip.difference_g > 0 %}
+  <section class="card celebrate" role="status">
+    <div class="big-emoji" aria-hidden="true">{{ m.mode(trip.mode) }}</div>
+    {% if saved %}
+    <h1>Congratulations! 🎉</h1>
+    <p class="lead">You saved about <strong class="num">{{ '%g'|format(trip.difference_g) }} g</strong> of CO2e by going {{ m.by(trip.mode) }}.</p>
+    {% else %}
+    <h1>Trip logged! ✅</h1>
+    <p class="lead">Driving is our baseline, so there's no saving to count this time.
+      {% if trip.recommended_mode and trip.recommended_mode != trip.mode %}Next time, {{ m.mode(trip.recommended_mode) }} {{ trip.recommended_mode }} was the pick for this route.{% endif %}</p>
+    {% endif %}
+    <p class="note">{{ trip.origin }} ➜ {{ trip.destination }} · {{ '%g'|format(trip.distance_km) }} km · {{ '%g'|format(trip.co2e_g) }} g CO2e · {{ trip.date }}.
+      The saving is an estimate against driving the same route.</p>
+
+    <div style="text-align:left; margin:18px auto 6px; max-width:520px">
+      {% if tree_gained %}
+      <p class="rec-text">🌳 Your trip helped the campus reach a tree!</p>
+      {% elif added_g > 0 %}
+      <p class="rec-text">🌱 You added {{ '%g'|format(added_g) }} g to our campus tree.</p>
+      {% else %}
+      <p class="rec-text">🌱 This trip didn't add to the campus tree (repeats and more than 2 trips a day don't count).</p>
+      {% endif %}
+      <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ percent }}"><i style="width:{{ percent }}%"></i></div>
+      <p class="note" style="margin:6px 0 0">{{ '%.1f'|format(goal.into_next_g / 1000) }} of {{ '%g'|format(goal.goal_g / 1000) }} kg toward the next tree · {{ goal.trees_reached }} planted so far.</p>
+    </div>
+
+    <div class="actions">
+      <a class="btn alt" href="/garden">See the garden 🌳</a>
+      <a class="btn" href="/">Plan another trip 🧭</a>
+      <a class="btn ghost" href="/achievements">My achievements 🏅</a>
+    </div>
+  </section>
+
+  {% if new_badges %}
+  <dialog id="badge-pop" open aria-labelledby="badge-title">
+    <div class="medal" aria-hidden="true">🏅</div>
+    <h2 id="badge-title">New badge{{ 's' if new_badges|length > 1 }}!</h2>
+    {% for b in new_badges %}
+    <div class="each">
+      <div style="font-size:2.2rem" aria-hidden="true">{{ m.badge(b.icon) }}</div>
+      <strong>{{ b.name }}</strong>
+      <div class="note">{{ b.condition }}</div>
+    </div>
+    {% endfor %}
+    <form method="dialog"><button class="btn alt full" type="submit">Awesome!</button></form>
+  </dialog>
+  {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  var pop = document.getElementById('badge-pop');
+  if (pop && pop.showModal) { pop.removeAttribute('open'); pop.showModal(); }
+  {% if saved or new_badges %}
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var colors = ['#ffc83d', '#ff7a5c', '#34b27b', '#8fd8f5', '#cdbdff'];
+  var box = document.createElement('div');
+  box.className = 'confetti';
+  box.setAttribute('aria-hidden', 'true');
+  for (var i = 0; i < 70; i++) {
+    var p = document.createElement('i');
+    p.style.left = Math.random() * 100 + '%';
+    p.style.background = colors[i % colors.length];
+    p.style.animationDelay = Math.random() * 1.2 + 's';
+    p.style.animationDuration = 2.4 + Math.random() * 2 + 's';
+    p.style.setProperty('--r', Math.random() * 720 - 360 + 'deg');
+    box.appendChild(p);
+  }
+  document.body.appendChild(box);
+  setTimeout(function () { box.remove(); }, 7000);
+  {% endif %}
+})();
+</script>
+{% endblock %}

@@ -1,2 +1,4 @@
-# No external packages are required: standard library only (Python 3.12).
+# The walking skeleton (python -m src.main) and its tests need only the standard library.
+# The web entry (python -m src.main_web) needs Flask:  pip install -r requirements.txt
 # Tests use unittest: python -m unittest discover -s tests -t .
+Flask>=3.0,<4

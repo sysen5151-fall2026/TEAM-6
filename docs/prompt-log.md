@@ -96,6 +96,136 @@ Rule: every GenAI-assisted change is logged here with the tool, the (constrained
 | Not claimed | UC.2 and the operations actions are not traced; the sequence diagram (Figure 11) is drawn from the model data, not an Innoslate view; the import result of the 10.8 XML is the team's report and is not recorded here; the contribution table was drafted from the team roles and then confirmed by the team |
 | Human review | **Pending.** Reviewer and date: ____________ . |
 
+## Entry 008 - 2026-10-27 - Minimal Flask web entry for C.1
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `feat/web-app` |
+| Prompt (summary, originally Chinese) | Start the first modification step: on a new branch, add a minimal web entry without changing the existing logic; use Flask if it is better. |
+| Constraining sources | Existing C.1-C.4 code and `docs/adr/0001-initial-toolchain.md` (which requires a new ADR for a web layer) |
+| What it produced | `src/c1_web_front_end/web_app.py` and `templates/commute.html` (form, validation, result page); `src/main_web.py`; `tests/test_web_app.py` (5 tests, skipped without Flask); `docs/adr/0002-flask-web-entry.md`; Flask added to `requirements.txt`; README run instructions |
+| Not claimed | C.2-C.4 are unchanged, so factors, weather and storage are still stubs; the known cumulative-difference issue in C.3 `update_trends` (it multiplies the current baseline by the trip count) is not fixed here; no requirement was newly verified |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
+## Entry 009 - 2026-10-27 - Fix cumulative difference across trips
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `feat/web-app` |
+| Prompt (summary, originally Chinese) | Fix the cumulative-difference bug and add tests. |
+| Constraining sources | SRD 2.1.6 (cumulative difference from the always-drive baseline); the issue recorded in entry 008 |
+| What it produced | `c3 update_trends` now sums each stored trip's own baseline (distance x drive factor) minus its estimate, instead of multiplying the latest baseline by the trip count; `update_trends` no longer takes a baseline argument and `c2 compare_baseline` calls it without one; `tests/test_trends.py` (3 tests; two fail on the previous code with -1152 instead of 384) |
+| Not claimed | Weekly and monthly totals still sum all stored trips with no date windowing; factors remain placeholders |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
+## Entry 010 - 2026-10-27 - Route comparison page with OpenRouteService adapter and fallback
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `feat/web-app` |
+| Prompt (summary, originally Chinese) | Next step: replace typed distance with start and destination, show drive, walk and bike per mode, use OpenRouteService, and keep the demo working when a call fails. |
+| Constraining sources | Team discussion (distance differs by mode; transit entered by the user later); ORS v2 conventions from public forum threads, not the official reference |
+| What it produced | `src/c3_data_adapter/route_adapter.py` (geocode, per-mode routes, per-mode fallback); `src/c2_application_service/comparison.py` (`compare_modes`); new types in `src/interfaces.py`; `/compare` page, `base.html` shared layout; `tests/test_routes.py` and two web tests; ADR 0003; README section |
+| Not claimed | One live call was made afterwards with the team's free key (place search and the three profiles worked on the old host; the announced new host returned 404); automated tests use mocks only; fallback detour factors and speeds are assumptions; no weather or feasibility filtering yet; transit and the Innoslate model are not updated; the new functions carry no `@realizes` tags |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
+## Entry 011 - 2026-10-27 - Feasibility filter, weather and recommendation on the compare page
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `feat/web-app` |
+| Prompt (summary, originally Chinese) | Continue: add weather, the Commuter's not-feasible settings and a manually entered bus time so the compare page recommends a mode and says why. |
+| Constraining sources | Team discussion ("best" means feasible under weather, carbon and time, not cheapest); Open-Meteo `current` response checked once live on 2026-10-27 |
+| What it produced | `src/c3_data_adapter/weather_adapter.py`; `src/c2_application_service/recommendation.py` and `plan.py`; `explain_recommendation` in C.4; optional bus time and limits in `compare_modes` and the page; new types in `src/interfaces.py`; `tests/test_recommend.py` and two web tests; ADR 0004; README paragraph |
+| Not claimed | The thresholds (0.1 mm rain, 0 C, 40 km/h wind, 10 extra minutes) are project assumptions, not safety guidance; weather is current conditions at the start, not the forecast for the trip time; bus distance is assumed equal to the drive route and its factor is a placeholder; no daylight, elevation or accessibility rules yet; the Innoslate model and the new functions' `@realizes` tags are not updated; the explanation is a fixed template, not a language model |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
+## Entry 012 - 2026-10-27 - Badges, trip confirmation and campus tree progress
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `feat/web-app` |
+| Prompt (summary, originally Chinese) | Implement the badges and the campus tree progress with the proposed default conditions. |
+| Constraining sources | Team discussion of eight badge conditions and a tree goal; the proposal that earlier badge wording (Five Day Flow, Car-Free Week) be tightened against easy gaming |
+| What it produced | `src/c2_application_service/achievements.py`, `confirmation.py`, `demo_data.py`; `src/c3_data_adapter/trip_store.py`; new types in `src/interfaces.py`; `/confirm`, `/achievements`, `/demo`, `/reset` routes and `achievements.html`; confirm buttons and a date field on `/compare`; `tests/test_achievements.py` (22 tests); ADR 0005; README paragraph |
+| Not claimed | The 22 kg per tree, all badge thresholds and the caps are project assumptions, and the per-tree figure has no cited source yet; the campus share and the sample trips are invented and labelled as such; one demo Commuter, in memory only; the Log a trip page does not feed badges; the model and `@realizes` tags are not updated |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
+## Entry 013 - 2026-10-27 - Plan-first flow, done page with badge popup, garden page and a playful style
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `feat/web-app` |
+| Prompt (summary, originally Chinese) | After previewing the pages: always require a start and destination and compare first, then choose a way; after choosing show a congratulation page and pop up a badge if one is earned (not jump to the achievements page); make Achievements a place to review trips and see goals not yet reached; add a garden page where each tree the campus has earned is drawn, with small animations; make the style less plain. |
+| Constraining sources | The existing C.2 plan, confirmation and badge rules (unchanged); the conversation about the intended flow |
+| What it produced | `src/c1_web_front_end/web_app.py` rewritten (plan, confirm, `/done/<n>`, achievements, garden); templates `base.html` (new style and animations), `_macros.html`, `plan.html`, `done.html`, `achievements.html`, `garden.html`; the old `commute.html`, `compare.html` and the typed-distance web form removed; tests updated (`test_web_app.py`, `test_achievements.py`) |
+| Not claimed | C.2 and C.3 rules are unchanged (thresholds, factors and the 22 kg per tree are still assumptions); the removed web form was the browser version of UC.1, whose command-line path remains; traceability documents were not updated for the removed page; the design was checked in one browser only, and the dark-mode look was not viewed |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
+## Entry 014 - 2026-10-27 - Traceability notes for the web pages
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `feat/web-app` |
+| Prompt (summary, originally Chinese) | Continue with the follow-ups: check dark mode and bring the traceability notes up to date. |
+| Constraining sources | `docs/traceability.md`, `docs/walking-skeleton.md`, the current code and tests |
+| What it produced | A table of the browser pages with their code and tests; open item O-4 reworded and O-9 added (the new flow is not in the Innoslate model); the C.1 row of the walking-skeleton table corrected |
+| Not claimed | No requirement or model element was added or linked; the dark-mode look was checked by eye on the garden page only; the ORS host move to `api.heigit.org` was not re-checked (needs the team's key) |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
+## Entry 015 - 2026-10-27 - Model 10.9: needs, requirements, route service and UC.3 for the web flow
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `feat/web-app` |
+| Prompt (summary, originally Chinese) | Add the web flow to the Innoslate model and the requirements (open item O-9); choose whatever numbering is most sensible. |
+| Constraining sources | The model's own numbering and relationship patterns in export 10.8; SPEC.md format; ADR 0002, 0003, 0005; the current code |
+| What it produced | `docs/model/scripts/build_model_10_9.py` and its output `docs/model/EcoCommute_10.9_web_flow.xml` (47 new elements: 4 needs, 5 stakeholder requirements, 14 system requirements, X.6, 2 conduits, 6 input/outputs, UC.3 with 11 steps, 3 risks, all linked in both directions); SPEC.md entries 2.1.11-2.1.14 and 2.2.5; `docs/model/10.9-changes.md`; `@realizes("UC.3.x")` tags on the implementing functions; `web_app.py` views moved to module level so they can be tagged; `tests/test_model_10_9.py` and a UC.3 section in `tests/test_model_linkage.py`; traceability, README updates |
+| Not claimed | **The 10.9 file has not been imported into Innoslate**; its structure was checked by script and tests only. New requirements are Drafts with every quality flag false. The allocation of the new functional requirements to F.2.3-F.2.6 is provisional and the function architecture was not extended. The 80% target, the two-trips-per-day and 50 km limits and the 22 kg per tree are assumptions, the last without a source. The Chapter 4-7 reports were not updated. Risks TR.10-TR.12 record gaps found while writing (place labels vs coarse location; Route Service dependence; unsourced tree conversion), not decisions |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
+## Entry 016 - 2026-10-27 - Fix the two Intelligence errors found on importing model 10.9
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `feat/web-app` |
+| Prompt (summary, originally Chinese) | The Innoslate Intelligence dashboard for the imported 10.9 (screenshot): pass rate 77%, with errors on UC.3. |
+| Constraining sources | The screenshot of the Intelligence dashboard; the model data of 10.8 and 10.9 |
+| What it produced | `build_model_10_9.py` fixed and the export regenerated: UC.3.10 no longer receives a flow from UC.3.8 ("prior action is dependent on the later action"), and UC.3, UC.3.1 and UC.3.11 now satisfy requirements; SPEC.md "satisfied by" lines and `docs/model/10.9-changes.md` updated; two regression tests in `tests/test_model_10_9.py` |
+| Not claimed | The cause of the first error is inferred (string order puts UC.3.10 before UC.3.8); Innoslate's own rule was not seen. The warning lists were read only as counts in the screenshot, so "same as 10.8" is checked for four heuristics and not for the others. Afterwards the team re-imported the corrected file and reported (screenshot) a pass rate of 81% with no errors; the remaining warnings were not examined one by one |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
+## Entry 017 - 2026-10-27 - Place suggestions while typing
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `feat/web-app` |
+| Prompt (summary, originally Chinese) | Typing "upson hall" found no place; show close matches to pick from while typing. |
+| Constraining sources | The existing plan page and route adapter; ORS geocoder conventions (autocomplete endpoint, Pelias-style focus point) |
+| What it produced | `suggest_places` in `route_adapter.py` (sample matches first, then ORS autocomplete biased to the campus, cached, capped at 5); `geocode` resolves a picked suggestion to the same point and matches a single unambiguous sample place by words; four more approximate sample places (Upson, Duffield, Olin Library, Willard Straight); `/places?q=` JSON endpoint; a small script on `plan.html` that refreshes the suggestion list (250 ms pause, late answers ignored); tests in `tests/test_routes.py` and `tests/test_web_app.py` |
+| Not claimed | The unit tests mock ORS. Afterwards one live check with the team's key (not stored in the repository) returned HTTP 200 on `api.openrouteservice.org` for `/geocode/autocomplete` ("statler hall" gave Statler Hall, Ithaca) and `/geocode/search` ("upson hall cornell" gave Upson Hall, Ithaca first); the same paths on `api.heigit.org` returned 404. The page's own request with the `focus.point` parameters was not exercised end to end in the browser with a key. Without a key only the eight sample places can be suggested. The new sample coordinates are approximate and unverified. The suggestion list is the browser's own list, so its look and keyboard behaviour differ by browser |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
 ## Entry template
 
 | Field | Value |

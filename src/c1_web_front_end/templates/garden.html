@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block title %}Campus garden - EcoCommute{% endblock %}
+{% block content %}
+  <section class="hero">
+    <span class="floaty" aria-hidden="true">🌳</span><span class="floaty" aria-hidden="true">🦋</span>
+    <h1>Our campus garden</h1>
+    <p>Every {{ '%g'|format(goal.goal_g / 1000) }} kg of estimated savings the whole campus makes grows one tree. Each trip you choose helps.</p>
+  </section>
+
+  <section class="card garden-wrap">
+    <svg viewBox="0 0 800 430" role="img"
+         aria-label="A garden with {{ shown }} tree{{ 's' if shown != 1 }}{% if goal.trees_reached > slots %} (showing the first {{ slots }} of {{ goal.trees_reached }}){% endif %} and a sapling that is {{ percent }} percent grown">
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--sky1)"/><stop offset="1" style="stop-color:var(--sky2)"/></linearGradient>
+      </defs>
+      <rect width="800" height="430" fill="url(#sky)"/>
+      <g transform="translate(690 78)">
+        <g class="rays" stroke="#ffc83d" stroke-width="5" stroke-linecap="round">
+          {% for a in range(0, 360, 30) %}<line x1="0" y1="-48" x2="0" y2="-62" transform="rotate({{ a }})"/>{% endfor %}
+        </g>
+        <circle r="38" fill="#ffd45a"/><circle r="38" fill="none" stroke="#ffb703" stroke-width="3"/>
+      </g>
+      <g class="cloud" fill="#fff" opacity=".9"><ellipse cx="150" cy="80" rx="52" ry="20"/><ellipse cx="120" cy="92" rx="34" ry="16"/><ellipse cx="185" cy="92" rx="38" ry="15"/></g>
+      <g class="cloud b" fill="#fff" opacity=".8"><ellipse cx="420" cy="52" rx="44" ry="16"/><ellipse cx="395" cy="62" rx="28" ry="12"/><ellipse cx="450" cy="62" rx="30" ry="12"/></g>
+      <path d="M0 240 Q120 150 260 215 T520 200 T800 215 V430 H0Z" style="fill:var(--hill1)"/>
+      <path d="M0 270 Q180 200 340 255 T640 245 T800 260 V430 H0Z" style="fill:var(--hill2)"/>
+      <rect y="262" width="800" height="168" style="fill:var(--ground)"/>
+      <g stroke="#2f7a55" stroke-width="2" opacity=".35" fill="none">
+        {% for x in range(30, 800, 70) %}<path d="M{{ x }} 410 q4 -10 8 0 M{{ x + 20 }} 392 q4 -9 7 0"/>{% endfor %}
+      </g>
+
+      {% for i in range(slots) %}
+      {% set row = i // 6 %}{% set col = i % 6 %}
+      {% set x = 85 + col * 118 + row * 52 %}{% set y = 300 + row * 82 %}
+      <g transform="translate({{ x }} {{ y }})">
+        {% if i < shown %}
+        <g class="tree">{{ m.tree(1 + row * 0.15, (i * 0.14)|round(2)) }}</g>
+        {% elif i == goal.trees_reached %}
+        <g class="sapling">{{ m.tree((0.22 + 0.6 * goal.into_next_g / goal.goal_g)|round(2), 0.3) }}</g>
+        {% else %}
+        <ellipse cx="0" cy="2" rx="24" ry="7" fill="#a8714a" opacity=".85"/><ellipse cx="0" cy="0" rx="17" ry="4.5" fill="#8a5a3c" opacity=".6"/>
+        {% endif %}
+      </g>
+      {% endfor %}
+
+      <g class="flutter" transform="translate(-30 150)"><text font-size="26" aria-hidden="true">🦋</text></g>
+      <g class="flutter b" transform="translate(-30 215)"><text font-size="22" aria-hidden="true">🐝</text></g>
+    </svg>
+    <div class="caption">
+      <h2>{% if goal.trees_reached %}🌳 {{ goal.trees_reached }} tree{{ 's' if goal.trees_reached != 1 }} planted{% else %}🌱 The first tree is growing{% endif %}</h2>
+      {% if goal.trees_reached > slots %}<p class="note" style="margin:0 0 8px">Showing the first {{ slots }}; there are {{ goal.trees_reached - slots }} more.</p>{% endif %}
+      <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ percent }}"><i style="width:{{ percent }}%"></i></div>
+      <p class="note" style="margin:6px 0 0">{{ '%.1f'|format(goal.into_next_g / 1000) }} of {{ '%g'|format(goal.goal_g / 1000) }} kg toward the next tree
+        - {{ '%.1f'|format((goal.goal_g - goal.into_next_g) / 1000) }} kg to go.</p>
+    </div>
+  </section>
+
+  <div class="stats">
+    <div class="card stat"><b>{{ '%.1f'|format(goal.total_g / 1000) }} kg</b>campus total saved (estimate)</div>
+    <div class="card stat"><b>{{ goal.trips }}</b>trips</div>
+    <div class="card stat"><b>{{ goal.students }}</b>students</div>
+  </div>
+
+  <section class="card">
+    <h2>How the garden grows</h2>
+    <ul class="how">
+      <li>🧭 Plan a trip and compare the ways</li>
+      <li>✅ Choose the way you went</li>
+      <li>🌱 The estimated saving vs driving joins the campus total</li>
+      <li>🌳 Every {{ '%g'|format(goal.goal_g / 1000) }} kg, a tree is planted</li>
+    </ul>
+    <p class="note" style="margin-bottom:0">{{ goal.sample_note }}. The {{ '%g'|format(goal.goal_g / 1000) }} kg per tree is a project assumption, and the savings are estimates, not verified avoided emissions.</p>
+    <form method="post" action="/demo" style="display:inline"><input type="hidden" name="next" value="/garden"><button class="btn small ghost" style="width:auto" type="submit">Load sample trips</button></form>
+    <form method="post" action="/reset" style="display:inline"><input type="hidden" name="next" value="/garden"><button class="btn small ghost" style="width:auto" type="submit">Clear my trips</button></form>
+  </section>
+{% endblock %}

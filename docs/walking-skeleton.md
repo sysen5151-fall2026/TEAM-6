@@ -26,7 +26,7 @@ Each of the twelve modeled UC.1 actions has at least one `@realizes("UC.1.x")`-t
 | Participant | Real | Stubbed / simplified | Why |
 |---|---|---|---|
 | X.1 Commuter | - | Scripted simulation | External actor |
-| C.1 Web Front End | Field list, result content | No HTML/web layer; plain text output | Walking skeleton, stubs acceptable |
+| C.1 Web Front End | Field list, result content | The command-line path prints plain text; the browser pages (Flask) are a separate flow described in docs/traceability.md | Walking skeleton, stubs acceptable |
 | C.2 Application Service | Distance x factor, always-drive baseline, rule `<3 km and no rain -> walk/bike` with infeasible-mode exclusion | Occupancy not handled; rule threshold still "to validate" (BMA 7.8) | Logic is deterministic and reviewed, so it is real |
 | C.3 Data Adapter | - | Placeholder factor table (not reviewed), in-memory trip list, trends without date windows | No factor review or database yet |
 | C.4 Explanation Model | Contract: receives only calculated values (needs 1.1.8 / req 2.1.10) | Sentence template instead of a language model | BMA 7.9: no live model call at this stage |

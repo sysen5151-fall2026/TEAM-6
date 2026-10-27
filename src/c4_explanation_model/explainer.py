@@ -33,3 +33,31 @@ def explain_result(
     else:
         text += f" {alternative_reason}"
     return text
+
+
+@realizes("UC.3.5")
+def explain_recommendation(chosen, fastest, met_limits: bool) -> str:
+    """Plain-language reason for a recommended mode.
+
+    Receives rows the rules have already computed (a ModeComparison for the
+    chosen mode and for the fastest one) and only restates their values; it
+    cannot calculate, invent weather or change which mode was chosen.
+
+    STUB (BMA Section 7.9): a fixed sentence template instead of a language model.
+    """
+    text = (
+        f"Recommended: {chosen.mode} - {chosen.duration_min:g} min and an estimated "
+        f"{chosen.co2e_g:g} g CO2e"
+    )
+    if chosen.difference_g > 0:
+        text += f", an estimated {chosen.difference_g:g} g less than driving"
+    else:
+        text += ", no estimated difference from driving"
+    if chosen.mode == fastest.mode:
+        text += "; it is also the fastest option."
+    else:
+        extra = chosen.duration_min - fastest.duration_min
+        text += f"; {extra:g} min more than the fastest ({fastest.mode})."
+    if not met_limits:
+        text += " No option met all of your limits, so this is the fastest one you have not ruled out."
+    return text

@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block title %}Plan a trip - EcoCommute{% endblock %}
+{% block content %}
+  <section class="hero">
+    <span class="floaty" aria-hidden="true">🚲</span><span class="floaty" aria-hidden="true">🌤️</span>
+    <h1>Where to today?</h1>
+    <p>Tell us where you start and where you're headed. We'll compare every way to get there, then you choose.</p>
+  </section>
+
+  {% if errors %}
+  <div class="card errors" role="alert">
+    <ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+
+  <form class="card" method="post" action="/">
+    <div class="route-row">
+      <div>
+        <label for="origin">📍 From</label>
+        <input id="origin" name="origin" type="text" list="places" required maxlength="100"
+               placeholder="e.g. Collegetown" value="{{ values.get('origin', '') }}">
+      </div>
+      <div>
+        <label for="destination">🏁 To</label>
+        <input id="destination" name="destination" type="text" list="places" required maxlength="100"
+               placeholder="e.g. Cornell Arts Quad" value="{{ values.get('destination', '') }}">
+      </div>
+    </div>
+    <datalist id="places">{% for p in places %}<option value="{{ p }}">{% endfor %}</datalist>
+    <p class="chips">Try:
+      {% for a, b in examples %}<a class="chip" href="/?origin={{ a|urlencode }}&amp;destination={{ b|urlencode }}">{{ a }} ➜ {{ b }}</a>{% endfor %}
+    </p>
+
+    <details class="limits" {% if values.get('not_feasible_modes') or values.get('transit_minutes') %}open{% endif %}>
+      <summary>⚙️ My limits (optional)</summary>
+      <label>Ways I can't do today</label>
+      <div class="checks">
+        {% for mode in can_be_infeasible %}
+        <label><input type="checkbox" name="not_feasible_modes" value="{{ mode }}"
+          {% if mode in values.get('not_feasible_modes', []) %}checked{% endif %}> {{ m.mode(mode) }} {{ mode }}</label>
+        {% endfor %}
+      </div>
+      <label for="max_extra_min">Most extra minutes I'll accept over the fastest way</label>
+      <input id="max_extra_min" name="max_extra_min" type="number" min="0" max="240" step="1"
+             value="{{ values.get('max_extra_min', '10') }}">
+      <label for="transit_minutes">🚌 Bus door-to-door minutes (you enter it; leave empty to skip the bus)</label>
+      <input id="transit_minutes" name="transit_minutes" type="number" min="1" max="300" step="1"
+             value="{{ values.get('transit_minutes', '') }}">
+      <label for="date">📅 Trip date</label>
+      <input id="date" name="date" type="date" value="{{ values.get('date', '') }}">
+    </details>
+
+    <button class="btn full" type="submit">Compare my options 🔍</button>
+  </form>
+
+  {% if plan and plan.comparisons %}
+  {% set rec = plan.recommendation %}
+  <section class="results" aria-live="polite">
+    <h2 class="route-title">{{ plan.origin.label }} <span>➜</span> {{ plan.destination.label }}</h2>
+
+    <div class="card rec">
+      {% if rec.mode %}<div class="rec-emoji" aria-hidden="true">{{ m.mode(rec.mode) }}</div>{% endif %}
+      <div>
+        <p class="rec-text">{{ rec.reason }}</p>
+        <p class="note" style="margin:0">{{ rec.weather_note }}</p>
+      </div>
+    </div>
+
+    <p class="step">Now pick your way 👇 <span class="note">Choosing records the trip as done.</span></p>
+    <div class="modes">
+      {% for c in plan.comparisons %}
+      {% set out = rec.excluded | selectattr(0, 'equalto', c.mode) | list %}
+      <article class="card mode {% if c.mode == rec.mode %}best{% endif %} {% if out %}ruled{% endif %}">
+        {% if c.mode == rec.mode %}<span class="tag">⭐ Recommended</span>{% elif out %}<span class="tag no">Not today</span>{% endif %}
+        <div class="emoji" aria-hidden="true">{{ m.mode(c.mode) }}</div>
+        <h3>{{ c.mode }}</h3>
+        <div class="time">{{ '%g'|format(c.duration_min) }} <small>min</small></div>
+        <ul>
+          <li>📏 {{ '%g'|format(c.distance_km) }} km</li>
+          <li>💨 {{ '%g'|format(c.co2e_g) }} g CO2e</li>
+          <li class="save">{% if c.difference_g > 0 %}🌱 about {{ '%g'|format(c.difference_g) }} g less than driving{% else %}the driving baseline{% endif %}</li>
+        </ul>
+        {% if out %}<p class="why">Ruled out: {{ out[0][1] }}</p>{% endif %}
+        <form method="post" action="/confirm" style="margin:0">
+          <input type="hidden" name="origin" value="{{ values.get('origin', '') }}">
+          <input type="hidden" name="destination" value="{{ values.get('destination', '') }}">
+          <input type="hidden" name="transit_minutes" value="{{ values.get('transit_minutes', '') }}">
+          <input type="hidden" name="date" value="{{ values.get('date', '') }}">
+          <input type="hidden" name="mode" value="{{ c.mode }}">
+          <button class="btn small {{ 'alt' if c.mode == rec.mode else 'ghost' }}" type="submit">Choose this way</button>
+        </form>
+      </article>
+      {% endfor %}
+    </div>
+    <p class="note" style="margin-top:16px">Each way uses its own route distance. "Less than driving" is an estimate against driving the drive route, not verified avoided emissions. Emission factors are placeholders.
+      Route data: {{ plan.comparisons|map(attribute='source')|unique|join('; ') }}.</p>
+  </section>
+  {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Fill the shared suggestion list as the Commuter types; the starting list stays as the fallback.
+  (function () {
+    var list = document.getElementById("places");
+    var inputs = [document.getElementById("origin"), document.getElementById("destination")];
+    var cache = {}, timer = null, latest = 0;
+    function show(labels) {
+      if (!labels.length) return;
+      list.textContent = "";
+      labels.forEach(function (label) {
+        var option = document.createElement("option");
+        option.value = label;
+        list.appendChild(option);
+      });
+    }
+    function ask(text) {
+      if (cache[text]) { show(cache[text]); return; }
+      var mine = ++latest;
+      fetch("/places?q=" + encodeURIComponent(text))
+        .then(function (r) { return r.ok ? r.json() : []; })
+        .then(function (labels) {
+          cache[text] = labels;
+          if (mine === latest) show(labels);  // ignore answers that arrive late
+        })
+        .catch(function () {});  // offline or blocked: keep the sample places
+    }
+    inputs.forEach(function (input) {
+      input.addEventListener("input", function () {
+        clearTimeout(timer);
+        var text = input.value.trim();
+        if (text.length < 2) return;
+        timer = setTimeout(function () { ask(text); }, 250);
+      });
+    });
+  })();
+</script>
+{% endblock %}

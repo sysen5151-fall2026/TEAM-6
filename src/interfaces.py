@@ -33,6 +33,8 @@ class WeatherQuery:  # I/O "Weather Query" (UC.1.6 -> UC.1.7)
 class WeatherForecast:  # I/O "Weather Forecast" (UC.1.7 -> UC.1.8)
     precipitation_mm: float
     forecast_timestamp: str
+    temperature_c: float | None = None  # only set by the live weather adapter
+    wind_kmh: float | None = None
 
 
 @dataclass(frozen=True)
@@ -71,3 +73,81 @@ class CommuteImpactResult:  # I/O "Commute Impact Result" (UC.1.10/1.11 -> UC.1.
     alternative_mode: str  # "" when no eligible lower-emission option
     alternative_reason: str
     explanation: str
+
+
+@dataclass(frozen=True)
+class Place:  # a geocoded origin or destination
+    label: str
+    lon: float
+    lat: float
+    source: str  # who resolved it, so the page can disclose it
+
+
+@dataclass(frozen=True)
+class RouteOption:  # one mode's route between two places
+    mode: str  # "drive" | "walk" | "bike"
+    distance_km: float
+    duration_min: float
+    source: str  # "OpenRouteService" or an estimate label
+
+
+@dataclass(frozen=True)
+class ModeComparison:  # RouteOption plus emissions, for the compare page
+    mode: str
+    distance_km: float
+    duration_min: float
+    co2e_g: float
+    difference_g: float  # estimated difference from the always-drive baseline
+    source: str
+
+
+@dataclass(frozen=True)
+class Recommendation:  # result of the feasibility filter and ranking
+    mode: str  # "" when nothing could be recommended
+    reason: str  # built only from values already computed
+    excluded: tuple  # ((mode, reason), ...) for every mode ruled out
+    weather_note: str  # what weather was (or was not) applied
+
+
+@dataclass(frozen=True)
+class CommutePlan:  # everything the compare page shows
+    origin: "Place | None"
+    destination: "Place | None"
+    comparisons: tuple
+    recommendation: "Recommendation | None"
+    errors: tuple
+
+
+@dataclass(frozen=True)
+class ConfirmedTrip:  # a trip the Commuter says they actually took
+    date: str
+    mode: str
+    origin: str
+    destination: str
+    distance_km: float
+    co2e_g: float
+    difference_g: float  # estimated difference from the always-drive baseline
+    recommended_mode: str  # what the page recommended at the time ("" if none)
+
+
+@dataclass(frozen=True)
+class BadgeStatus:
+    id: str
+    name: str
+    condition: str  # shown to the Commuter, so the rule is visible
+    icon: str
+    progress: int
+    target: int
+    unit: str
+    earned: bool
+
+
+@dataclass(frozen=True)
+class CampusGoal:
+    total_g: float  # everyone's estimated difference, seed plus this Commuter
+    goal_g: float  # one tree
+    trees_reached: int
+    into_next_g: float  # progress toward the next tree
+    trips: int
+    students: int
+    sample_note: str  # discloses which part is sample data
