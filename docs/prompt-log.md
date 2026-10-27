@@ -161,6 +161,19 @@ Rule: every GenAI-assisted change is logged here with the tool, the (constrained
 | Not claimed | The 22 kg per tree, all badge thresholds and the caps are project assumptions, and the per-tree figure has no cited source yet; the campus share and the sample trips are invented and labelled as such; one demo Commuter, in memory only; the Log a trip page does not feed badges; the model and `@realizes` tags are not updated |
 | Human review | **Pending.** Reviewer and date: ____________ . |
 
+## Entry 013 - 2026-10-27 - Plan-first flow, done page with badge popup, garden page and a playful style
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `feat/web-app` |
+| Prompt (summary, originally Chinese) | After previewing the pages: always require a start and destination and compare first, then choose a way; after choosing show a congratulation page and pop up a badge if one is earned (not jump to the achievements page); make Achievements a place to review trips and see goals not yet reached; add a garden page where each tree the campus has earned is drawn, with small animations; make the style less plain. |
+| Constraining sources | The existing C.2 plan, confirmation and badge rules (unchanged); the conversation about the intended flow |
+| What it produced | `src/c1_web_front_end/web_app.py` rewritten (plan, confirm, `/done/<n>`, achievements, garden); templates `base.html` (new style and animations), `_macros.html`, `plan.html`, `done.html`, `achievements.html`, `garden.html`; the old `commute.html`, `compare.html` and the typed-distance web form removed; tests updated (`test_web_app.py`, `test_achievements.py`) |
+| Not claimed | C.2 and C.3 rules are unchanged (thresholds, factors and the 22 kg per tree are still assumptions); the removed web form was the browser version of UC.1, whose command-line path remains; traceability documents were not updated for the removed page; the design was checked in one browser only, and the dark-mode look was not viewed |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
 ## Entry template
 
 | Field | Value |

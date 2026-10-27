@@ -158,12 +158,50 @@ class TestConfirmAndPages(unittest.TestCase):
                 self.assertTrue(errors)
         self.assertEqual(len(confirmed_trips()), 1)
 
-    def test_pages_load_and_confirm_redirects_with_the_new_badge(self):
-        self.assertEqual(self.client.get("/achievements").status_code, 200)
-        response = self.client.post("/confirm", data=self.form, follow_redirects=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b"Trip confirmed: bike", response.data)
-        self.assertIn(b"First Step", response.data)
+    def test_pages_load_and_confirm_goes_to_the_done_page_with_the_new_badge(self):
+        for path in ("/achievements", "/garden"):
+            self.assertEqual(self.client.get(path).status_code, 200)
+        response = self.client.post("/confirm", data=self.form)
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.headers["Location"].startswith("/done/0"))  # not the achievements page
+        page = self.client.get(response.headers["Location"]).data
+        self.assertIn(b"Congratulations", page)
+        self.assertIn(b"New badge", page)
+        self.assertIn(b"First Step", page)
+
+    def test_done_page_has_no_popup_without_a_new_badge_and_ignores_made_up_names(self):
+        self.client.post("/confirm", data=self.form)
+        plain = self.client.get("/done/0").data
+        self.assertNotIn(b"<dialog", plain)
+        faked = self.client.get("/done/0?new=Consistency+Champion").data  # not earned: must not appear
+        self.assertNotIn(b"<dialog", faked)
+
+    def test_choosing_to_drive_logs_the_trip_without_congratulating(self):
+        response = self.client.post("/confirm", data={**self.form, "mode": "drive"})
+        page = self.client.get(response.headers["Location"]).data
+        self.assertIn(b"Trip logged", page)
+        self.assertNotIn(b"Congratulations", page)
+
+    def test_done_page_with_an_unknown_index_goes_back_to_planning(self):
+        self.assertEqual(self.client.get("/done/99").status_code, 302)
+
+    def test_achievements_page_reviews_trips_and_lists_badges_still_to_go(self):
+        self.client.post("/confirm", data=self.form)
+        page = self.client.get("/achievements").data
+        self.assertIn(b"Cornell Arts Quad", page)  # the trip history
+        self.assertIn(b"Still to go", page)
+        self.assertIn(b"Earned", page)
+        self.assertNotIn(b"Trip confirmed", page)  # no confirmation banner here any more
+
+    def test_garden_draws_one_tree_per_reached_goal_and_a_growing_sapling(self):
+        empty = self.client.get("/garden").data
+        self.assertEqual(empty.count(b'class="tree"'), 0)
+        self.assertEqual(empty.count(b'class="sapling"'), 1)
+        load_demo_trips()
+        confirm_trip("Cornell Arts Quad", "Ithaca Commons", "bike", self.today)  # reaches the first tree
+        grown = self.client.get("/garden").data
+        self.assertEqual(grown.count(b'class="tree"'), 1)
+        self.assertIn(b"1 tree planted", grown)
 
     def test_confirm_errors_show_on_the_page_without_crashing(self):
         for data in ({}, {**self.form, "mode": "rocket"}, {**self.form, "transit_minutes": "abc", "mode": "bus"}):
@@ -177,7 +215,7 @@ class TestConfirmAndPages(unittest.TestCase):
         self.assertEqual(len(confirmed_trips()), load_demo_trips() + 12)  # second load adds nothing
         page = self.client.get("/achievements").data
         self.assertIn(b"Earned", page)
-        self.assertIn(b"sample data", page)
+        self.assertIn(b"sample data", self.client.get("/garden").data)  # the campus share is disclosed as sample data
         self.client.post("/reset")
         self.assertEqual(confirmed_trips(), ())
 
@@ -189,9 +227,9 @@ class TestConfirmAndPages(unittest.TestCase):
         self.assertIn("Tree Planter", new)
         self.assertEqual(campus_goal(confirmed_trips()).trees_reached, 1)
 
-    def test_compare_page_offers_a_confirm_button(self):
+    def test_plan_page_offers_a_choose_button(self):
         data = {"origin": "Cornell Arts Quad", "destination": "Ithaca Commons"}
-        self.assertIn(b"I took this", self.client.post("/compare", data=data).data)
+        self.assertIn(b"Choose this way", self.client.post("/", data=data).data)
 
 
 if __name__ == "__main__":
