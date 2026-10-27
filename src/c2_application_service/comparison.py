@@ -11,8 +11,8 @@ def _factor_g_per_km(mode: str) -> float:
 
 
 @realizes("UC.3.5")
-def compare_modes(origin_text: str, destination_text: str, transit_minutes=None):
-    """Compare drive, walk and bike between two places, and bus when the Commuter enters a time.
+def compare_modes(origin_text: str, destination_text: str):
+    """Compare drive, walk, bike and scooter between two places.
 
     Each mode keeps its own routed distance, so the baseline is the drive route's
     distance x the drive factor (not the walking distance). Returns
@@ -31,16 +31,16 @@ def compare_modes(origin_text: str, destination_text: str, transit_minutes=None)
     if min(o.distance_km for o in options) < MIN_DISTANCE_KM:
         return (), origin, dest, ["Start and destination are the same place."]
 
-    if transit_minutes is not None:  # entered by the Commuter; no transit routing exists
-        drive_km_for_bus = next(o.distance_km for o in options if o.mode == "drive")
-        options = options + (
-            RouteOption(
-                mode="bus",
-                distance_km=drive_km_for_bus,  # ASSUMPTION: the bus follows the drive route
-                duration_min=float(transit_minutes),
-                source="entered by you; distance assumed equal to the drive route",
-            ),
-        )
+    bike = next(o for o in options if o.mode == "bike")
+    options = options + (  # ASSUMPTION: a scooter takes the bike route at the bike's speed
+        RouteOption(
+            mode="scooter",
+            distance_km=bike.distance_km,
+            duration_min=bike.duration_min,
+            source=f"{bike.source}; the scooter is assumed to use the bike route and speed",
+            path=bike.path,
+        ),
+    )
 
     drive_km = next(o.distance_km for o in options if o.mode == "drive")
     baseline_g = round(drive_km * _factor_g_per_km("drive"))

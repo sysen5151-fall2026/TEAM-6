@@ -10,7 +10,7 @@ from datetime import date, timedelta
 from src.interfaces import BadgeStatus, CampusGoal
 from src.model_trace import realizes
 
-LOW_CARBON = ("walk", "bike", "bus", "carpool")
+LOW_CARBON = ("walk", "bike", "scooter", "bus", "carpool")
 
 # Anti-gaming limits applied before anything is counted.
 MAX_COUNTED_PER_DAY = 2  # trips beyond this on one date are kept but not counted

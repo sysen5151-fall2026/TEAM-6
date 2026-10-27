@@ -28,6 +28,16 @@
     .legend .sw-bike { border-color:#2f7de1; border-top-style:dashed; }
     .legend .sw-walk { border-color:#1f8a5b; border-top-style:dotted; border-top-width:4px; }
     .legend li.warn { font-weight:600; color:var(--muted); }
+    .herebtn { width:100%; margin-top:8px; }
+    .herenote { margin:6px 0 0; }
+    fieldset.mine { margin:14px 0 0; padding:10px 14px 12px; border:2.5px dashed var(--line); border-radius:14px; }
+    fieldset.mine legend { padding:0 8px; font-weight:800; }
+    fieldset.mine .note { margin:0 0 4px; }
+    .datepick { display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px; margin:0 0 14px; }
+    .datepick label { margin:0; }
+    .datepick input { width:auto; }
+    .mode.soon { opacity:.78; border-style:dashed; box-shadow:3px 3px 0 var(--shadow); }
+    .legend .sw-scooter { border-color:#8e5bd6; border-top-style:dashed; }
   </style>
   <section class="hero">
     <span class="floaty" aria-hidden="true">🚲</span><span class="floaty" aria-hidden="true">🌤️</span>
@@ -41,12 +51,14 @@
   </div>
   {% endif %}
 
-  <form class="card" method="post" action="/">
+  <form class="card" method="post" action="/" id="planform">
     <div class="route-row">
       <div>
         <label for="origin">📍 From</label>
         <input id="origin" name="origin" type="text" autocomplete="off" required maxlength="100"
                placeholder="e.g. Collegetown" value="{{ values.get('origin', '') }}">
+        <button type="button" class="btn small ghost herebtn" id="usehere">📍 Start from my location</button>
+        <p class="note herenote" id="herenote" role="status" hidden></p>
       </div>
       <div>
         <label for="destination">🏁 To</label>
@@ -54,32 +66,20 @@
                placeholder="e.g. Cornell Arts Quad" value="{{ values.get('destination', '') }}">
       </div>
     </div>
-    <p class="note searchmode" id="searchmode">
-      {% if live_search %}🌍 Search any place: pick one from the list so we know exactly where you mean.
-      {% else %}📴 Offline list only (no ORS key set): only a few sample places can be found. Set ORS_API_KEY and restart to search anywhere.{% endif %}
-    </p>
-    <p class="chips">Try:
-      {% for a, b in examples %}<a class="chip" href="/?origin={{ a|urlencode }}&amp;destination={{ b|urlencode }}">{{ a }} ➜ {{ b }}</a>{% endfor %}
-    </p>
+    {% if not live_search %}
+    <p class="note searchmode" id="searchmode">📴 Offline list only (no ORS key set): only a few sample places can be found. Set ORS_API_KEY and restart to search anywhere.</p>
+    {% endif %}
 
-    <details class="limits" {% if values.get('not_feasible_modes') or values.get('transit_minutes') %}open{% endif %}>
-      <summary>⚙️ My limits (optional)</summary>
-      <label>Ways I can't do today</label>
+    <fieldset class="mine">
+      <legend>🎒 What I have with me</legend>
+      <p class="note">Walking is always compared. Tick anything else you can use today.</p>
       <div class="checks">
-        {% for mode in can_be_infeasible %}
-        <label><input type="checkbox" name="not_feasible_modes" value="{{ mode }}"
-          {% if mode in values.get('not_feasible_modes', []) %}checked{% endif %}> {{ m.mode(mode) }} {{ mode }}</label>
+        {% for v in vehicles %}
+        <label><input type="checkbox" name="have" value="{{ v }}"
+          {% if v in values.get('have', []) %}checked{% endif %}> {{ m.mode(v) }} I have a {{ v }}</label>
         {% endfor %}
       </div>
-      <label for="max_extra_min">Most extra minutes I'll accept over the fastest way</label>
-      <input id="max_extra_min" name="max_extra_min" type="number" min="0" max="240" step="1"
-             value="{{ values.get('max_extra_min', '10') }}">
-      <label for="transit_minutes">🚌 Bus door-to-door minutes (you enter it; leave empty to skip the bus)</label>
-      <input id="transit_minutes" name="transit_minutes" type="number" min="1" max="300" step="1"
-             value="{{ values.get('transit_minutes', '') }}">
-      <label for="date">📅 Trip date</label>
-      <input id="date" name="date" type="date" value="{{ values.get('date', '') }}">
-    </details>
+    </fieldset>
 
     <button class="btn full" type="submit">Compare my options 🔍</button>
   </form>
@@ -88,7 +88,6 @@
     <h2>🗺️ Map</h2>
     <div class="maptools">
       <button type="button" class="btn small ghost" id="locate">📍 Show my location</button>
-      <button type="button" class="btn small alt" id="usehere" hidden>🚩 Start from my location</button>
     </div>
     <p class="note" id="mapstatus">Showing the Cornell campus. Pick a start and a destination to see the routes.</p>
     <div id="map" role="img" aria-label="Map of your location, the places you chose and the routes between them"></div>
@@ -109,34 +108,51 @@
       </div>
     </div>
 
-    <p class="step">Now pick your way 👇 <span class="note">Choosing records the trip as done.</span></p>
-    <div class="modes">
-      {% for c in plan.comparisons %}
-      {% set out = rec.excluded | selectattr(0, 'equalto', c.mode) | list %}
-      <article class="card mode {% if c.mode == rec.mode %}best{% endif %} {% if out %}ruled{% endif %}">
-        {% if c.mode == rec.mode %}<span class="tag">⭐ Recommended</span>{% elif out %}<span class="tag no">Not today</span>{% endif %}
-        <div class="emoji" aria-hidden="true">{{ m.mode(c.mode) }}</div>
-        <h3>{{ c.mode }}</h3>
-        <div class="time">{{ '%g'|format(c.duration_min) }} <small>min</small></div>
-        <ul>
-          <li>📏 {{ '%g'|format(c.distance_km) }} km</li>
-          <li>💨 {{ '%g'|format(c.co2e_g) }} g CO2e</li>
-          <li class="save">{% if c.difference_g > 0 %}🌱 about {{ '%g'|format(c.difference_g) }} g less than driving{% else %}the driving baseline{% endif %}</li>
-        </ul>
-        {% if out %}<p class="why">Ruled out: {{ out[0][1] }}</p>{% endif %}
-        <form method="post" action="/confirm" style="margin:0">
-          <input type="hidden" name="origin" value="{{ values.get('origin', '') }}">
-          <input type="hidden" name="destination" value="{{ values.get('destination', '') }}">
-          <input type="hidden" name="transit_minutes" value="{{ values.get('transit_minutes', '') }}">
-          <input type="hidden" name="date" value="{{ values.get('date', '') }}">
-          <input type="hidden" name="mode" value="{{ c.mode }}">
-          <button class="btn small {{ 'alt' if c.mode == rec.mode else 'ghost' }}" type="submit">Choose this way</button>
-        </form>
-      </article>
-      {% endfor %}
-    </div>
+    <form method="post" action="/confirm" class="confirm" id="confirmform">
+      <input type="hidden" name="origin" value="{{ values.get('origin', '') }}">
+      <input type="hidden" name="destination" value="{{ values.get('destination', '') }}">
+      {% for v in values.get('have', []) %}<input type="hidden" name="have" value="{{ v }}">{% endfor %}
+      <p class="step">Now pick your way 👇 <span class="note">Choosing records the trip as done.</span></p>
+      <div class="datepick">
+        <label for="trip_date">📅 Date of this trip</label>
+        <input id="trip_date" name="date" type="date" required max="{{ today }}" value="{{ values.get('date') or today }}">
+      </div>
+      <div class="modes">
+        {% for c in plan.comparisons %}
+        {% set out = rec.excluded | selectattr(0, 'equalto', c.mode) | list %}
+        <article class="card mode {% if c.mode == rec.mode %}best{% endif %} {% if out %}ruled{% endif %}">
+          {% if c.mode == rec.mode %}<span class="tag">⭐ Recommended</span>{% elif out %}<span class="tag no">Not today</span>{% endif %}
+          <div class="emoji" aria-hidden="true">{{ m.mode(c.mode) }}</div>
+          <h3>{{ c.mode }}</h3>
+          <div class="time">{{ '%g'|format(c.duration_min) }} <small>min</small></div>
+          <ul>
+            <li>📏 {{ '%g'|format(c.distance_km) }} km</li>
+            <li>💨 {{ '%g'|format(c.co2e_g) }} g CO2e</li>
+            <li class="save">{% if c.difference_g > 0 %}🌱 about {{ '%g'|format(c.difference_g) }} g less than driving{% else %}the driving baseline{% endif %}</li>
+          </ul>
+          {% if out %}<p class="why">Ruled out: {{ out[0][1] }}</p>{% endif %}
+          <button class="btn small {{ 'alt' if c.mode == rec.mode else 'ghost' }}" type="submit" name="mode" value="{{ c.mode }}">Choose this way</button>
+        </article>
+        {% endfor %}
+
+        <article class="card mode soon" aria-label="Bus, coming soon">
+          <span class="tag no">Coming soon</span>
+          <div class="emoji" aria-hidden="true">{{ m.mode('bus') }}</div>
+          <h3>bus</h3>
+          <div class="time">–</div>
+          <ul><li>🗓️ Campus bus times are not connected yet</li></ul>
+          <p class="why">Until they are, the bus is not compared or recommended.</p>
+          <button class="btn small ghost" type="button" disabled>Not available yet</button>
+        </article>
+      </div>
+    </form>
+    {% set missing = vehicles | reject('in', values.get('have', [])) | list %}
+    {% if missing %}
+    <p class="note">Have a {{ missing | join(' or a ') }}? Tick it under “What I have with me” and compare again.</p>
+    {% endif %}
     <p class="note" style="margin-top:16px">Each way uses its own route distance. "Less than driving" is an estimate against driving the drive route, not verified avoided emissions. Emission factors are placeholders.
-      Route data: {{ plan.comparisons|map(attribute='source')|unique|join('; ') }}.</p>
+      Route data: {{ plan.comparisons|rejectattr('mode', 'equalto', 'scooter')|map(attribute='source')|unique|join('; ') }}.
+      {% if plan.comparisons|selectattr('mode', 'equalto', 'scooter')|list %}The scooter is assumed to use the bike route and speed.{% endif %}</p>
   </section>
   {% endif %}
 {% endblock %}
@@ -145,9 +161,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
   // Map-search page: the map opens on where you are, picking places drops pins,
-  // and the drive, walk and bike routes between them are drawn together.
+  // and the routes for the ways you can use are drawn between them.
   (function () {
     var planned = {{ map_places|tojson }};
+    var restoreHave = {{ 'true' if restore_have else 'false' }};
     var CAMPUS = [42.4491, -76.4835];
     var ICON = { origin: "📍", destination: "🏁" };
     var STYLE = {  // drawn bottom to top, so the thin dotted walk line stays visible over the others
@@ -155,14 +172,16 @@
       bike: { color: "#2f7de1", weight: 5, opacity: 0.9, dashArray: "10 8" },
       walk: { color: "#1f8a5b", weight: 4, opacity: 1, dashArray: "1 8", lineCap: "round" }
     };
-    var LABEL = { drive: "🚗 Drive", bike: "🚲 Bike", walk: "🚶 Walk" };
+    var LABEL = { drive: "🚗 Drive", bike: "🚲 Bike", scooter: "🛴 Scooter", walk: "🚶 Walk" };
+    var STORE = "ecocommute.have";
     var picked = { origin: null, destination: null };
     var combos = {};
-    var here = null, routeSeq = 0;
+    var here = null, routeSeq = 0, lastRoutes = null;
     var card = document.getElementById("mapcard");
     var status = document.getElementById("mapstatus");
     var legend = document.getElementById("legend");
-    var useBtn = document.getElementById("usehere");
+    var hereBtn = document.getElementById("usehere");
+    var hereNote = document.getElementById("herenote");
     var hasMap = typeof L !== "undefined";  // offline: the page still works, without the map
     var map, pins, lines, hereLayer;
 
@@ -177,7 +196,9 @@
       card.hidden = true;
     }
 
+    function owns(name) { return !!document.querySelector('input[name="have"][value="' + name + '"]:checked'); }
     function say(text) { status.textContent = text; }
+    function tell(text) { hereNote.textContent = text; hereNote.hidden = !text; }
     function clearLegend() { legend.textContent = ""; legend.hidden = true; }
     function legendRow(cls, text) {
       var li = document.createElement("li");
@@ -200,20 +221,30 @@
       else if (points.length === 1) map.setView(points[0], 16);
     }
 
-    function drawRoutes(routes) {
+    // Draw the routes for the ways the Commuter can use. A scooter shares the bike route.
+    function drawRoutes(routes, refit) {
+      lastRoutes = routes;
       lines.clearLayers(); clearLegend();
       var all = [], estimated = false;
-      ["drive", "bike", "walk"].forEach(function (mode) {
-        var route = routes.filter(function (r) { return r.mode === mode; })[0];
-        if (!route) return;
-        var style = Object.assign({}, STYLE[mode]);
-        if (route.estimated) { style.dashArray = "4 10"; estimated = true; }
-        L.polyline(route.path, style).addTo(lines);
-        route.path.forEach(function (p) { all.push(p); });
-        legendRow(mode, LABEL[mode] + " " + route.distance_km + " km, " + route.duration_min + " min");
+      function route(mode) { return routes.filter(function (r) { return r.mode === mode; })[0]; }
+      function line(r) {
+        var style = Object.assign({}, STYLE[r.mode]);
+        if (r.estimated) { style.dashArray = "4 10"; estimated = true; }
+        L.polyline(r.path, style).addTo(lines);
+        r.path.forEach(function (p) { all.push(p); });
+      }
+      var drive = route("drive"), walk = route("walk"), bike = route("bike");
+      if (drive) line(drive);
+      if (bike && (owns("bike") || owns("scooter"))) line(bike);
+      if (walk) line(walk);
+      [["drive", drive, "drive"], ["walk", walk, "walk"],
+       ["bike", owns("bike") && bike, "bike"], ["scooter", owns("scooter") && bike, "scooter"]].forEach(function (row) {
+        if (!row[1]) return;
+        legendRow(row[2], LABEL[row[0]] + " " + row[1].distance_km + " km, " + row[1].duration_min + " min" +
+                          (row[0] === "scooter" ? " (bike route)" : ""));
       });
       if (estimated) legendRow("", "Dashed straight lines are estimates: no routing answer was available.");
-      fitEverything(all);
+      if (refit) fitEverything(all);
     }
 
     function refresh() {
@@ -224,7 +255,7 @@
         if (p) L.marker([p.lat, p.lon], { title: p.label, icon: pinIcon(kind) }).addTo(pins);
       });
       var seq = ++routeSeq;
-      lines.clearLayers(); clearLegend();
+      lines.clearLayers(); clearLegend(); lastRoutes = null;
       if (!(picked.origin && picked.destination)) { fitEverything(); return; }
       legendRow("", "Drawing the routes…");
       var q = "olat=" + picked.origin.lat + "&olon=" + picked.origin.lon +
@@ -233,7 +264,7 @@
         .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
         .then(function (res) {
           if (seq !== routeSeq) return;  // the choice changed while this was loading
-          if (res.ok) drawRoutes(res.d.routes);
+          if (res.ok) drawRoutes(res.d.routes, true);
           else { clearLegend(); legendRow("", res.d.error || "Could not draw the routes."); fitEverything(); }
         })
         .catch(function () {
@@ -249,21 +280,30 @@
         .bindTooltip("You are here").addTo(hereLayer);
     }
 
-    function locate() {
-      if (!hasMap) return;
-      if (!navigator.geolocation) { say("This browser cannot share a location, so the map shows the Cornell campus."); return; }
-      say("📍 Finding where you are…");
+    // Ask the browser where the Commuter is. `then` runs once a position is known.
+    function locate(then) {
+      var fail = function (text) { say(text); if (then) tell(text); };
+      if (!navigator.geolocation) { fail("This browser cannot share a location, so the map shows the Cornell campus."); return; }
+      say("📍 Finding where you are…"); if (then) tell("📍 Finding where you are…");
       navigator.geolocation.getCurrentPosition(function (pos) {
         here = { lat: pos.coords.latitude, lon: pos.coords.longitude, acc: pos.coords.accuracy || 50 };
-        drawHere(); useBtn.hidden = false;
+        if (hasMap) drawHere();
         say("📍 You are here (about ±" + Math.round(here.acc) + " m; desktop browsers can be less exact). " +
             "Your position stays in this browser until you use it as the start.");
-        if (!picked.origin && !picked.destination) map.setView([here.lat, here.lon], 15);
+        tell("");
+        if (hasMap && !picked.origin && !picked.destination) map.setView([here.lat, here.lon], 15);
+        if (then) then();
       }, function (err) {
-        say(err && err.code === 1
-          ? "Location is off, so the map shows the Cornell campus. Allow location for this site in your browser to see where you are."
-          : "Could not find your location, so the map shows the Cornell campus.");
+        fail(err && err.code === 1
+          ? "Location is off. Allow location for this site in your browser, or type a place."
+          : "Could not find your location. Type a place instead.");
       }, { timeout: 8000, maximumAge: 60000 });
+    }
+
+    function startHere() {
+      if (!here) { locate(startHere); return; }
+      combos.origin.choose({ label: "My location (" + here.lat.toFixed(4) + ", " + here.lon.toFixed(4) + ")", lat: here.lat, lon: here.lon });
+      tell("");
     }
 
     function combo(input, kind) {
@@ -347,7 +387,7 @@
         else if (e.key === "Escape") { close(); }
       });
 
-      // Show what is already filled in (a finished plan, or a "Try" link).
+      // Show what is already filled in (a finished plan, or a prefilled link).
       var done = planned.filter(function (p) { return p.kind === kind; })[0];
       if (done) { picked[kind] = done; input.classList.add("picked"); }
       else if (input.value.trim().length >= 2) {
@@ -362,13 +402,32 @@
       combos[kind] = { choose: choose };
     }
 
+    // Remember which vehicles the student has, so they tick them once.
+    var boxes = document.querySelectorAll('input[name="have"]');
+    if (restoreHave) {
+      try {
+        var saved = JSON.parse(localStorage.getItem(STORE) || "[]");
+        Array.prototype.forEach.call(boxes, function (box) { box.checked = saved.indexOf(box.value) >= 0; });
+      } catch (e) { /* storage blocked: start with nothing ticked */ }
+    }
+    Array.prototype.forEach.call(boxes, function (box) {
+      box.addEventListener("change", function () {
+        try {
+          localStorage.setItem(STORE, JSON.stringify(Array.prototype.filter.call(boxes, function (b) { return b.checked; })
+            .map(function (b) { return b.value; })));
+        } catch (e) { /* ignore */ }
+        if (lastRoutes) drawRoutes(lastRoutes, false);
+      });
+    });
+
+    // Enter in the date box must not pick the first way by accident.
+    var tripDate = document.getElementById("trip_date");
+    if (tripDate) tripDate.addEventListener("keydown", function (e) { if (e.key === "Enter") e.preventDefault(); });
+
     combo(document.getElementById("origin"), "origin");
     combo(document.getElementById("destination"), "destination");
-    document.getElementById("locate").addEventListener("click", locate);
-    useBtn.addEventListener("click", function () {
-      if (!here) return;
-      combos.origin.choose({ label: "My location (" + here.lat.toFixed(4) + ", " + here.lon.toFixed(4) + ")", lat: here.lat, lon: here.lon });
-    });
+    hereBtn.addEventListener("click", startHere);
+    document.getElementById("locate").addEventListener("click", function () { locate(); });
     refresh();
     locate();  // the browser asks for permission; saying no just leaves the campus view
   })();

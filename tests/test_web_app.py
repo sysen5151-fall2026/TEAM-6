@@ -46,7 +46,7 @@ class TestPlanPage(unittest.TestCase):
     def test_plan_compares_every_mode_and_recommends_one(self):
         response = self.client.post("/", data=PLACES)
         self.assertEqual(response.status_code, 200)
-        for mode in (b"drive", b"walk", b"bike"):
+        for mode in (b"drive", b"walk"):
             self.assertIn(mode, response.data)
         self.assertIn(b"estimate", response.data)  # no ORS key in tests: labelled fallback
         self.assertIn(b"Recommended:", response.data)
@@ -57,14 +57,55 @@ class TestPlanPage(unittest.TestCase):
         self.assertEqual(self.client.get("/compare").status_code, 200)
         self.assertIn(b"Recommended:", self.client.post("/compare", data=PLACES).data)
 
-    def test_settings_are_validated_and_applied(self):
-        for bad in ({"max_extra_min": "abc"}, {"max_extra_min": "-5"}, {"transit_minutes": "0"}, {"transit_minutes": "x"}):
-            with self.subTest(bad=bad):
-                response = self.client.post("/", data={**PLACES, **bad})
-                self.assertIn(b'role="alert"', response.data)
-        both = self.client.post("/", data={**PLACES, "not_feasible_modes": ["walk", "bike"], "transit_minutes": "20"})
-        self.assertIn(b"you marked it not feasible", both.data)
-        self.assertIn(b"bus", both.data)
+    def test_the_student_has_no_bike_unless_ticked(self):
+        page = self.client.post("/", data=PLACES).get_data(as_text=True)
+        self.assertIn('name="mode" value="walk"', page)
+        self.assertNotIn('name="mode" value="bike"', page)
+        self.assertNotIn('name="mode" value="scooter"', page)
+        self.assertIn("Have a bike or a scooter?", page)
+        both = self.client.post("/", data={**PLACES, "have": ["bike", "scooter"]}).get_data(as_text=True)
+        self.assertIn('name="mode" value="bike"', both)
+        self.assertIn('name="mode" value="scooter"', both)
+        self.assertNotIn("Have a bike or a scooter?", both)
+        one = self.client.post("/", data={**PLACES, "have": ["scooter"]}).get_data(as_text=True)
+        self.assertIn("Have a bike? Tick it", one)  # only what is still missing is mentioned
+        self.assertIn("The scooter is assumed to use the bike route and speed.", one)
+        self.assertNotIn("; the scooter is assumed", one)  # said once, not mixed into the route sources
+
+    def test_ticked_vehicles_are_kept_for_the_confirm_step_and_junk_is_dropped(self):
+        page = self.client.post("/", data={**PLACES, "have": ["scooter", "rocket"]}).get_data(as_text=True)
+        self.assertIn('<input type="hidden" name="have" value="scooter">', page)
+        self.assertNotIn('name="have" value="rocket"', page)
+        self.assertNotIn('<input type="hidden" name="have" value="rocket">', page)
+
+    def test_the_old_limit_boxes_are_gone_and_the_ride_box_replaces_them(self):
+        page = self.client.get("/").get_data(as_text=True)
+        for gone in ("max_extra_min", "transit_minutes", "not_feasible_modes", "Bus door-to-door", "My limits", "Try:"):
+            self.assertNotIn(gone, page)
+        self.assertIn("What I have with me", page)
+        self.assertIn('name="have" value="bike"', page)
+        self.assertIn('name="have" value="scooter"', page)
+        self.assertNotRegex(page, r'name="have" value="(bike|scooter)"\s+checked')  # nothing ticked by default
+
+    def test_a_bus_card_is_reserved_but_cannot_be_chosen(self):
+        page = self.client.post("/", data=PLACES).get_data(as_text=True)
+        self.assertIn("Coming soon", page)
+        self.assertIn("Not available yet", page)
+        self.assertNotIn('name="mode" value="bus"', page)
+
+    def test_start_from_my_location_sits_under_the_from_box(self):
+        page = self.client.get("/").get_data(as_text=True)
+        from_box = page.index('id="origin"')
+        button = page.index('id="usehere"')
+        to_box = page.index('id="destination"')
+        self.assertTrue(from_box < button < to_box)  # right after From, before To
+        self.assertLess(page.index('id="usehere"'), page.index('id="mapcard"'))  # not in the map card
+
+    def test_the_date_is_asked_where_the_way_is_chosen(self):
+        self.assertNotIn('id="trip_date"', self.client.get("/").get_data(as_text=True))
+        page = self.client.post("/", data=PLACES).get_data(as_text=True)
+        self.assertIn('id="trip_date"', page)
+        self.assertIn("max=", page)
 
     def test_missing_unknown_or_identical_places_show_messages(self):
         cases = (
@@ -95,8 +136,7 @@ class TestPlanPage(unittest.TestCase):
         self.assertIn(b"Offline list only", self.client.get("/").data)  # setUp removes the key
         with mock.patch.dict(os.environ, {"ORS_API_KEY": "k"}):
             page = self.client.get("/").data
-        self.assertIn(b"Search any place", page)
-        self.assertNotIn(b"Offline list only", page)
+        self.assertNotIn(b"Offline list only", page)  # nothing to warn about when search is live
 
     def test_finished_plan_hands_both_places_to_the_map(self):
         page = self.client.post("/", data={"origin": "Upson Hall", "destination": "Ithaca Commons"}).data

@@ -267,6 +267,19 @@ Rule: every GenAI-assisted change is logged here with the tool, the (constrained
 | Not claimed | The browser pane here denied location, so the success path was exercised by replacing the position with a fixed one near Collegetown, not by a real device fix; desktop browsers can be less exact than a phone; the page loads Leaflet and OSM tiles from the internet; the first drive request after idle took about 3.5 s in one timing, later ones about 0.5 s; routes are shown only for the three modes ORS covers (no bus line); the position is sent to this server only when it is used as the start, and then to ORS as a route coordinate |
 | Human review | **Pending.** Reviewer and date: ____________ . |
 
+## Entry 021 - 2026-10-27 - Student defaults, vehicles and a reserved bus card
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `feat/student-defaults` |
+| Prompt (summary, originally Chinese) | Put "Start from my location" under the start box, not on the map; remove the example routes; assume the student has no bike and rank bike after walk; replace the limits with only "I have a bike" and "I have a scooter" and rename the section; remove the bus minutes and extra-minutes boxes; reserve a bus card on the compare page for data later; fix other UI that does not match how it is used. |
+| Constraining sources | The previous plan page and ADR 0004; the team's choices in the prompt |
+| What it produced | `plan_commute(origin, destination, have=())` (vehicles only when ticked); scooter row built from the bike route; walk and wheeled time limits and the priority order in `recommend_mode`; a fallback wording when only driving is left; scooter factor and emoji; the form (From box, button under it, "What I have with me", offline warning only when offline); one confirm form with the date next to the way cards; a disabled "Coming soon" bus card; map lines and legend follow the ticked vehicles; ticks remembered in the browser; Enter in the date box no longer picks a way; `have` values are filtered on the server; ADR 0006; tests updated and added (125 pass) |
+| Not claimed | The thresholds (30 min walk, 45 min bike or scooter), the scooter factor (20 g per km) and the scooter using the bike route and speed are project assumptions. **SPEC.md 2.1.11 and model 10.9 still describe a typed bus time and were not changed**; the team must update them. Weather rules are unchanged. The scooter is assumed electric. Checked in the in-app browser at a narrow width; position was simulated; the card pop-in animation was caught mid-way in one screenshot |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
 ## Entry template
 
 | Field | Value |
