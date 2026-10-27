@@ -1,5 +1,5 @@
 from src.c3_data_adapter import geocode, get_route_options, retrieve_factor
-from src.interfaces import CommuteRequest, ModeComparison
+from src.interfaces import CommuteRequest, ModeComparison, RouteOption
 
 MIN_DISTANCE_KM = 0.05  # origin and destination closer than this are treated as the same place
 
@@ -9,8 +9,8 @@ def _factor_g_per_km(mode: str) -> float:
     return retrieve_factor(request).g_co2e_per_km
 
 
-def compare_modes(origin_text: str, destination_text: str):
-    """Compare drive, walk and bike between two places.
+def compare_modes(origin_text: str, destination_text: str, transit_minutes=None):
+    """Compare drive, walk and bike between two places, and bus when the Commuter enters a time.
 
     Each mode keeps its own routed distance, so the baseline is the drive route's
     distance x the drive factor (not the walking distance). Returns
@@ -28,6 +28,17 @@ def compare_modes(origin_text: str, destination_text: str):
     options = get_route_options(origin, dest)
     if min(o.distance_km for o in options) < MIN_DISTANCE_KM:
         return (), origin, dest, ["Start and destination are the same place."]
+
+    if transit_minutes is not None:  # entered by the Commuter; no transit routing exists
+        drive_km_for_bus = next(o.distance_km for o in options if o.mode == "drive")
+        options = options + (
+            RouteOption(
+                mode="bus",
+                distance_km=drive_km_for_bus,  # ASSUMPTION: the bus follows the drive route
+                duration_min=float(transit_minutes),
+                source="entered by you; distance assumed equal to the drive route",
+            ),
+        )
 
     drive_km = next(o.distance_km for o in options if o.mode == "drive")
     baseline_g = round(drive_km * _factor_g_per_km("drive"))

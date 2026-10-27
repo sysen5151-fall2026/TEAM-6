@@ -12,7 +12,8 @@ from datetime import date as _date
 from flask import Flask, render_template, request
 
 from src.c1_web_front_end.front_end import present_entry_fields, submit_commute_request
-from src.c2_application_service import compare_modes
+from src.c2_application_service import plan_commute
+from src.c2_application_service.recommendation import DEFAULT_MAX_EXTRA_MIN
 from src.c3_data_adapter import sample_places
 from src.interfaces import CommuteRequest
 
@@ -63,6 +64,31 @@ def parse_entry(form) -> tuple:
     )
 
 
+def parse_limits(form) -> tuple:
+    """Validate the optional compare-page settings; return (kwargs for plan_commute, errors)."""
+    errors, limits = [], {}
+    limits["not_feasible"] = tuple(m for m in form.getlist("not_feasible_modes") if m in CAN_BE_INFEASIBLE)
+
+    raw = form.get("max_extra_min", "").strip()
+    try:
+        limits["max_extra_min"] = float(raw) if raw else DEFAULT_MAX_EXTRA_MIN
+        if not 0 <= limits["max_extra_min"] <= 240:
+            raise ValueError
+    except ValueError:
+        errors.append("Extra minutes you accept must be a number from 0 to 240.")
+
+    raw = form.get("transit_minutes", "").strip()
+    limits["transit_minutes"] = None
+    if raw:
+        try:
+            limits["transit_minutes"] = float(raw)
+            if not 0 < limits["transit_minutes"] <= 300:
+                raise ValueError
+        except ValueError:
+            errors.append("Bus time must be a number of minutes above 0 and at most 300.")
+    return limits, errors
+
+
 def create_app() -> Flask:
     app = Flask(__name__)
 
@@ -88,19 +114,25 @@ def create_app() -> Flask:
 
     @app.route("/compare", methods=["GET", "POST"])
     def compare_page():
-        values, comparisons, origin, destination, errors = {}, (), None, None, []
+        values = {"max_extra_min": f"{DEFAULT_MAX_EXTRA_MIN:g}"}
+        plan, errors = None, []
         if request.method == "POST":
             values = request.form.to_dict()
-            comparisons, origin, destination, errors = compare_modes(
-                request.form.get("origin", ""), request.form.get("destination", "")
-            )
+            values["not_feasible_modes"] = request.form.getlist("not_feasible_modes")
+            limits, errors = parse_limits(request.form)
+            if not errors:
+                plan = plan_commute(
+                    request.form.get("origin", ""),
+                    request.form.get("destination", ""),
+                    **limits,
+                )
+                errors = list(plan.errors)
         return render_template(
             "compare.html",
             places=sample_places(),
+            can_be_infeasible=CAN_BE_INFEASIBLE,
             values=values,
-            comparisons=comparisons,
-            origin=origin,
-            destination=destination,
+            plan=plan,
             errors=errors,
         )
 

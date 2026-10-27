@@ -61,6 +61,8 @@ Then open <http://127.0.0.1:5000>. The page wraps the same UC.1 path; emission f
 
 The **Compare routes** page (`/compare`) shows drive, walk and bike distance, time and CO2e between two places ([ADR 0003](docs/adr/0003-openrouteservice-with-fallback.md)). To use OpenRouteService, get a free key from openrouteservice.org and set it before starting the server; without it the page uses a labelled estimate between sample places (Cornell Arts Quad, Collegetown, Ithaca Commons, Cornell Gates Hall). The live service was checked once on 2026-10-27; ORS plans to move to `api.heigit.org`, so set `ORS_BASE_URL` if the old host stops working.
 
+The same page recommends one mode ([ADR 0004](docs/adr/0004-feasibility-filter-and-recommendation.md)): it rules out modes using current weather at the start (Open-Meteo, no key), the modes you mark not feasible and your extra-minutes limit, then picks the lowest estimated CO2e among what is left and says why. Bus time is typed in by the Commuter; there is no transit routing.
+
 ```powershell
 $env:ORS_API_KEY = "your-key"
 .venv\Scripts\python -m src.main_web

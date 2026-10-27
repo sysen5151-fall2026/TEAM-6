@@ -2,7 +2,7 @@
 {% block title %}Compare routes - EcoCommute{% endblock %}
 {% block content %}
   <h1>Compare routes</h1>
-  <p class="sub">Drive, walk and bike between two places, each on its own route.</p>
+  <p class="sub">Drive, walk and bike between two places, each on its own route, with a recommendation for today's conditions.</p>
 
   {% if errors %}
   <div class="card errors" role="alert">
@@ -16,29 +16,50 @@
     <label for="destination">Destination</label>
     <input id="destination" name="destination" type="text" list="places" required value="{{ values.get('destination', '') }}">
     <datalist id="places">{% for p in places %}<option value="{{ p }}">{% endfor %}</datalist>
+
+    <label>Modes that are not feasible for me</label>
+    <div class="checks">
+      {% for m in can_be_infeasible %}
+      <label><input type="checkbox" name="not_feasible_modes" value="{{ m }}"
+        {% if m in values.get('not_feasible_modes', []) %}checked{% endif %}> {{ m }}</label>
+      {% endfor %}
+    </div>
+
+    <label for="max_extra_min">Most extra minutes I accept over the fastest option</label>
+    <input id="max_extra_min" name="max_extra_min" type="number" min="0" max="240" step="1"
+           value="{{ values.get('max_extra_min', '10') }}">
+
+    <label for="transit_minutes">Bus door-to-door minutes (optional, you enter it)</label>
+    <input id="transit_minutes" name="transit_minutes" type="number" min="1" max="300" step="1"
+           value="{{ values.get('transit_minutes', '') }}">
     <button type="submit">Compare</button>
   </form>
 
-  {% if comparisons %}
+  {% if plan and plan.comparisons %}
+  {% set rec = plan.recommendation %}
   <section class="card" aria-live="polite">
-    <h2>{{ origin.label }} to {{ destination.label }}</h2>
+    <h2>{{ plan.origin.label }} to {{ plan.destination.label }}</h2>
+    <p><strong>{{ rec.reason }}</strong></p>
+    <p class="note">{{ rec.weather_note }}</p>
     <table>
       <thead><tr><th>Mode</th><th>Distance</th><th>Time</th><th>CO2e</th><th>Difference</th></tr></thead>
       <tbody>
-      {% for c in comparisons %}
+      {% for c in plan.comparisons %}
+        {% set out = rec.excluded | selectattr(0, 'equalto', c.mode) | list %}
         <tr>
-          <td>{{ c.mode }}</td>
+          <td>{{ c.mode }}{% if c.mode == rec.mode %} (recommended){% endif %}</td>
           <td>{{ '%g'|format(c.distance_km) }} km</td>
           <td>{{ '%g'|format(c.duration_min) }} min</td>
           <td>{{ '%g'|format(c.co2e_g) }} g</td>
           <td>{{ '%g'|format(c.difference_g) }} g</td>
         </tr>
+        {% if out %}<tr><td colspan="5" class="note">Ruled out: {{ out[0][1] }}</td></tr>{% endif %}
       {% endfor %}
       </tbody>
     </table>
     <p class="note">Difference = estimated difference from driving the drive route. Each mode uses its own distance.
       Emission factors are placeholders.</p>
-    <p class="note">Route data: {{ comparisons|map(attribute='source')|unique|join('; ') }}.</p>
+    <p class="note">Route data: {{ plan.comparisons|map(attribute='source')|unique|join('; ') }}.</p>
   </section>
   {% endif %}
 {% endblock %}

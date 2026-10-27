@@ -25,6 +25,9 @@ class TestWebEntry(unittest.TestCase):
         no_key.start()
         os.environ.pop("ORS_API_KEY", None)
         self.addCleanup(no_key.stop)
+        no_weather = mock.patch("src.c3_data_adapter.weather_adapter._http_json", side_effect=OSError)
+        no_weather.start()  # the compare page asks Open-Meteo; tests must not use the network
+        self.addCleanup(no_weather.stop)
         self.client = create_app().test_client()
 
     def test_form_page_loads(self):
@@ -69,6 +72,18 @@ class TestWebEntry(unittest.TestCase):
         for mode in (b"drive", b"walk", b"bike"):
             self.assertIn(mode, response.data)
         self.assertIn(b"estimate", response.data)  # no ORS key in tests: labelled fallback
+        self.assertIn(b"Recommended:", response.data)
+        self.assertIn(b"Weather was not available", response.data)  # weather mocked as down
+
+    def test_compare_settings_are_validated_and_applied(self):
+        base = {"origin": "Cornell Arts Quad", "destination": "Ithaca Commons"}
+        for bad in ({"max_extra_min": "abc"}, {"max_extra_min": "-5"}, {"transit_minutes": "0"}, {"transit_minutes": "x"}):
+            with self.subTest(bad=bad):
+                response = self.client.post("/compare", data={**base, **bad})
+                self.assertIn(b'role="alert"', response.data)
+        both = self.client.post("/compare", data={**base, "not_feasible_modes": ["walk", "bike"], "transit_minutes": "20"})
+        self.assertIn(b"you marked it not feasible", both.data)
+        self.assertIn(b"bus", both.data)
 
     def test_compare_bad_input_shows_messages(self):
         for data in ({"origin": "Cornell Arts Quad", "destination": "nowhere"}, {}, {"origin": "Collegetown", "destination": "Collegetown"}):

@@ -135,6 +135,19 @@ Rule: every GenAI-assisted change is logged here with the tool, the (constrained
 | Not claimed | One live call was made afterwards with the team's free key (place search and the three profiles worked on the old host; the announced new host returned 404); automated tests use mocks only; fallback detour factors and speeds are assumptions; no weather or feasibility filtering yet; transit and the Innoslate model are not updated; the new functions carry no `@realizes` tags |
 | Human review | **Pending.** Reviewer and date: ____________ . |
 
+## Entry 011 - 2026-10-27 - Feasibility filter, weather and recommendation on the compare page
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `feat/web-app` |
+| Prompt (summary, originally Chinese) | Continue: add weather, the Commuter's not-feasible settings and a manually entered bus time so the compare page recommends a mode and says why. |
+| Constraining sources | Team discussion ("best" means feasible under weather, carbon and time, not cheapest); Open-Meteo `current` response checked once live on 2026-10-27 |
+| What it produced | `src/c3_data_adapter/weather_adapter.py`; `src/c2_application_service/recommendation.py` and `plan.py`; `explain_recommendation` in C.4; optional bus time and limits in `compare_modes` and the page; new types in `src/interfaces.py`; `tests/test_recommend.py` and two web tests; ADR 0004; README paragraph |
+| Not claimed | The thresholds (0.1 mm rain, 0 C, 40 km/h wind, 10 extra minutes) are project assumptions, not safety guidance; weather is current conditions at the start, not the forecast for the trip time; bus distance is assumed equal to the drive route and its factor is a placeholder; no daylight, elevation or accessibility rules yet; the Innoslate model and the new functions' `@realizes` tags are not updated; the explanation is a fixed template, not a language model |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
 ## Entry template
 
 | Field | Value |

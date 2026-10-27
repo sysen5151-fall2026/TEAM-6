@@ -33,6 +33,8 @@ class WeatherQuery:  # I/O "Weather Query" (UC.1.6 -> UC.1.7)
 class WeatherForecast:  # I/O "Weather Forecast" (UC.1.7 -> UC.1.8)
     precipitation_mm: float
     forecast_timestamp: str
+    temperature_c: float | None = None  # only set by the live weather adapter
+    wind_kmh: float | None = None
 
 
 @dataclass(frozen=True)
@@ -97,3 +99,20 @@ class ModeComparison:  # RouteOption plus emissions, for the compare page
     co2e_g: float
     difference_g: float  # estimated difference from the always-drive baseline
     source: str
+
+
+@dataclass(frozen=True)
+class Recommendation:  # result of the feasibility filter and ranking
+    mode: str  # "" when nothing could be recommended
+    reason: str  # built only from values already computed
+    excluded: tuple  # ((mode, reason), ...) for every mode ruled out
+    weather_note: str  # what weather was (or was not) applied
+
+
+@dataclass(frozen=True)
+class CommutePlan:  # everything the compare page shows
+    origin: "Place | None"
+    destination: "Place | None"
+    comparisons: tuple
+    recommendation: "Recommendation | None"
+    errors: tuple
