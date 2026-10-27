@@ -47,7 +47,19 @@ python -m unittest discover -s tests -t .
 
 `python -m src.main` runs UC.1 once, end to end, with stubs. Do not run `python src/main.py` (package imports need `-m`).
 
-**Status (Milestone 1):** one stubbed end-to-end path for UC.1; emission factors are placeholders, there is no web UI, no persistence, no real weather call and no language model yet. See [docs/walking-skeleton.md](docs/walking-skeleton.md).
+## Run the web entry
+
+Needs Flask (see [ADR 0002](docs/adr/0002-flask-web-entry.md)); the commands above need nothing installed.
+
+```powershell
+python -m venv .venv
+.venv\Scripts\python -m pip install -r requirements.txt
+.venv\Scripts\python -m src.main_web
+```
+
+Then open <http://127.0.0.1:5000>. The page wraps the same UC.1 path; emission factors and weather are still stubs, and trips are kept in memory only.
+
+**Status (Milestone 1):** one stubbed end-to-end path for UC.1; emission factors are placeholders, the web UI is a single minimal page (see below), there is no persistence, no real weather call and no language model yet. See [docs/walking-skeleton.md](docs/walking-skeleton.md).
 
 ## Team
 

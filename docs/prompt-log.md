@@ -96,6 +96,19 @@ Rule: every GenAI-assisted change is logged here with the tool, the (constrained
 | Not claimed | UC.2 and the operations actions are not traced; the sequence diagram (Figure 11) is drawn from the model data, not an Innoslate view; the import result of the 10.8 XML is the team's report and is not recorded here; the contribution table was drafted from the team roles and then confirmed by the team |
 | Human review | **Pending.** Reviewer and date: ____________ . |
 
+## Entry 008 - 2026-10-27 - Minimal Flask web entry for C.1
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `feat/web-app` |
+| Prompt (summary, originally Chinese) | Start the first modification step: on a new branch, add a minimal web entry without changing the existing logic; use Flask if it is better. |
+| Constraining sources | Existing C.1-C.4 code and `docs/adr/0001-initial-toolchain.md` (which requires a new ADR for a web layer) |
+| What it produced | `src/c1_web_front_end/web_app.py` and `templates/commute.html` (form, validation, result page); `src/main_web.py`; `tests/test_web_app.py` (5 tests, skipped without Flask); `docs/adr/0002-flask-web-entry.md`; Flask added to `requirements.txt`; README run instructions |
+| Not claimed | C.2-C.4 are unchanged, so factors, weather and storage are still stubs; the known cumulative-difference issue in C.3 `update_trends` (it multiplies the current baseline by the trip count) is not fixed here; no requirement was newly verified |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
 ## Entry template
 
 | Field | Value |
