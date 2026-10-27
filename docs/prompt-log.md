@@ -174,6 +174,19 @@ Rule: every GenAI-assisted change is logged here with the tool, the (constrained
 | Not claimed | C.2 and C.3 rules are unchanged (thresholds, factors and the 22 kg per tree are still assumptions); the removed web form was the browser version of UC.1, whose command-line path remains; traceability documents were not updated for the removed page; the design was checked in one browser only, and the dark-mode look was not viewed |
 | Human review | **Pending.** Reviewer and date: ____________ . |
 
+## Entry 014 - 2026-10-27 - Traceability notes for the web pages
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `feat/web-app` |
+| Prompt (summary, originally Chinese) | Continue with the follow-ups: check dark mode and bring the traceability notes up to date. |
+| Constraining sources | `docs/traceability.md`, `docs/walking-skeleton.md`, the current code and tests |
+| What it produced | A table of the browser pages with their code and tests; open item O-4 reworded and O-9 added (the new flow is not in the Innoslate model); the C.1 row of the walking-skeleton table corrected |
+| Not claimed | No requirement or model element was added or linked; the dark-mode look was checked by eye on the garden page only; the ORS host move to `api.heigit.org` was not re-checked (needs the team's key) |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
 ## Entry template
 
 | Field | Value |
