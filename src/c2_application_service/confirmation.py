@@ -4,12 +4,14 @@ from src.c2_application_service.achievements import evaluate_badges
 from src.c2_application_service.plan import plan_commute
 from src.c3_data_adapter import add_confirmed, confirmed_trips
 from src.interfaces import ConfirmedTrip
+from src.model_trace import realizes
 
 
 def _earned(trips) -> dict:
     return {b.id: b.name for b in evaluate_badges(trips) if b.earned}
 
 
+@realizes("UC.3.8")
 def confirm_trip(origin_text: str, destination_text: str, mode: str, day: str, transit_minutes=None):
     """Record a trip the Commuter says they took.
 

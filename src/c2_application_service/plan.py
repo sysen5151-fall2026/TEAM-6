@@ -2,8 +2,10 @@ from src.c2_application_service.comparison import compare_modes
 from src.c2_application_service.recommendation import DEFAULT_MAX_EXTRA_MIN, recommend_mode
 from src.c3_data_adapter import current_weather
 from src.interfaces import CommutePlan
+from src.model_trace import realizes
 
 
+@realizes("UC.3.5")
 def plan_commute(
     origin_text: str,
     destination_text: str,

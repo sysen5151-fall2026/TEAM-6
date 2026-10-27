@@ -187,6 +187,19 @@ Rule: every GenAI-assisted change is logged here with the tool, the (constrained
 | Not claimed | No requirement or model element was added or linked; the dark-mode look was checked by eye on the garden page only; the ORS host move to `api.heigit.org` was not re-checked (needs the team's key) |
 | Human review | **Pending.** Reviewer and date: ____________ . |
 
+## Entry 015 - 2026-10-27 - Model 10.9: needs, requirements, route service and UC.3 for the web flow
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `feat/web-app` |
+| Prompt (summary, originally Chinese) | Add the web flow to the Innoslate model and the requirements (open item O-9); choose whatever numbering is most sensible. |
+| Constraining sources | The model's own numbering and relationship patterns in export 10.8; SPEC.md format; ADR 0002, 0003, 0005; the current code |
+| What it produced | `docs/model/scripts/build_model_10_9.py` and its output `docs/model/EcoCommute_10.9_web_flow.xml` (47 new elements: 4 needs, 5 stakeholder requirements, 14 system requirements, X.6, 2 conduits, 6 input/outputs, UC.3 with 11 steps, 3 risks, all linked in both directions); SPEC.md entries 2.1.11-2.1.14 and 2.2.5; `docs/model/10.9-changes.md`; `@realizes("UC.3.x")` tags on the implementing functions; `web_app.py` views moved to module level so they can be tagged; `tests/test_model_10_9.py` and a UC.3 section in `tests/test_model_linkage.py`; traceability, README updates |
+| Not claimed | **The 10.9 file has not been imported into Innoslate**; its structure was checked by script and tests only. New requirements are Drafts with every quality flag false. The allocation of the new functional requirements to F.2.3-F.2.6 is provisional and the function architecture was not extended. The 80% target, the two-trips-per-day and 50 km limits and the 22 kg per tree are assumptions, the last without a source. The Chapter 4-7 reports were not updated. Risks TR.10-TR.12 record gaps found while writing (place labels vs coarse location; Route Service dependence; unsourced tree conversion), not decisions |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
 ## Entry template
 
 | Field | Value |

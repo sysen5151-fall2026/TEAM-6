@@ -1,5 +1,6 @@
 from src.c4_explanation_model import explain_recommendation
 from src.interfaces import ModeComparison, Recommendation
+from src.model_trace import realizes
 
 # Feasibility thresholds. PROJECT ASSUMPTIONS, not safety guidance: they decide which
 # modes are offered, and the page shows the reason for every mode that is ruled out.
@@ -39,6 +40,7 @@ def _exclusion(row: ModeComparison, weather, not_feasible, fastest_min, max_extr
     return ""
 
 
+@realizes("UC.3.5")
 def recommend_mode(comparisons, weather, not_feasible=(), max_extra_min=DEFAULT_MAX_EXTRA_MIN):
     """Filter modes by feasibility, then pick the lowest CO2e (ties: faster).
 

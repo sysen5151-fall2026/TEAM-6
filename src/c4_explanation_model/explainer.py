@@ -35,6 +35,7 @@ def explain_result(
     return text
 
 
+@realizes("UC.3.5")
 def explain_recommendation(chosen, fastest, met_limits: bool) -> str:
     """Plain-language reason for a recommended mode.
 

@@ -17,6 +17,7 @@ import urllib.parse
 import urllib.request
 
 from src.interfaces import Place, RouteOption
+from src.model_trace import realizes
 
 # ORS announced a move to api.heigit.org; the same paths returned 404 there on 2026-10-27,
 # so the old host stays the default and ORS_BASE_URL can switch it without a code change.
@@ -63,6 +64,7 @@ def _haversine_km(a: Place, b: Place) -> float:
     return 2 * r * math.asin(math.sqrt(h))
 
 
+@realizes("UC.3.3")
 def geocode(text: str):
     """Resolve free text to a Place, or None when nothing matches."""
     text = text.strip()
@@ -113,6 +115,7 @@ def _fallback_route(mode: str, origin: Place, dest: Place) -> RouteOption:
     )
 
 
+@realizes("UC.3.3")
 def get_route_options(origin: Place, dest: Place) -> tuple:
     """One RouteOption per mode; a mode whose ORS call fails falls back individually."""
     options = []

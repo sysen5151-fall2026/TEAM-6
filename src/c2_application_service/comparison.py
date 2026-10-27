@@ -1,5 +1,6 @@
 from src.c3_data_adapter import geocode, get_route_options, retrieve_factor
 from src.interfaces import CommuteRequest, ModeComparison, RouteOption
+from src.model_trace import realizes
 
 MIN_DISTANCE_KM = 0.05  # origin and destination closer than this are treated as the same place
 
@@ -9,6 +10,7 @@ def _factor_g_per_km(mode: str) -> float:
     return retrieve_factor(request).g_co2e_per_km
 
 
+@realizes("UC.3.5")
 def compare_modes(origin_text: str, destination_text: str, transit_minutes=None):
     """Compare drive, walk and bike between two places, and bus when the Commuter enters a time.
 

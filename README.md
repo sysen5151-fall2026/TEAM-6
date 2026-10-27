@@ -22,13 +22,13 @@ The nominal scenario assumes an existing account and consent, valid supported in
 | Path | What it is |
 |---|---|
 | [Project home page](https://sysen5151-fall2026.github.io/TEAM-6/) ([source](docs/index.html)) | Live site with an interactive commute demo, UC.1 walkthrough and traceability explorer (GitHub Pages, served from `/docs`) |
-| [SPEC.md](SPEC.md) | Stakeholder requirements (28: 27 from the SRD plus 2.1.10) with acceptance criteria and model links |
+| [SPEC.md](SPEC.md) | Stakeholder requirements (33: 27 from the SRD, 2.1.10, and five web-flow drafts 2.1.11-2.1.14 and 2.2.5) with acceptance criteria and model links |
 | [docs/context.md](docs/context.md) | Boundary, interface inventory, component-to-directory map |
 | [docs/walking-skeleton.md](docs/walking-skeleton.md) | UC.1 call order; what is real vs stubbed |
 | [docs/traceability.md](docs/traceability.md) | Need -> requirement -> UC.1 action -> code -> test |
 | [docs/environment.md](docs/environment.md), [docs/adr/](docs/adr/) | Toolchain and decisions |
 | [docs/ch6-ch7/](docs/ch6-ch7/) | Chapter 6 and 7 report (Architecture Definition: Function: UC.1 trace, first-level IDEF0, hierarchy, N2, requirements traceability) as `.docx` and `.pdf`, its Innoslate figures and the scripts that build it (`scripts/`) |
-| [docs/model/](docs/model/) | Innoslate exports: 10.6, 10.7 (and the 24 Oct 2026 re-export) and 10.8 (10.7 plus the two trace edits, restored risk links) |
+| [docs/model/](docs/model/) | Innoslate exports: 10.6, 10.7 (and the 24 Oct 2026 re-export), 10.8 (10.7 plus the two trace edits, restored risk links) and 10.9 (10.8 plus the web-flow needs, requirements, route service, UC.3 and risks; [changes](docs/model/10.9-changes.md); not yet imported into Innoslate) |
 | [docs/prompt-log.md](docs/prompt-log.md) | GenAI provenance log (required by the course) |
 | `src/c1_web_front_end` ... `src/c4_explanation_model` | Internal assets C.1-C.4 |
 | `src/x1_commuter_sim`, `src/x3_open_meteo_stub` | Simulated external actor X.1 and stubbed external system X.3 |

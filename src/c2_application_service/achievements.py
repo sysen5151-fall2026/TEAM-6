@@ -8,6 +8,7 @@ Numbers here are PROJECT ASSUMPTIONS; the campus share is sample data, labelled 
 from datetime import date, timedelta
 
 from src.interfaces import BadgeStatus, CampusGoal
+from src.model_trace import realizes
 
 LOW_CARBON = ("walk", "bike", "bus", "carpool")
 
@@ -60,6 +61,7 @@ def _longest_run(weeks) -> int:
     return best
 
 
+@realizes("UC.3.10")
 def campus_goal(trips) -> CampusGoal:
     mine = counted_trips(trips)
     total = CAMPUS_SEED["difference_g"] + sum(max(_counted_difference_g(t), 0) for t in mine)
@@ -74,6 +76,7 @@ def campus_goal(trips) -> CampusGoal:
     )
 
 
+@realizes("UC.3.10")
 def evaluate_badges(trips) -> tuple:
     mine = counted_trips(trips)
     low = [t for t in mine if t.mode in LOW_CARBON]
