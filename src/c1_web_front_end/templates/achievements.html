@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Achievements - EcoCommute{% endblock %}
+{% block content %}
+  <h1>Achievements</h1>
+  <p class="sub">Badges and the campus tree come from the trips you confirm.</p>
+
+  {% if errors %}
+  <div class="card errors" role="alert">
+    <ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+
+  {% if confirmed %}
+  <div class="card banner" role="status">
+    Trip confirmed: {{ confirmed }}.
+    {% if new_badges %}New badge{{ 's' if new_badges|length > 1 }}: <strong>{{ new_badges|join(', ') }}</strong>.{% endif %}
+  </div>
+  {% endif %}
+
+  <section class="card {% if goal.trees_reached %}done{% endif %}">
+    <h2>Campus tree</h2>
+    <p>
+      {% if goal.trees_reached %}
+      <strong>{{ goal.trees_reached }} tree{{ 's' if goal.trees_reached > 1 }} reached.</strong>
+      {% endif %}
+      When everyone's estimated difference from driving adds up to {{ '%g'|format(goal.goal_g / 1000) }} kg,
+      a tree gets planted.
+    </p>
+    <div class="bar"><i style="width: {{ (100 * goal.into_next_g / goal.goal_g)|round|int }}%"></i></div>
+    <p class="note">{{ '%.1f'|format(goal.into_next_g / 1000) }} of {{ '%g'|format(goal.goal_g / 1000) }} kg toward the next tree.
+      {{ goal.trips }} trips by {{ goal.students }} students; {{ goal.sample_note }}.
+      The {{ '%g'|format(goal.goal_g / 1000) }} kg is a project assumption, and the difference is an estimate, not verified avoided emissions.</p>
+  </section>
+
+  <div class="grid">
+    {% for b in badges %}
+    <section class="card {% if b.earned %}done{% endif %}" style="margin:0">
+      <h2>{{ b.name }}</h2>
+      <p class="note">{{ b.condition }}</p>
+      <div class="bar"><i style="width: {{ (100 * b.progress / b.target)|round|int }}%"></i></div>
+      <p class="note">{% if b.earned %}<strong>Earned</strong>{% else %}{{ b.progress }} of {{ b.target }} {{ b.unit }}{% endif %}</p>
+    </section>
+    {% endfor %}
+  </div>
+
+  <section class="card" style="margin-top:16px">
+    <p class="note">Confirmed trips: {{ trip_count }}. At most 2 trips per day count, trips over 50 km count as 50 km,
+      and the same trip can't be confirmed twice. Trips live in memory and reset when the server restarts.</p>
+    <form method="post" action="/demo" style="display:inline"><button class="linkbtn" type="submit">Load sample trips</button></form>
+    <form method="post" action="/reset" style="display:inline"><button class="linkbtn" type="submit">Clear my trips</button></form>
+  </section>
+{% endblock %}

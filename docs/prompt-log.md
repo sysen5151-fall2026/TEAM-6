@@ -148,6 +148,19 @@ Rule: every GenAI-assisted change is logged here with the tool, the (constrained
 | Not claimed | The thresholds (0.1 mm rain, 0 C, 40 km/h wind, 10 extra minutes) are project assumptions, not safety guidance; weather is current conditions at the start, not the forecast for the trip time; bus distance is assumed equal to the drive route and its factor is a placeholder; no daylight, elevation or accessibility rules yet; the Innoslate model and the new functions' `@realizes` tags are not updated; the explanation is a fixed template, not a language model |
 | Human review | **Pending.** Reviewer and date: ____________ . |
 
+## Entry 012 - 2026-10-27 - Badges, trip confirmation and campus tree progress
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `feat/web-app` |
+| Prompt (summary, originally Chinese) | Implement the badges and the campus tree progress with the proposed default conditions. |
+| Constraining sources | Team discussion of eight badge conditions and a tree goal; the proposal that earlier badge wording (Five Day Flow, Car-Free Week) be tightened against easy gaming |
+| What it produced | `src/c2_application_service/achievements.py`, `confirmation.py`, `demo_data.py`; `src/c3_data_adapter/trip_store.py`; new types in `src/interfaces.py`; `/confirm`, `/achievements`, `/demo`, `/reset` routes and `achievements.html`; confirm buttons and a date field on `/compare`; `tests/test_achievements.py` (22 tests); ADR 0005; README paragraph |
+| Not claimed | The 22 kg per tree, all badge thresholds and the caps are project assumptions, and the per-tree figure has no cited source yet; the campus share and the sample trips are invented and labelled as such; one demo Commuter, in memory only; the Log a trip page does not feed badges; the model and `@realizes` tags are not updated |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
 ## Entry template
 
 | Field | Value |

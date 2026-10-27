@@ -32,12 +32,18 @@
     table { width:100%; border-collapse:collapse; font-size:.95rem; }
     th, td { text-align:right; padding:6px 4px; border-bottom:1px solid var(--line); }
     th:first-child, td:first-child { text-align:left; }
+    .linkbtn { margin:0; padding:6px 10px; width:auto; font-size:.85rem; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; }
+    .bar { height:6px; border-radius:3px; background:var(--line); overflow:hidden; margin:6px 0 4px; }
+    .bar i { display:block; height:100%; background:var(--accent); }
+    .done { border-color:var(--accent); }
+    .banner { border-color:var(--accent); }
     h2 { font-size:1.1rem; margin:0 0 8px; }
   </style>
 </head>
 <body>
 <main>
-  <nav><a href="/">Log a trip</a><a href="/compare">Compare routes</a></nav>
+  <nav><a href="/">Log a trip</a><a href="/compare">Compare routes</a><a href="/achievements">Achievements</a></nav>
   {% block content %}{% endblock %}
 </main>
 </body>

@@ -63,6 +63,8 @@ The **Compare routes** page (`/compare`) shows drive, walk and bike distance, ti
 
 The same page recommends one mode ([ADR 0004](docs/adr/0004-feasibility-filter-and-recommendation.md)): it rules out modes using current weather at the start (Open-Meteo, no key), the modes you mark not feasible and your extra-minutes limit, then picks the lowest estimated CO2e among what is left and says why. Bus time is typed in by the Commuter; there is no transit routing.
 
+Confirm a trip with **I took this** and the **Achievements** page ([ADR 0005](docs/adr/0005-badges-and-campus-tree.md)) shows eight rule-based badges with their conditions and a campus tree goal (22 kg estimated difference per tree, a project assumption). **Load sample trips** adds invented records for a demonstration; the campus share is sample data and is labelled on the page.
+
 ```powershell
 $env:ORS_API_KEY = "your-key"
 .venv\Scripts\python -m src.main_web

@@ -9,12 +9,18 @@ Run:  python -m src.main_web
 
 from datetime import date as _date
 
-from flask import Flask, render_template, request
+from flask import Flask, redirect, render_template, request, url_for
 
 from src.c1_web_front_end.front_end import present_entry_fields, submit_commute_request
-from src.c2_application_service import plan_commute
+from src.c2_application_service import (
+    campus_goal,
+    confirm_trip,
+    evaluate_badges,
+    load_demo_trips,
+    plan_commute,
+)
 from src.c2_application_service.recommendation import DEFAULT_MAX_EXTRA_MIN
-from src.c3_data_adapter import sample_places
+from src.c3_data_adapter import confirmed_trips, reset_confirmed, sample_places
 from src.interfaces import CommuteRequest
 
 MODES = ("drive", "carpool", "bus", "bike", "walk")
@@ -114,7 +120,7 @@ def create_app() -> Flask:
 
     @app.route("/compare", methods=["GET", "POST"])
     def compare_page():
-        values = {"max_extra_min": f"{DEFAULT_MAX_EXTRA_MIN:g}"}
+        values = {"max_extra_min": f"{DEFAULT_MAX_EXTRA_MIN:g}", "date": _date.today().isoformat()}
         plan, errors = None, []
         if request.method == "POST":
             values = request.form.to_dict()
@@ -134,6 +140,51 @@ def create_app() -> Flask:
             values=values,
             plan=plan,
             errors=errors,
+        )
+
+    @app.route("/confirm", methods=["POST"])
+    def confirm_page():
+        transit = request.form.get("transit_minutes", "").strip()
+        try:
+            transit_minutes = float(transit) if transit else None
+        except ValueError:
+            transit_minutes = None
+        trip, new_badges, errors = confirm_trip(
+            request.form.get("origin", ""),
+            request.form.get("destination", ""),
+            request.form.get("mode", ""),
+            request.form.get("date", ""),
+            transit_minutes,
+        )
+        if errors:
+            return render_achievements(errors=errors)
+        return redirect(url_for("achievements_page", confirmed=trip.mode, new=",".join(new_badges)))
+
+    @app.route("/achievements")
+    def achievements_page():
+        new = [n for n in request.args.get("new", "").split(",") if n]
+        return render_achievements(confirmed=request.args.get("confirmed", ""), new_badges=new)
+
+    @app.route("/demo", methods=["POST"])
+    def demo_page():
+        load_demo_trips()
+        return redirect(url_for("achievements_page"))
+
+    @app.route("/reset", methods=["POST"])
+    def reset_page():
+        reset_confirmed()
+        return redirect(url_for("achievements_page"))
+
+    def render_achievements(errors=(), confirmed="", new_badges=()):
+        trips = confirmed_trips()
+        return render_template(
+            "achievements.html",
+            badges=evaluate_badges(trips),
+            goal=campus_goal(trips),
+            trip_count=len(trips),
+            errors=list(errors),
+            confirmed=confirmed,
+            new_badges=list(new_badges),
         )
 
     return app

@@ -25,6 +25,9 @@
       {% endfor %}
     </div>
 
+    <label for="date">Trip date (for confirming a trip)</label>
+    <input id="date" name="date" type="date" value="{{ values.get('date', '') }}">
+
     <label for="max_extra_min">Most extra minutes I accept over the fastest option</label>
     <input id="max_extra_min" name="max_extra_min" type="number" min="0" max="240" step="1"
            value="{{ values.get('max_extra_min', '10') }}">
@@ -42,7 +45,7 @@
     <p><strong>{{ rec.reason }}</strong></p>
     <p class="note">{{ rec.weather_note }}</p>
     <table>
-      <thead><tr><th>Mode</th><th>Distance</th><th>Time</th><th>CO2e</th><th>Difference</th></tr></thead>
+      <thead><tr><th>Mode</th><th>Distance</th><th>Time</th><th>CO2e</th><th>Difference</th><th></th></tr></thead>
       <tbody>
       {% for c in plan.comparisons %}
         {% set out = rec.excluded | selectattr(0, 'equalto', c.mode) | list %}
@@ -52,8 +55,18 @@
           <td>{{ '%g'|format(c.duration_min) }} min</td>
           <td>{{ '%g'|format(c.co2e_g) }} g</td>
           <td>{{ '%g'|format(c.difference_g) }} g</td>
+          <td>
+            <form method="post" action="/confirm" style="margin:0">
+              <input type="hidden" name="origin" value="{{ values.get('origin', '') }}">
+              <input type="hidden" name="destination" value="{{ values.get('destination', '') }}">
+              <input type="hidden" name="transit_minutes" value="{{ values.get('transit_minutes', '') }}">
+              <input type="hidden" name="date" value="{{ values.get('date', '') }}">
+              <input type="hidden" name="mode" value="{{ c.mode }}">
+              <button class="linkbtn" type="submit">I took this</button>
+            </form>
+          </td>
         </tr>
-        {% if out %}<tr><td colspan="5" class="note">Ruled out: {{ out[0][1] }}</td></tr>{% endif %}
+        {% if out %}<tr><td colspan="6" class="note">Ruled out: {{ out[0][1] }}</td></tr>{% endif %}
       {% endfor %}
       </tbody>
     </table>

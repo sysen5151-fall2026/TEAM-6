@@ -116,3 +116,38 @@ class CommutePlan:  # everything the compare page shows
     comparisons: tuple
     recommendation: "Recommendation | None"
     errors: tuple
+
+
+@dataclass(frozen=True)
+class ConfirmedTrip:  # a trip the Commuter says they actually took
+    date: str
+    mode: str
+    origin: str
+    destination: str
+    distance_km: float
+    co2e_g: float
+    difference_g: float  # estimated difference from the always-drive baseline
+    recommended_mode: str  # what the page recommended at the time ("" if none)
+
+
+@dataclass(frozen=True)
+class BadgeStatus:
+    id: str
+    name: str
+    condition: str  # shown to the Commuter, so the rule is visible
+    icon: str
+    progress: int
+    target: int
+    unit: str
+    earned: bool
+
+
+@dataclass(frozen=True)
+class CampusGoal:
+    total_g: float  # everyone's estimated difference, seed plus this Commuter
+    goal_g: float  # one tree
+    trees_reached: int
+    into_next_g: float  # progress toward the next tree
+    trips: int
+    students: int
+    sample_note: str  # discloses which part is sample data
