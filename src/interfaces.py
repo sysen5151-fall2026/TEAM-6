@@ -71,3 +71,29 @@ class CommuteImpactResult:  # I/O "Commute Impact Result" (UC.1.10/1.11 -> UC.1.
     alternative_mode: str  # "" when no eligible lower-emission option
     alternative_reason: str
     explanation: str
+
+
+@dataclass(frozen=True)
+class Place:  # a geocoded origin or destination
+    label: str
+    lon: float
+    lat: float
+    source: str  # who resolved it, so the page can disclose it
+
+
+@dataclass(frozen=True)
+class RouteOption:  # one mode's route between two places
+    mode: str  # "drive" | "walk" | "bike"
+    distance_km: float
+    duration_min: float
+    source: str  # "OpenRouteService" or an estimate label
+
+
+@dataclass(frozen=True)
+class ModeComparison:  # RouteOption plus emissions, for the compare page
+    mode: str
+    distance_km: float
+    duration_min: float
+    co2e_g: float
+    difference_g: float  # estimated difference from the always-drive baseline
+    source: str

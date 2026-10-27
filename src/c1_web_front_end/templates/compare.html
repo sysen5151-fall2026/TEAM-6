@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Compare routes - EcoCommute{% endblock %}
+{% block content %}
+  <h1>Compare routes</h1>
+  <p class="sub">Drive, walk and bike between two places, each on its own route.</p>
+
+  {% if errors %}
+  <div class="card errors" role="alert">
+    <ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+
+  <form class="card" method="post" action="/compare">
+    <label for="origin">Start</label>
+    <input id="origin" name="origin" type="text" list="places" required value="{{ values.get('origin', '') }}">
+    <label for="destination">Destination</label>
+    <input id="destination" name="destination" type="text" list="places" required value="{{ values.get('destination', '') }}">
+    <datalist id="places">{% for p in places %}<option value="{{ p }}">{% endfor %}</datalist>
+    <button type="submit">Compare</button>
+  </form>
+
+  {% if comparisons %}
+  <section class="card" aria-live="polite">
+    <h2>{{ origin.label }} to {{ destination.label }}</h2>
+    <table>
+      <thead><tr><th>Mode</th><th>Distance</th><th>Time</th><th>CO2e</th><th>Difference</th></tr></thead>
+      <tbody>
+      {% for c in comparisons %}
+        <tr>
+          <td>{{ c.mode }}</td>
+          <td>{{ '%g'|format(c.distance_km) }} km</td>
+          <td>{{ '%g'|format(c.duration_min) }} min</td>
+          <td>{{ '%g'|format(c.co2e_g) }} g</td>
+          <td>{{ '%g'|format(c.difference_g) }} g</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <p class="note">Difference = estimated difference from driving the drive route. Each mode uses its own distance.
+      Emission factors are placeholders.</p>
+    <p class="note">Route data: {{ comparisons|map(attribute='source')|unique|join('; ') }}.</p>
+  </section>
+  {% endif %}
+{% endblock %}

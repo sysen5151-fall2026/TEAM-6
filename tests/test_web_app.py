@@ -3,7 +3,9 @@
 Run:  python -m unittest discover -s tests -t .
 """
 
+import os
 import unittest
+from unittest import mock
 
 try:
     from src.c1_web_front_end.web_app import create_app
@@ -19,6 +21,10 @@ VALID = {"mode": "drive", "distance_km": "2.5", "date": "2026-10-07", "coarse_ar
 class TestWebEntry(unittest.TestCase):
     def setUp(self):
         reset_store()
+        no_key = mock.patch.dict(os.environ)  # restored on cleanup; tests never call the live ORS
+        no_key.start()
+        os.environ.pop("ORS_API_KEY", None)
+        self.addCleanup(no_key.stop)
         self.client = create_app().test_client()
 
     def test_form_page_loads(self):
@@ -55,6 +61,21 @@ class TestWebEntry(unittest.TestCase):
 
     def test_empty_post_does_not_crash(self):
         self.assertEqual(self.client.post("/", data={}).status_code, 200)
+
+    def test_compare_page_loads_and_compares_sample_places(self):
+        self.assertEqual(self.client.get("/compare").status_code, 200)
+        response = self.client.post("/compare", data={"origin": "Cornell Arts Quad", "destination": "Ithaca Commons"})
+        self.assertEqual(response.status_code, 200)
+        for mode in (b"drive", b"walk", b"bike"):
+            self.assertIn(mode, response.data)
+        self.assertIn(b"estimate", response.data)  # no ORS key in tests: labelled fallback
+
+    def test_compare_bad_input_shows_messages(self):
+        for data in ({"origin": "Cornell Arts Quad", "destination": "nowhere"}, {}, {"origin": "Collegetown", "destination": "Collegetown"}):
+            with self.subTest(data=data):
+                response = self.client.post("/compare", data=data)
+                self.assertEqual(response.status_code, 200)
+                self.assertIn(b'role="alert"', response.data)
 
 
 if __name__ == "__main__":

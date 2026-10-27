@@ -1,38 +1,6 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>EcoCommute</title>
-  <style>
-    :root { --bg:#f6f8f5; --card:#fff; --text:#1d2a20; --muted:#5d6b61; --accent:#2f7d4f; --line:#d8e0d9; --err:#a63a2b; }
-    @media (prefers-color-scheme: dark) {
-      :root { --bg:#141a16; --card:#1d2620; --text:#e6eee8; --muted:#a3b2a7; --accent:#59b57f; --line:#2f3b33; --err:#e58a7b; }
-    }
-    * { box-sizing: border-box; }
-    body { margin:0; background:var(--bg); color:var(--text); font:16px/1.5 system-ui, sans-serif; }
-    main { max-width:640px; margin:0 auto; padding:24px 16px 48px; }
-    h1 { margin:0 0 4px; font-size:1.6rem; }
-    .sub { color:var(--muted); margin:0 0 20px; }
-    .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:16px; }
-    label { display:block; font-weight:600; margin:12px 0 4px; }
-    input[type=text], input[type=number], input[type=date], select {
-      width:100%; padding:10px; font:inherit; color:inherit; background:var(--bg);
-      border:1px solid var(--line); border-radius:8px; }
-    .checks label { display:inline-block; font-weight:400; margin:4px 16px 0 0; }
-    button { margin-top:16px; width:100%; padding:12px; font:inherit; font-weight:600; color:#fff;
-      background:var(--accent); border:0; border-radius:8px; cursor:pointer; }
-    .errors { border-color:var(--err); color:var(--err); }
-    .errors ul { margin:0; padding-left:20px; }
-    dl { display:grid; grid-template-columns:1fr auto; gap:6px 12px; margin:0; }
-    dt { color:var(--muted); } dd { margin:0; font-weight:600; text-align:right; }
-    .note { color:var(--muted); font-size:.9rem; }
-    h2 { font-size:1.1rem; margin:0 0 8px; }
-  </style>
-</head>
-<body>
-<main>
-  <h1>EcoCommute</h1>
+{% extends "base.html" %}
+{% block content %}
+  <h1>Log a trip</h1>
   <p class="sub">Log a commute and see its estimated CO2e against an always-drive baseline.</p>
 
   {% if errors %}
@@ -93,6 +61,4 @@
       distance convention: {{ result.distance_convention }}.</p>
   </section>
   {% endif %}
-</main>
-</body>
-</html>
+{% endblock %}

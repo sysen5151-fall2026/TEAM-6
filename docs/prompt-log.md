@@ -122,6 +122,19 @@ Rule: every GenAI-assisted change is logged here with the tool, the (constrained
 | Not claimed | Weekly and monthly totals still sum all stored trips with no date windowing; factors remain placeholders |
 | Human review | **Pending.** Reviewer and date: ____________ . |
 
+## Entry 010 - 2026-10-27 - Route comparison page with OpenRouteService adapter and fallback
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `feat/web-app` |
+| Prompt (summary, originally Chinese) | Next step: replace typed distance with start and destination, show drive, walk and bike per mode, use OpenRouteService, and keep the demo working when a call fails. |
+| Constraining sources | Team discussion (distance differs by mode; transit entered by the user later); ORS v2 conventions from public forum threads, not the official reference |
+| What it produced | `src/c3_data_adapter/route_adapter.py` (geocode, per-mode routes, per-mode fallback); `src/c2_application_service/comparison.py` (`compare_modes`); new types in `src/interfaces.py`; `/compare` page, `base.html` shared layout; `tests/test_routes.py` and two web tests; ADR 0003; README section |
+| Not claimed | One live call was made afterwards with the team's free key (place search and the three profiles worked on the old host; the announced new host returned 404); automated tests use mocks only; fallback detour factors and speeds are assumptions; no weather or feasibility filtering yet; transit and the Innoslate model are not updated; the new functions carry no `@realizes` tags |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
 ## Entry template
 
 | Field | Value |

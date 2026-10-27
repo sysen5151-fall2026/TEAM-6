@@ -12,6 +12,8 @@ from datetime import date as _date
 from flask import Flask, render_template, request
 
 from src.c1_web_front_end.front_end import present_entry_fields, submit_commute_request
+from src.c2_application_service import compare_modes
+from src.c3_data_adapter import sample_places
 from src.interfaces import CommuteRequest
 
 MODES = ("drive", "carpool", "bus", "bike", "walk")
@@ -82,6 +84,24 @@ def create_app() -> Flask:
             values=values,
             errors=errors,
             result=result,
+        )
+
+    @app.route("/compare", methods=["GET", "POST"])
+    def compare_page():
+        values, comparisons, origin, destination, errors = {}, (), None, None, []
+        if request.method == "POST":
+            values = request.form.to_dict()
+            comparisons, origin, destination, errors = compare_modes(
+                request.form.get("origin", ""), request.form.get("destination", "")
+            )
+        return render_template(
+            "compare.html",
+            places=sample_places(),
+            values=values,
+            comparisons=comparisons,
+            origin=origin,
+            destination=destination,
+            errors=errors,
         )
 
     return app
