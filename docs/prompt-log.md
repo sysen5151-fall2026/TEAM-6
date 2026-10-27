@@ -109,6 +109,19 @@ Rule: every GenAI-assisted change is logged here with the tool, the (constrained
 | Not claimed | C.2-C.4 are unchanged, so factors, weather and storage are still stubs; the known cumulative-difference issue in C.3 `update_trends` (it multiplies the current baseline by the trip count) is not fixed here; no requirement was newly verified |
 | Human review | **Pending.** Reviewer and date: ____________ . |
 
+## Entry 009 - 2026-10-27 - Fix cumulative difference across trips
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `feat/web-app` |
+| Prompt (summary, originally Chinese) | Fix the cumulative-difference bug and add tests. |
+| Constraining sources | SRD 2.1.6 (cumulative difference from the always-drive baseline); the issue recorded in entry 008 |
+| What it produced | `c3 update_trends` now sums each stored trip's own baseline (distance x drive factor) minus its estimate, instead of multiplying the latest baseline by the trip count; `update_trends` no longer takes a baseline argument and `c2 compare_baseline` calls it without one; `tests/test_trends.py` (3 tests; two fail on the previous code with -1152 instead of 384) |
+| Not claimed | Weekly and monthly totals still sum all stored trips with no date windowing; factors remain placeholders |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
 ## Entry template
 
 | Field | Value |

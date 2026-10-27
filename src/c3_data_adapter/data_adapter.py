@@ -51,17 +51,21 @@ def store_trip(request: CommuteRequest, co2e_g: float) -> TripRecord:
 
 
 @realizes("UC.1.9")
-def update_trends(baseline_co2e_g: float) -> TrendSummary:
+def update_trends() -> TrendSummary:
     """UC.1.9 (first half) Update Trends - STUB: sums the in-memory trips.
 
     Weekly = monthly = all stored trips; no date windowing yet (SRD 2.1.6 is
-    only partially exercised by the skeleton).
+    only partially exercised by the skeleton). The cumulative difference adds up
+    each stored trip's own always-drive baseline minus its own estimate.
     """
     total = sum(t.co2e_g for t in _TRIPS)
+    baseline_total = sum(
+        round(t.request.distance_km * _PLACEHOLDER_FACTORS["drive"]) for t in _TRIPS
+    )
     return TrendSummary(
         weekly_total_g=total,
         monthly_total_g=total,
-        cumulative_difference_g=baseline_co2e_g * len(_TRIPS) - total,
+        cumulative_difference_g=baseline_total - total,
     )
 
 

@@ -77,7 +77,7 @@ def compare_baseline(request: CommuteRequest, estimated_g: float):
         )
     )
     baseline_g = round(request.distance_km * drive_factor.g_co2e_per_km)
-    trend: TrendSummary = update_trends(baseline_g)
+    trend: TrendSummary = update_trends()
     return baseline_g, trend
 
 
