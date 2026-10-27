@@ -98,3 +98,42 @@
   </section>
   {% endif %}
 {% endblock %}
+
+{% block scripts %}
+<script>
+  // Fill the shared suggestion list as the Commuter types; the starting list stays as the fallback.
+  (function () {
+    var list = document.getElementById("places");
+    var inputs = [document.getElementById("origin"), document.getElementById("destination")];
+    var cache = {}, timer = null, latest = 0;
+    function show(labels) {
+      if (!labels.length) return;
+      list.textContent = "";
+      labels.forEach(function (label) {
+        var option = document.createElement("option");
+        option.value = label;
+        list.appendChild(option);
+      });
+    }
+    function ask(text) {
+      if (cache[text]) { show(cache[text]); return; }
+      var mine = ++latest;
+      fetch("/places?q=" + encodeURIComponent(text))
+        .then(function (r) { return r.ok ? r.json() : []; })
+        .then(function (labels) {
+          cache[text] = labels;
+          if (mine === latest) show(labels);  // ignore answers that arrive late
+        })
+        .catch(function () {});  // offline or blocked: keep the sample places
+    }
+    inputs.forEach(function (input) {
+      input.addEventListener("input", function () {
+        clearTimeout(timer);
+        var text = input.value.trim();
+        if (text.length < 2) return;
+        timer = setTimeout(function () { ask(text); }, 250);
+      });
+    });
+  })();
+</script>
+{% endblock %}

@@ -31,17 +31,96 @@ FALLBACK_DETOUR = {"drive": 1.3, "walk": 1.2, "bike": 1.25}
 FALLBACK_SPEED_KMH = {"drive": 30.0, "walk": 5.0, "bike": 15.0}
 FALLBACK_SOURCE = "estimate (straight line x detour factor), not a routed distance"
 
-# Approximate coordinates, for the offline fallback only.
+# Approximate coordinates (good to roughly 100 m), for the offline fallback only.
 SAMPLE_PLACES = {
     "Cornell Arts Quad": (42.4491, -76.4835),
     "Collegetown": (42.4421, -76.4853),
     "Ithaca Commons": (42.4396, -76.4968),
     "Cornell Gates Hall": (42.4446, -76.4818),
+    "Upson Hall": (42.4436, -76.4838),
+    "Duffield Hall": (42.4445, -76.4823),
+    "Olin Library": (42.4478, -76.4841),
+    "Willard Straight Hall": (42.4466, -76.4857),
 }
+
+# Suggestions are biased towards the campus so "upson hall" finds Cornell's building first.
+FOCUS_LON, FOCUS_LAT = -76.4835, 42.4491
+MIN_SUGGEST_CHARS = 2
+MAX_SUGGESTIONS = 5
+_CACHE_LIMIT = 200
+_place_cache = {}  # label.lower() -> Place, so a picked suggestion resolves to the same point
+_suggest_cache = {}  # query.lower() -> tuple of Place, only successful ORS answers
 
 
 def sample_places() -> tuple:
     return tuple(SAMPLE_PLACES)
+
+
+def _sample_matches(text: str) -> tuple:
+    """Sample places whose name contains every word of the query."""
+    words = text.lower().split()
+    return tuple(
+        Place(label=name, lon=lon, lat=lat, source="sample place list")
+        for name, (lat, lon) in SAMPLE_PLACES.items()
+        if all(w in name.lower() for w in words)
+    )
+
+
+def _remember(place: Place) -> None:
+    if len(_place_cache) >= _CACHE_LIMIT:
+        _place_cache.clear()
+    _place_cache[place.label.lower()] = place
+
+
+def suggest_places(text: str) -> tuple:
+    """Up to MAX_SUGGESTIONS places matching what the Commuter has typed so far.
+
+    Sample places come first (instant, offline), then OpenRouteService autocomplete when
+    a key is set. A failed or malformed ORS answer leaves just the sample matches.
+    """
+    text = " ".join(text.split())[:100]
+    if len(text) < MIN_SUGGEST_CHARS:
+        return ()
+    found = list(_sample_matches(text))
+    if _api_key() and len(found) < MAX_SUGGESTIONS:
+        remote = _suggest_cache.get(text.lower())
+        if remote is None:
+            query = urllib.parse.urlencode(
+                {
+                    "api_key": _api_key(),
+                    "text": text,
+                    "size": MAX_SUGGESTIONS,
+                    "focus.point.lon": FOCUS_LON,
+                    "focus.point.lat": FOCUS_LAT,
+                }
+            )
+            try:
+                data = _http_json(f"{ORS_BASE}/geocode/autocomplete?{query}")
+                remote = tuple(_feature_to_place(f, text) for f in data["features"])
+                if len(_suggest_cache) >= _CACHE_LIMIT:
+                    _suggest_cache.clear()
+                _suggest_cache[text.lower()] = remote
+            except (KeyError, IndexError, ValueError, TypeError, OSError):
+                remote = ()
+        found += remote
+    seen, unique = set(), []
+    for place in found:
+        if place.label.lower() not in seen:
+            seen.add(place.label.lower())
+            unique.append(place)
+    for place in unique[:MAX_SUGGESTIONS]:
+        _remember(place)
+    return tuple(unique[:MAX_SUGGESTIONS])
+
+
+def _feature_to_place(feature: dict, fallback_label: str) -> Place:
+    lon, lat = feature["geometry"]["coordinates"]  # GeoJSON order: lon, lat
+    return Place(
+        label=feature["properties"].get("label", fallback_label),
+        lon=float(lon),
+        lat=float(lat),
+        source="OpenRouteService geocoder",
+    )
 
 
 def _api_key() -> str:
@@ -67,25 +146,22 @@ def _haversine_km(a: Place, b: Place) -> float:
 @realizes("UC.3.3")
 def geocode(text: str):
     """Resolve free text to a Place, or None when nothing matches."""
-    text = text.strip()
+    text = " ".join(text.split())
     if not text:
         return None
-    for name, (lat, lon) in SAMPLE_PLACES.items():
-        if name.lower() == text.lower():
-            return Place(label=name, lon=lon, lat=lat, source="sample place list")
+    picked = _place_cache.get(text.lower())  # a label the Commuter chose from the suggestions
+    if picked is not None:
+        return picked
+    matches = _sample_matches(text)
+    for place in matches:
+        if place.label.lower() == text.lower():
+            return place
     if not _api_key():
-        return None
+        return matches[0] if len(matches) == 1 else None  # "upson" alone is unambiguous
     query = urllib.parse.urlencode({"api_key": _api_key(), "text": text, "size": 1})
     try:
         data = _http_json(f"{ORS_BASE}/geocode/search?{query}")
-        feature = data["features"][0]
-        lon, lat = feature["geometry"]["coordinates"]  # GeoJSON order: lon, lat
-        return Place(
-            label=feature["properties"].get("label", text),
-            lon=float(lon),
-            lat=float(lat),
-            source="OpenRouteService geocoder",
-        )
+        return _feature_to_place(data["features"][0], text)
     except (KeyError, IndexError, ValueError, TypeError, OSError):
         return None
 

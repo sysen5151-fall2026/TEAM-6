@@ -10,7 +10,7 @@ Run:  python -m src.main_web
 
 from datetime import date as _date
 
-from flask import Flask, redirect, render_template, request, url_for
+from flask import Flask, jsonify, redirect, render_template, request, url_for
 
 from src.c2_application_service import (
     campus_goal,
@@ -21,7 +21,7 @@ from src.c2_application_service import (
 )
 from src.c2_application_service.achievements import counted_trips
 from src.c2_application_service.recommendation import DEFAULT_MAX_EXTRA_MIN
-from src.c3_data_adapter import confirmed_trips, reset_confirmed, sample_places
+from src.c3_data_adapter import confirmed_trips, reset_confirmed, sample_places, suggest_places
 from src.model_trace import realizes
 
 CAN_BE_INFEASIBLE = ("walk", "bike")  # modes the Commuter may mark not feasible (SRD 2.1.5)
@@ -177,6 +177,11 @@ def garden_page():
     )
 
 
+def places_api():
+    """Place names matching the text typed so far, for the suggestion list."""
+    return jsonify([p.label for p in suggest_places(request.args.get("q", ""))])
+
+
 def back():
     target = request.form.get("next", "")
     return redirect(target if target in SAFE_NEXT else url_for("achievements_page"))
@@ -196,6 +201,7 @@ def create_app() -> Flask:
     app = Flask(__name__)
     app.add_url_rule("/", view_func=plan_page, methods=["GET", "POST"])
     app.add_url_rule("/compare", view_func=plan_page, methods=["GET", "POST"])
+    app.add_url_rule("/places", view_func=places_api)
     app.add_url_rule("/confirm", view_func=confirm_page, methods=["POST"])
     app.add_url_rule("/done/<int:index>", view_func=done_page)
     app.add_url_rule("/achievements", view_func=achievements_page)

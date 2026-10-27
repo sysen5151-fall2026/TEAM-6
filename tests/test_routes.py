@@ -107,5 +107,55 @@ class TestWithMockedOrs(unittest.TestCase):
             self.assertIsNone(route_adapter.geocode("X"))
 
 
+class TestSuggestions(unittest.TestCase):
+    def setUp(self):
+        route_adapter._place_cache.clear()
+        route_adapter._suggest_cache.clear()
+
+    def test_without_key_sample_places_match_by_words(self):
+        with mock.patch.dict(os.environ):
+            os.environ.pop("ORS_API_KEY", None)
+            labels = [p.label for p in route_adapter.suggest_places("upson")]
+            self.assertEqual(labels, ["Upson Hall"])
+            self.assertIn("Cornell Gates Hall", [p.label for p in route_adapter.suggest_places("hall cornell")])
+            self.assertEqual(route_adapter.suggest_places("u"), ())  # too short to search
+            self.assertEqual(route_adapter.suggest_places("zzzz"), ())
+            self.assertEqual(route_adapter.geocode("upson hall").label, "Upson Hall")
+            self.assertEqual(route_adapter.geocode("upson").label, "Upson Hall")  # unambiguous part
+            self.assertIsNone(route_adapter.geocode("hall"))  # several halls: do not guess
+
+    def test_ors_autocomplete_is_merged_deduplicated_and_capped(self):
+        reply = {
+            "features": [
+                {"geometry": {"coordinates": [-76.48 - i / 1000, 42.44]}, "properties": {"label": f"Place {i}, Ithaca"}}
+                for i in range(8)
+            ]
+            + [{"geometry": {"coordinates": [-76.4838, 42.4436]}, "properties": {"label": "upson hall"}}]
+        }
+        with mock.patch.dict(os.environ, ORS_KEY), mock.patch.object(route_adapter, "_http_json", return_value=reply) as http:
+            places = route_adapter.suggest_places("upson")
+            route_adapter.suggest_places("upson")  # served from the cache
+        self.assertEqual(http.call_count, 1)
+        self.assertEqual(len(places), route_adapter.MAX_SUGGESTIONS)
+        self.assertEqual(places[0].label, "Upson Hall")  # sample first; ORS duplicate dropped
+        self.assertEqual(len({p.label.lower() for p in places}), len(places))
+        self.assertIn("focus.point.lon", http.call_args[0][0])  # biased to the campus
+
+    def test_picked_suggestion_resolves_to_the_same_point(self):
+        reply = {"features": [{"geometry": {"coordinates": [-76.5, 42.4]}, "properties": {"label": "Odd Cafe, Ithaca, NY"}}]}
+        with mock.patch.dict(os.environ, ORS_KEY), mock.patch.object(route_adapter, "_http_json", return_value=reply):
+            route_adapter.suggest_places("odd")
+        with mock.patch.dict(os.environ, ORS_KEY), mock.patch.object(route_adapter, "_http_json", side_effect=OSError):
+            place = route_adapter.geocode("Odd Cafe, Ithaca, NY")  # no network needed
+        self.assertEqual((place.lon, place.lat), (-76.5, 42.4))
+
+    def test_ors_failure_keeps_sample_matches(self):
+        with mock.patch.dict(os.environ, ORS_KEY), mock.patch.object(route_adapter, "_http_json", side_effect=OSError):
+            self.assertEqual([p.label for p in route_adapter.suggest_places("upson")], ["Upson Hall"])
+            self.assertEqual(route_adapter.suggest_places("zzzz"), ())
+        with mock.patch.dict(os.environ, ORS_KEY), mock.patch.object(route_adapter, "_http_json", return_value={"x": 1}):
+            self.assertEqual(route_adapter.suggest_places("qqqq"), ())
+
+
 if __name__ == "__main__":
     unittest.main()

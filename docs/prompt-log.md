@@ -213,6 +213,19 @@ Rule: every GenAI-assisted change is logged here with the tool, the (constrained
 | Not claimed | The cause of the first error is inferred (string order puts UC.3.10 before UC.3.8); Innoslate's own rule was not seen. The warning lists were read only as counts in the screenshot, so "same as 10.8" is checked for four heuristics and not for the others. Afterwards the team re-imported the corrected file and reported (screenshot) a pass rate of 81% with no errors; the remaining warnings were not examined one by one |
 | Human review | **Pending.** Reviewer and date: ____________ . |
 
+## Entry 017 - 2026-10-27 - Place suggestions while typing
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `feat/web-app` |
+| Prompt (summary, originally Chinese) | Typing "upson hall" found no place; show close matches to pick from while typing. |
+| Constraining sources | The existing plan page and route adapter; ORS geocoder conventions (autocomplete endpoint, Pelias-style focus point) |
+| What it produced | `suggest_places` in `route_adapter.py` (sample matches first, then ORS autocomplete biased to the campus, cached, capped at 5); `geocode` resolves a picked suggestion to the same point and matches a single unambiguous sample place by words; four more approximate sample places (Upson, Duffield, Olin Library, Willard Straight); `/places?q=` JSON endpoint; a small script on `plan.html` that refreshes the suggestion list (250 ms pause, late answers ignored); tests in `tests/test_routes.py` and `tests/test_web_app.py` |
+| Not claimed | The unit tests mock ORS. Afterwards one live check with the team's key (not stored in the repository) returned HTTP 200 on `api.openrouteservice.org` for `/geocode/autocomplete` ("statler hall" gave Statler Hall, Ithaca) and `/geocode/search` ("upson hall cornell" gave Upson Hall, Ithaca first); the same paths on `api.heigit.org` returned 404. The page's own request with the `focus.point` parameters was not exercised end to end in the browser with a key. Without a key only the eight sample places can be suggested. The new sample coordinates are approximate and unverified. The suggestion list is the browser's own list, so its look and keyboard behaviour differ by browser |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
 ## Entry template
 
 | Field | Value |

@@ -81,6 +81,14 @@ class TestPlanPage(unittest.TestCase):
                 self.assertIn(b'role="alert"', response.data)
                 self.assertNotIn(b"Choose this way", response.data)
 
+    def test_places_endpoint_suggests_matching_places(self):
+        response = self.client.get("/places?q=upson")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json(), ["Upson Hall"])
+        self.assertEqual(self.client.get("/places?q=").get_json(), [])
+        self.assertEqual(self.client.get("/places").get_json(), [])
+        self.assertEqual(self.client.get("/places?q=" + "x" * 5000).status_code, 200)
+
 
 if __name__ == "__main__":
     unittest.main()
