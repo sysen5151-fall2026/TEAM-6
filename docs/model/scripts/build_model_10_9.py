@@ -8,8 +8,8 @@ Writes docs/model/EcoCommute_10.9_web_flow.xml
 Nothing in 10.8 is changed or removed. New entities are copies of an existing
 entity of the same kind (so every property keeps the schema's own ids); each
 relationship is written in both directions, as Innoslate exports them. The
-result has NOT been imported into Innoslate: import it and read Intelligence
-before relying on it (see docs/model/10.9-changes.md).
+result was imported once and its Intelligence report read; the errors it showed are fixed
+in this version, which has to be imported again (see docs/model/10.9-changes.md).
 """
 
 import copy
@@ -176,7 +176,7 @@ def build() -> Model:
                        "What the Commuter can do with the comparison is the outcome that matters.",
                        "Usability session with reference routes whose distances per mode are known; compare displayed figures with the reference.",
                        "Demonstration and Test", "1.1.9"),
-         ("UC.3.2", "UC.3.3", "UC.3.4", "UC.3.5", "UC.3.6")),
+         ("UC.3.1", "UC.3.2", "UC.3.3", "UC.3.4", "UC.3.5", "UC.3.6")),
         ("2.1.12", "count only trips the Commuter confirms", "2.1", label_commuter, ("1.1.5", "1.1.9"),
          "The EcoCommute system shall add a trip to the Commuter's progress only after the Commuter chooses the way they took.",
          stk_rationale("A plan is not a trip; counting only confirmed trips keeps trends, badges and the campus goal tied to what people actually did.",
@@ -192,7 +192,7 @@ def build() -> Model:
                        "Rule correctness is directly countable.",
                        "Boundary-value and repeat-run tests for each rule; check that the same trips always give the same badges.",
                        "Test", "1.1.5, 1.1.10"),
-         ("UC.3.8", "UC.3.9", "UC.3.10")),
+         ("UC.3.8", "UC.3.9", "UC.3.10", "UC.3.11")),
         ("2.1.14", "ignore repeated and excess trips", "2.1", label_commuter, ("1.1.10", "1.4.3"),
          "The EcoCommute system shall count a repeated trip once and shall not count more than two trips on one day or more than 50 km of any one trip toward badges and the campus goal.",
          stk_rationale("Limits stop a badge or a campus tree from being earned by repetition or by one very long trip, which would overclaim savings. The two trips per day and 50 km limits are current project assumptions to confirm.",
@@ -208,7 +208,7 @@ def build() -> Model:
                        "The total is computable from stored trips, so any difference is an error.",
                        "Recompute the campus total from seeded trips and compare it with the displayed figures; inspect the labels.",
                        "Test and Inspection", "1.1.11, 1.2.4"),
-         ("UC.3.8", "UC.3.10")),
+         ("UC.3.8", "UC.3.10", "UC.3.11")),
     ]
     for number, name, parent, label, needs_, text, rationale, satisfied_by in stakeholder_reqs:
         m.add(number, t_req_stk, number, name, f"<p>{text}</p>",
@@ -255,7 +255,7 @@ def build() -> Model:
         ("UC.3.7", "Choose Way", ("X.1",), (), ("io_choice",)),
         ("UC.3.8", "Record Trip and Update Progress", ("C.2", "C.3"), ("io_choice",), ("io_result",)),
         ("UC.3.9", "Display Trip Result and Badges", ("C.1",), ("io_result",), ()),
-        ("UC.3.10", "Present Progress Pages", ("C.1", "C.2"), ("io_result",), ()),
+        ("UC.3.10", "Present Progress Pages", ("C.1", "C.2"), (), ()),  # reads stored trips; no flow from the later UC.3.8
         ("UC.3.11", "Review Progress", ("X.1",), (), ()),
     ]
     for number, name, performers, receives, generates in steps:
@@ -267,6 +267,8 @@ def build() -> Model:
             m.link(number, "receives", r)
         for g in generates:
             m.link(number, "generates", g)
+    m.link("UC.3", "satisfies", "2.1.11")
+    m.link("UC.3", "satisfies", "2.1.12")
     m.link("UC.3.5", "satisfies", m.find("2.1.4", "Requirement"))
     m.link("UC.3.5", "satisfies", m.find("2.1.5", "Requirement"))
     for req, actions in stk_satisfied.items():

@@ -200,6 +200,19 @@ Rule: every GenAI-assisted change is logged here with the tool, the (constrained
 | Not claimed | **The 10.9 file has not been imported into Innoslate**; its structure was checked by script and tests only. New requirements are Drafts with every quality flag false. The allocation of the new functional requirements to F.2.3-F.2.6 is provisional and the function architecture was not extended. The 80% target, the two-trips-per-day and 50 km limits and the 22 kg per tree are assumptions, the last without a source. The Chapter 4-7 reports were not updated. Risks TR.10-TR.12 record gaps found while writing (place labels vs coarse location; Route Service dependence; unsourced tree conversion), not decisions |
 | Human review | **Pending.** Reviewer and date: ____________ . |
 
+## Entry 016 - 2026-10-27 - Fix the two Intelligence errors found on importing model 10.9
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `feat/web-app` |
+| Prompt (summary, originally Chinese) | The Innoslate Intelligence dashboard for the imported 10.9 (screenshot): pass rate 77%, with errors on UC.3. |
+| Constraining sources | The screenshot of the Intelligence dashboard; the model data of 10.8 and 10.9 |
+| What it produced | `build_model_10_9.py` fixed and the export regenerated: UC.3.10 no longer receives a flow from UC.3.8 ("prior action is dependent on the later action"), and UC.3, UC.3.1 and UC.3.11 now satisfy requirements; SPEC.md "satisfied by" lines and `docs/model/10.9-changes.md` updated; two regression tests in `tests/test_model_10_9.py` |
+| Not claimed | The cause of the first error is inferred (string order puts UC.3.10 before UC.3.8); Innoslate's own rule was not seen. The warning lists were read only as counts in the screenshot, so "same as 10.8" is checked for four heuristics and not for the others. Afterwards the team re-imported the corrected file and reported (screenshot) a pass rate of 81% with no errors; the remaining warnings were not examined one by one |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
 ## Entry template
 
 | Field | Value |

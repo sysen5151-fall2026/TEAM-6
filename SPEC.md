@@ -112,7 +112,7 @@ Open values needing sponsor confirmation: 3-second display time (2.1.2); minimum
 - **Rationale:** Typed distances are rarely right, and the same two places give different distances on foot, by bike and by car; a per-mode route keeps each estimate honest and lets the Commuter weigh time against emissions.
 - **From need:** 1.1.9
 - **Acceptance criterion:** MOE - Percentage of test Commuters who name the lowest-emission feasible option from the screen (proposed target 80% or more). Validation - Usability session with reference routes whose distances per mode are known; compare displayed figures with the reference. Method: Demonstration and Test.
-- **Satisfied by (model):** `UC.3.2`, `UC.3.3`, `UC.3.4`, `UC.3.5`, `UC.3.6`
+- **Satisfied by (model):** `UC.3`, `UC.3.1`, `UC.3.2`, `UC.3.3`, `UC.3.4`, `UC.3.5`, `UC.3.6`
 - **Status:** Draft (model 10.9). Exercised in the Plan page: `tests/test_web_app.py`, `tests/test_routes.py`. Routed distances were checked once against the live Route Service; without a key the page shows a labelled estimate between sample places. Bus uses the drive distance (assumption) and a time the Commuter enters.
 
 ### 2.1.12 - count only trips the Commuter confirms
@@ -121,7 +121,7 @@ Open values needing sponsor confirmation: 3-second display time (2.1.2); minimum
 - **Rationale:** A plan is not a trip; counting only confirmed trips keeps trends, badges and the campus goal tied to what people actually did.
 - **From need:** 1.1.5, 1.1.9
 - **Acceptance criterion:** MOE - Trips counted toward progress that the Commuter did not confirm (target 0). Validation - State test over every path that can add a trip; inspect stored trips against confirmations. Method: Test.
-- **Satisfied by (model):** `UC.3.7`, `UC.3.8`
+- **Satisfied by (model):** `UC.3`, `UC.3.7`, `UC.3.8`
 - **Status:** Draft (model 10.9). Exercised: `tests/test_achievements.py` (confirmation recomputes the numbers from the places and refuses duplicates, future dates and unknown modes).
 
 ### 2.1.13 - award badges by published rules
@@ -130,7 +130,7 @@ Open values needing sponsor confirmation: 3-second display time (2.1.2); minimum
 - **Rationale:** Rewards motivate only when the Commuter can see why they were earned; fixed, visible rules also make the awards reproducible.
 - **From need:** 1.1.5, 1.1.10
 - **Acceptance criterion:** MOE - Badges awarded or withheld contrary to their stated condition in a rule test set (target 0). Validation - Boundary-value and repeat-run tests for each rule; check that the same trips always give the same badges. Method: Test.
-- **Satisfied by (model):** `UC.3.8`, `UC.3.9`, `UC.3.10`
+- **Satisfied by (model):** `UC.3.8`, `UC.3.9`, `UC.3.10`, `UC.3.11`
 - **Status:** Draft (model 10.9). Exercised: `TestBadgeRules` in `tests/test_achievements.py`. Badge thresholds are project assumptions.
 
 ### 2.1.14 - ignore repeated and excess trips
@@ -188,7 +188,7 @@ Open values needing sponsor confirmation: 3-second display time (2.1.2); minimum
 - **Rationale:** A shared, visible goal gives every trip a collective meaning without ranking individuals. The estimated difference per tree and the planting arrangement are assumptions to confirm with the sponsor.
 - **From need:** 1.1.11, 1.2.4
 - **Acceptance criterion:** MOE - Displayed campus totals that differ from the sum of counted trips (target 0). Validation - Recompute the campus total from seeded trips and compare it with the displayed figures; inspect the labels. Method: Test and Inspection.
-- **Satisfied by (model):** `UC.3.8`, `UC.3.10`
+- **Satisfied by (model):** `UC.3.8`, `UC.3.10`, `UC.3.11`
 - **Status:** Draft (model 10.9). Exercised: `TestCampusGoal` and the garden page test in `tests/test_achievements.py`. The campus share (126 trips, 41 students, 14.3 kg) is sample data, labelled as such on the page; the 22 kg per tree has no cited source (risk TR.12).
 
 
