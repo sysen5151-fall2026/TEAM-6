@@ -1,6 +1,6 @@
-{% macro mode(name) %}{{ {'drive': '🚗', 'carpool': '🧑‍🤝‍🧑', 'bus': '🚌', 'bike': '🚲', 'walk': '🚶'}.get(name, '🧭') }}{% endmacro %}
+{% macro mode(name) %}{{ {'drive': '🚗', 'carpool': '🧑‍🤝‍🧑', 'bus': '🚌', 'bike': '🚲', 'scooter': '🛴', 'walk': '🚶'}.get(name, '🧭') }}{% endmacro %}
 
-{% macro by(name) %}{{ {'drive': 'by car', 'carpool': 'by carpool', 'bus': 'by bus', 'bike': 'by bike', 'walk': 'on foot'}.get(name, 'this way') }}{% endmacro %}
+{% macro by(name) %}{{ {'drive': 'by car', 'carpool': 'by carpool', 'bus': 'by bus', 'bike': 'by bike', 'scooter': 'by scooter', 'walk': 'on foot'}.get(name, 'this way') }}{% endmacro %}
 
 {% macro badge(icon) %}{{ {'walk': '👣', 'leaf': '🍃', 'calendar-check': '📅', 'map-pin': '📍', 'target': '🎯', 'car-off': '🏞️', 'flame': '🔥', 'seeding': '🌱'}.get(icon, '🏅') }}{% endmacro %}
 

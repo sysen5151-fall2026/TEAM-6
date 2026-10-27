@@ -18,6 +18,7 @@ _PLACEHOLDER_FACTORS = {
     "bus": 105.0,
     "bike": 0.0,
     "walk": 0.0,
+    "scooter": 20.0,  # electric scooter; placeholder, to be replaced by a reviewed factor
 }
 
 _TRIPS = []  # in-memory stand-in for the SQLite/trip store

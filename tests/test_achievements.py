@@ -130,30 +130,31 @@ class TestConfirmAndPages(unittest.TestCase):
         self.addCleanup(weather.stop)
         self.client = create_app().test_client()
         self.today = date.today().isoformat()
-        self.form = {"origin": "Cornell Arts Quad", "destination": "Ithaca Commons", "mode": "bike", "date": self.today}
+        self.form = {"origin": "Cornell Arts Quad", "destination": "Ithaca Commons", "mode": "bike", "date": self.today,
+                     "have": "bike"}  # the student ticked "I have a bike"
 
     def test_confirm_recomputes_numbers_and_earns_first_step(self):
-        trip_, new, errors = confirm_trip("Cornell Arts Quad", "Ithaca Commons", "bike", self.today)
+        trip_, new, errors = confirm_trip("Cornell Arts Quad", "Ithaca Commons", "bike", self.today, have=("bike",))
         self.assertEqual(errors, [])
         self.assertEqual(new, ("First Step",))
         self.assertGreater(trip_.difference_g, 0)
-        self.assertEqual(trip_.recommended_mode, "bike")
+        self.assertEqual(trip_.recommended_mode, "walk")  # walk and bike tie on emissions; walk comes first
         self.assertEqual(len(confirmed_trips()), 1)
 
     def test_duplicate_future_and_bad_inputs_are_refused(self):
-        confirm_trip("Cornell Arts Quad", "Ithaca Commons", "bike", self.today)
+        confirm_trip("Cornell Arts Quad", "Ithaca Commons", "bike", self.today, have=("bike",))
         tomorrow = (date.today() + timedelta(days=1)).isoformat()
         cases = (
             ("Cornell Arts Quad", "Ithaca Commons", "bike", self.today),  # duplicate
             ("Cornell Arts Quad", "Ithaca Commons", "bike", tomorrow),  # not yet happened
             ("Cornell Arts Quad", "Ithaca Commons", "bike", "yesterday"),
             ("Cornell Arts Quad", "Ithaca Commons", "rocket", self.today),
-            ("Cornell Arts Quad", "Ithaca Commons", "bus", self.today),  # no bus time was entered
+            ("Cornell Arts Quad", "Ithaca Commons", "bus", self.today),  # the bus is only a placeholder
             ("Cornell Arts Quad", "nowhere", "bike", self.today),
         )
         for case in cases:
             with self.subTest(case=case):
-                trip_, new, errors = confirm_trip(*case)
+                trip_, new, errors = confirm_trip(*case, have=("bike",))
                 self.assertIsNone(trip_)
                 self.assertTrue(errors)
         self.assertEqual(len(confirmed_trips()), 1)
@@ -198,13 +199,13 @@ class TestConfirmAndPages(unittest.TestCase):
         self.assertEqual(empty.count(b'class="tree"'), 0)
         self.assertEqual(empty.count(b'class="sapling"'), 1)
         load_demo_trips()
-        confirm_trip("Cornell Arts Quad", "Ithaca Commons", "bike", self.today)  # reaches the first tree
+        confirm_trip("Cornell Arts Quad", "Ithaca Commons", "bike", self.today, have=("bike",))  # reaches the first tree
         grown = self.client.get("/garden").data
         self.assertEqual(grown.count(b'class="tree"'), 1)
         self.assertIn(b"1 tree planted", grown)
 
     def test_confirm_errors_show_on_the_page_without_crashing(self):
-        for data in ({}, {**self.form, "mode": "rocket"}, {**self.form, "transit_minutes": "abc", "mode": "bus"}):
+        for data in ({}, {**self.form, "mode": "rocket"}, {**self.form, "mode": "bus"}):
             with self.subTest(data=data):
                 response = self.client.post("/confirm", data=data)
                 self.assertEqual(response.status_code, 200)
@@ -222,7 +223,7 @@ class TestConfirmAndPages(unittest.TestCase):
     def test_demo_stops_just_short_of_a_tree_and_one_trip_reaches_it(self):
         load_demo_trips()
         self.assertEqual(campus_goal(confirmed_trips()).trees_reached, 0)
-        _, new, errors = confirm_trip("Cornell Arts Quad", "Ithaca Commons", "bike", self.today)
+        _, new, errors = confirm_trip("Cornell Arts Quad", "Ithaca Commons", "bike", self.today, have=("bike",))
         self.assertEqual(errors, [])
         self.assertIn("Tree Planter", new)
         self.assertEqual(campus_goal(confirmed_trips()).trees_reached, 1)
@@ -230,6 +231,19 @@ class TestConfirmAndPages(unittest.TestCase):
     def test_plan_page_offers_a_choose_button(self):
         data = {"origin": "Cornell Arts Quad", "destination": "Ithaca Commons"}
         self.assertIn(b"Choose this way", self.client.post("/", data=data).data)
+
+    def test_a_vehicle_the_student_did_not_tick_cannot_be_confirmed(self):
+        no_bike = {k: v for k, v in self.form.items() if k != "have"}
+        trip_, _, errors = confirm_trip("Cornell Arts Quad", "Ithaca Commons", "bike", self.today)
+        self.assertIsNone(trip_)
+        self.assertTrue(errors)
+        self.assertEqual(self.client.post("/confirm", data=no_bike).status_code, 200)  # message, no crash
+        self.assertEqual(confirmed_trips(), ())
+
+    def test_walking_is_always_available_to_confirm(self):
+        trip_, _, errors = confirm_trip("Cornell Arts Quad", "Ithaca Commons", "walk", self.today)
+        self.assertEqual(errors, [])
+        self.assertEqual(trip_.recommended_mode, "walk")
 
 
 if __name__ == "__main__":

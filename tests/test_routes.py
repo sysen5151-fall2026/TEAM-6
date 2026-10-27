@@ -54,7 +54,7 @@ class TestFallbackWithoutKey(unittest.TestCase):
     def test_compare_modes_with_sample_places(self):
         comparisons, origin, dest, errors = compare_modes("Cornell Arts Quad", "Ithaca Commons")
         self.assertEqual(errors, [])
-        self.assertEqual(len(comparisons), 3)
+        self.assertEqual([c.mode for c in comparisons], ["drive", "walk", "bike", "scooter"])
         drive = next(c for c in comparisons if c.mode == "drive")
         self.assertEqual(drive.difference_g, 0)  # baseline is the drive route itself
 

@@ -1,6 +1,6 @@
 # ADR 0004: Feasibility filter, then lowest emission, with a stated reason
 
-Status: **Proposed - needs team review and merge approval** (date: 2026-10-27).
+Status: **Proposed - needs team review and merge approval** (date: 2026-10-27). The limits (not-feasible modes, extra minutes, typed bus time) are superseded by [ADR 0006](0006-student-defaults-and-vehicles.md); the weather rules still apply.
 
 ## Context
 

@@ -22,44 +22,18 @@ from src.c2_application_service import (
     preview_routes,
 )
 from src.c2_application_service.achievements import counted_trips
-from src.c2_application_service.recommendation import DEFAULT_MAX_EXTRA_MIN
+from src.c2_application_service.plan import VEHICLES
 from src.c3_data_adapter import confirmed_trips, place_search_is_live, reset_confirmed, suggest_places
 from src.interfaces import Place
 from src.model_trace import realizes
 
-CAN_BE_INFEASIBLE = ("walk", "bike")  # modes the Commuter may mark not feasible (SRD 2.1.5)
 GARDEN_SLOTS = 12  # trees drawn in the garden picture
-EXAMPLES = (
-    ("Collegetown", "Cornell Arts Quad"),
-    ("Cornell Arts Quad", "Ithaca Commons"),
-    ("Cornell Gates Hall", "Collegetown"),
-)
 SAFE_NEXT = ("/achievements", "/garden")
 
 
-def parse_limits(form) -> tuple:
-    """Validate the optional settings; return (kwargs for plan_commute, errors)."""
-    errors, limits = [], {}
-    limits["not_feasible"] = tuple(m for m in form.getlist("not_feasible_modes") if m in CAN_BE_INFEASIBLE)
-
-    raw = form.get("max_extra_min", "").strip()
-    try:
-        limits["max_extra_min"] = float(raw) if raw else DEFAULT_MAX_EXTRA_MIN
-        if not 0 <= limits["max_extra_min"] <= 240:
-            raise ValueError
-    except ValueError:
-        errors.append("Extra minutes you accept must be a number from 0 to 240.")
-
-    raw = form.get("transit_minutes", "").strip()
-    limits["transit_minutes"] = None
-    if raw:
-        try:
-            limits["transit_minutes"] = float(raw)
-            if not 0 < limits["transit_minutes"] <= 300:
-                raise ValueError
-        except ValueError:
-            errors.append("Bus time must be a number of minutes above 0 and at most 300.")
-    return limits, errors
+def parse_have(form) -> tuple:
+    """The vehicles the Commuter ticked; the student has none by default."""
+    return tuple(v for v in VEHICLES if v in form.getlist("have"))
 
 
 def _percent(into_next_g: float, goal_g: float) -> int:
@@ -83,8 +57,9 @@ def render_plan(values, plan=None, errors=()):
         active="plan",
         live_search=place_search_is_live(),
         map_places=_map_places(plan),
-        examples=EXAMPLES,
-        can_be_infeasible=CAN_BE_INFEASIBLE,
+        vehicles=VEHICLES,
+        today=_date.today().isoformat(),
+        restore_have=request.method == "GET",
         values=values,
         plan=plan,
         errors=list(errors),
@@ -93,7 +68,7 @@ def render_plan(values, plan=None, errors=()):
 
 def form_values():
     values = request.form.to_dict()
-    values["not_feasible_modes"] = request.form.getlist("not_feasible_modes")
+    values["have"] = list(parse_have(request.form))  # only known vehicles reach the page
     return values
 
 
@@ -103,8 +78,6 @@ def plan_page():
             {
                 "origin": request.args.get("origin", "")[:100],
                 "destination": request.args.get("destination", "")[:100],
-                "max_extra_min": f"{DEFAULT_MAX_EXTRA_MIN:g}",
-                "date": _date.today().isoformat(),
             }
         )
 
@@ -115,27 +88,20 @@ def plan_page():
         errors.append("Enter where you are starting from.")
     if not destination:
         errors.append("Enter where you are going.")
-    limits, limit_errors = parse_limits(request.form)
-    errors += limit_errors
     if errors:
         return render_plan(values, errors=errors)
 
-    plan = plan_commute(origin, destination, **limits)
+    plan = plan_commute(origin, destination, have=parse_have(request.form))
     return render_plan(values, plan=plan, errors=plan.errors)
 
 
 def confirm_page():
-    transit = request.form.get("transit_minutes", "").strip()
-    try:
-        transit_minutes = float(transit) if transit else None
-    except ValueError:
-        transit_minutes = None
     trip, new_badges, errors = confirm_trip(
         request.form.get("origin", ""),
         request.form.get("destination", ""),
         request.form.get("mode", ""),
         request.form.get("date", ""),
-        transit_minutes,
+        parse_have(request.form),
     )
     if errors:
         return render_plan(form_values(), errors=errors)

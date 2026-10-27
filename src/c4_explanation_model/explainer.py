@@ -45,6 +45,11 @@ def explain_recommendation(chosen, fastest, met_limits: bool) -> str:
 
     STUB (BMA Section 7.9): a fixed sentence template instead of a language model.
     """
+    if chosen.mode == "drive" and fastest.mode == "drive":
+        return (
+            "No greener way passed today's weather and time checks, so driving is the fallback: "
+            f"{chosen.duration_min:g} min and an estimated {chosen.co2e_g:g} g CO2e (the driving baseline)."
+        )
     text = (
         f"Recommended: {chosen.mode} - {chosen.duration_min:g} min and an estimated "
         f"{chosen.co2e_g:g} g CO2e"
@@ -59,5 +64,5 @@ def explain_recommendation(chosen, fastest, met_limits: bool) -> str:
         extra = chosen.duration_min - fastest.duration_min
         text += f"; {extra:g} min more than the fastest ({fastest.mode})."
     if not met_limits:
-        text += " No option met all of your limits, so this is the fastest one you have not ruled out."
+        text += " No option passed the weather and time checks, so this is the fastest one that was not ruled out."
     return text
