@@ -8,6 +8,7 @@ C.2 returns; no calculation or rule lives here.
 Run:  python -m src.main_web
 """
 
+import math
 from datetime import date as _date
 
 from flask import Flask, jsonify, redirect, render_template, request, url_for
@@ -18,10 +19,12 @@ from src.c2_application_service import (
     evaluate_badges,
     load_demo_trips,
     plan_commute,
+    preview_routes,
 )
 from src.c2_application_service.achievements import counted_trips
 from src.c2_application_service.recommendation import DEFAULT_MAX_EXTRA_MIN
-from src.c3_data_adapter import confirmed_trips, reset_confirmed, sample_places, suggest_places
+from src.c3_data_adapter import confirmed_trips, place_search_is_live, reset_confirmed, suggest_places
+from src.interfaces import Place
 from src.model_trace import realizes
 
 CAN_BE_INFEASIBLE = ("walk", "bike")  # modes the Commuter may mark not feasible (SRD 2.1.5)
@@ -63,12 +66,23 @@ def _percent(into_next_g: float, goal_g: float) -> int:
     return round(100 * into_next_g / goal_g)
 
 
+def _map_places(plan) -> list:
+    """Start and destination of a finished plan, for the map (empty before a plan exists)."""
+    if plan is None or not plan.comparisons:
+        return []
+    return [
+        {"kind": kind, "label": place.label, "lat": place.lat, "lon": place.lon}
+        for kind, place in (("origin", plan.origin), ("destination", plan.destination))
+    ]
+
+
 @realizes("UC.3.6")
 def render_plan(values, plan=None, errors=()):
     return render_template(
         "plan.html",
         active="plan",
-        places=sample_places(),
+        live_search=place_search_is_live(),
+        map_places=_map_places(plan),
         examples=EXAMPLES,
         can_be_infeasible=CAN_BE_INFEASIBLE,
         values=values,
@@ -179,7 +193,42 @@ def garden_page():
 
 def places_api():
     """Place names matching the text typed so far, for the suggestion list."""
-    return jsonify([p.label for p in suggest_places(request.args.get("q", ""))])
+    return jsonify(
+        [{"label": p.label, "lat": p.lat, "lon": p.lon} for p in suggest_places(request.args.get("q", ""))]
+    )
+
+
+def _coordinate(name: str, low: float, high: float) -> float:
+    value = float(request.args[name])
+    if not (math.isfinite(value) and low <= value <= high):
+        raise ValueError(name)
+    return value
+
+
+def route_lines_api():
+    """Drive, walk and bike lines between two points, for the map."""
+    try:
+        origin = Place("", _coordinate("olon", -180, 180), _coordinate("olat", -90, 90), "map")
+        dest = Place("", _coordinate("dlon", -180, 180), _coordinate("dlat", -90, 90), "map")
+    except (KeyError, ValueError):
+        return jsonify({"error": "Give olat, olon, dlat and dlon as coordinates."}), 400
+    options, error = preview_routes(origin, dest)
+    if error:
+        return jsonify({"error": error}), 400
+    return jsonify(
+        {
+            "routes": [
+                {
+                    "mode": o.mode,
+                    "distance_km": o.distance_km,
+                    "duration_min": o.duration_min,
+                    "estimated": o.source != "OpenRouteService",
+                    "path": [[lat, lon] for lat, lon in o.path],
+                }
+                for o in options
+            ]
+        }
+    )
 
 
 def back():
@@ -202,6 +251,7 @@ def create_app() -> Flask:
     app.add_url_rule("/", view_func=plan_page, methods=["GET", "POST"])
     app.add_url_rule("/compare", view_func=plan_page, methods=["GET", "POST"])
     app.add_url_rule("/places", view_func=places_api)
+    app.add_url_rule("/route-lines", view_func=route_lines_api)
     app.add_url_rule("/confirm", view_func=confirm_page, methods=["POST"])
     app.add_url_rule("/done/<int:index>", view_func=done_page)
     app.add_url_rule("/achievements", view_func=achievements_page)

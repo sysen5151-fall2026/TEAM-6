@@ -34,8 +34,8 @@ class TestPlanPage(unittest.TestCase):
     def test_home_is_the_plan_form_and_both_places_are_required(self):
         page = self.client.get("/").data
         self.assertIn(b"Compare my options", page)
-        self.assertIn(b'id="origin" name="origin" type="text" list="places" required', page)
-        self.assertIn(b'id="destination" name="destination" type="text" list="places" required', page)
+        self.assertIn(b'id="origin" name="origin" type="text" autocomplete="off" required', page)
+        self.assertIn(b'id="destination" name="destination" type="text" autocomplete="off" required', page)
         self.assertNotIn(b"One-way distance", page)  # distance is never typed in
 
     def test_example_links_prefill_the_form(self):
@@ -84,10 +84,60 @@ class TestPlanPage(unittest.TestCase):
     def test_places_endpoint_suggests_matching_places(self):
         response = self.client.get("/places?q=upson")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get_json(), ["Upson Hall"])
+        found = response.get_json()
+        self.assertEqual([p["label"] for p in found], ["Upson Hall"])
+        self.assertTrue(42 < found[0]["lat"] < 43 and -77 < found[0]["lon"] < -76)  # coordinates for the map
         self.assertEqual(self.client.get("/places?q=").get_json(), [])
         self.assertEqual(self.client.get("/places").get_json(), [])
         self.assertEqual(self.client.get("/places?q=" + "x" * 5000).status_code, 200)
+
+    def test_page_says_whether_place_search_is_live(self):
+        self.assertIn(b"Offline list only", self.client.get("/").data)  # setUp removes the key
+        with mock.patch.dict(os.environ, {"ORS_API_KEY": "k"}):
+            page = self.client.get("/").data
+        self.assertIn(b"Search any place", page)
+        self.assertNotIn(b"Offline list only", page)
+
+    def test_finished_plan_hands_both_places_to_the_map(self):
+        page = self.client.post("/", data={"origin": "Upson Hall", "destination": "Ithaca Commons"}).data
+        self.assertIn(b'"kind": "origin"', page)
+        self.assertIn(b'"kind": "destination"', page)
+        self.assertIn(b'id="map"', page)
+        self.assertIn(b"var planned = [];", self.client.get("/").data)  # nothing to draw before a plan
+
+    def test_route_lines_endpoint_gives_three_modes_with_paths(self):
+        reply = self.client.get("/route-lines?olat=42.4436&olon=-76.4838&dlat=42.4396&dlon=-76.4968")
+        self.assertEqual(reply.status_code, 200)
+        routes = {r["mode"]: r for r in reply.get_json()["routes"]}
+        self.assertEqual(set(routes), {"drive", "walk", "bike"})
+        for route in routes.values():
+            self.assertGreaterEqual(len(route["path"]), 2)
+            self.assertTrue(route["estimated"])  # no key in tests: straight-line estimate
+
+    def test_route_lines_endpoint_rejects_bad_or_identical_points(self):
+        bad = (
+            "/route-lines",
+            "/route-lines?olat=abc&olon=1&dlat=2&dlon=3",
+            "/route-lines?olat=99&olon=1&dlat=2&dlon=3",
+            "/route-lines?olat=nan&olon=1&dlat=2&dlon=3",
+            "/route-lines?olat=42.4&olon=-76.4&dlat=42.4&dlon=-76.4",
+        )
+        for url in bad:
+            with self.subTest(url=url):
+                reply = self.client.get(url)
+                self.assertEqual(reply.status_code, 400)
+                self.assertIn("error", reply.get_json())
+
+    def test_map_is_open_by_default_with_location_controls(self):
+        page = self.client.get("/").get_data(as_text=True)
+        self.assertNotIn('id="mapcard" hidden', page)
+        for needle in ('id="locate"', 'id="usehere"', 'id="legend"', "/route-lines"):
+            self.assertIn(needle, page)
+        self.assertIn("[hidden] { display:none !important; }", page)  # so hidden buttons and the legend stay hidden
+
+    def test_my_location_can_be_the_start_of_a_plan(self):
+        page = self.client.post("/", data={"origin": "My location (42.4440, -76.4830)", "destination": "Ithaca Commons"}).data
+        self.assertIn(b"Choose this way", page)
 
 
 if __name__ == "__main__":

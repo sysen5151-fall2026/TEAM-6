@@ -2,6 +2,33 @@
 {% import "_macros.html" as m %}
 {% block title %}Plan a trip - EcoCommute{% endblock %}
 {% block content %}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+  <style>
+    .route-row > div { position:relative; }
+    .suggest { position:absolute; left:0; right:0; top:100%; z-index:50; margin:4px 0 0; padding:4px; list-style:none; max-height:290px; overflow:auto;
+      background:var(--paper); border:2.5px solid var(--line); border-radius:14px; box-shadow:4px 4px 0 var(--shadow); }
+    .suggest li { display:flex; gap:8px; align-items:flex-start; padding:8px 10px; border-radius:10px; cursor:pointer; }
+    .suggest li .pin { flex:none; }
+    .suggest li .name { display:block; font-weight:800; }
+    .suggest li .where { display:block; font-size:.85rem; color:var(--muted); }
+    .suggest li[aria-selected=true], .suggest li:hover { background:var(--soft); }
+    .suggest li.empty { cursor:default; color:var(--muted); }
+    .suggest li.empty:hover { background:none; }
+    input.picked { border-color:var(--green-d); box-shadow:0 0 0 3px color-mix(in srgb, var(--green) 35%, transparent); }
+    .searchmode { margin:10px 0 0; }
+    #map { height:300px; border:2.5px solid var(--line); border-radius:14px; isolation:isolate; }
+    .pin-icon { font-size:1.7rem; line-height:1; filter:drop-shadow(0 2px 0 rgba(0,0,0,.35)); }
+    [hidden] { display:none !important; }  /* the button and legend styles below would otherwise override it */
+    .maptools { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:6px; }
+    .maptools .btn { width:auto; margin-top:0; }
+    .legend { list-style:none; margin:10px 0 0; padding:0; display:flex; flex-wrap:wrap; gap:6px 16px; font-weight:700; font-size:.92rem; }
+    .legend li { display:flex; align-items:center; gap:8px; }
+    .legend .sw { display:inline-block; width:34px; height:0; border-top:5px solid; }
+    .legend .sw-drive { border-color:#e4572e; border-top-width:7px; }
+    .legend .sw-bike { border-color:#2f7de1; border-top-style:dashed; }
+    .legend .sw-walk { border-color:#1f8a5b; border-top-style:dotted; border-top-width:4px; }
+    .legend li.warn { font-weight:600; color:var(--muted); }
+  </style>
   <section class="hero">
     <span class="floaty" aria-hidden="true">🚲</span><span class="floaty" aria-hidden="true">🌤️</span>
     <h1>Where to today?</h1>
@@ -18,16 +45,19 @@
     <div class="route-row">
       <div>
         <label for="origin">📍 From</label>
-        <input id="origin" name="origin" type="text" list="places" required maxlength="100"
+        <input id="origin" name="origin" type="text" autocomplete="off" required maxlength="100"
                placeholder="e.g. Collegetown" value="{{ values.get('origin', '') }}">
       </div>
       <div>
         <label for="destination">🏁 To</label>
-        <input id="destination" name="destination" type="text" list="places" required maxlength="100"
+        <input id="destination" name="destination" type="text" autocomplete="off" required maxlength="100"
                placeholder="e.g. Cornell Arts Quad" value="{{ values.get('destination', '') }}">
       </div>
     </div>
-    <datalist id="places">{% for p in places %}<option value="{{ p }}">{% endfor %}</datalist>
+    <p class="note searchmode" id="searchmode">
+      {% if live_search %}🌍 Search any place: pick one from the list so we know exactly where you mean.
+      {% else %}📴 Offline list only (no ORS key set): only a few sample places can be found. Set ORS_API_KEY and restart to search anywhere.{% endif %}
+    </p>
     <p class="chips">Try:
       {% for a, b in examples %}<a class="chip" href="/?origin={{ a|urlencode }}&amp;destination={{ b|urlencode }}">{{ a }} ➜ {{ b }}</a>{% endfor %}
     </p>
@@ -53,6 +83,18 @@
 
     <button class="btn full" type="submit">Compare my options 🔍</button>
   </form>
+
+  <section class="card" id="mapcard">
+    <h2>🗺️ Map</h2>
+    <div class="maptools">
+      <button type="button" class="btn small ghost" id="locate">📍 Show my location</button>
+      <button type="button" class="btn small alt" id="usehere" hidden>🚩 Start from my location</button>
+    </div>
+    <p class="note" id="mapstatus">Showing the Cornell campus. Pick a start and a destination to see the routes.</p>
+    <div id="map" role="img" aria-label="Map of your location, the places you chose and the routes between them"></div>
+    <ul class="legend" id="legend" hidden></ul>
+    <p class="note" style="margin-bottom:0">Map © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors.</p>
+  </section>
 
   {% if plan and plan.comparisons %}
   {% set rec = plan.recommendation %}
@@ -100,40 +142,235 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
-  // Fill the shared suggestion list as the Commuter types; the starting list stays as the fallback.
+  // Map-search page: the map opens on where you are, picking places drops pins,
+  // and the drive, walk and bike routes between them are drawn together.
   (function () {
-    var list = document.getElementById("places");
-    var inputs = [document.getElementById("origin"), document.getElementById("destination")];
-    var cache = {}, timer = null, latest = 0;
-    function show(labels) {
-      if (!labels.length) return;
-      list.textContent = "";
-      labels.forEach(function (label) {
-        var option = document.createElement("option");
-        option.value = label;
-        list.appendChild(option);
+    var planned = {{ map_places|tojson }};
+    var CAMPUS = [42.4491, -76.4835];
+    var ICON = { origin: "📍", destination: "🏁" };
+    var STYLE = {  // drawn bottom to top, so the thin dotted walk line stays visible over the others
+      drive: { color: "#e4572e", weight: 8, opacity: 0.55 },
+      bike: { color: "#2f7de1", weight: 5, opacity: 0.9, dashArray: "10 8" },
+      walk: { color: "#1f8a5b", weight: 4, opacity: 1, dashArray: "1 8", lineCap: "round" }
+    };
+    var LABEL = { drive: "🚗 Drive", bike: "🚲 Bike", walk: "🚶 Walk" };
+    var picked = { origin: null, destination: null };
+    var combos = {};
+    var here = null, routeSeq = 0;
+    var card = document.getElementById("mapcard");
+    var status = document.getElementById("mapstatus");
+    var legend = document.getElementById("legend");
+    var useBtn = document.getElementById("usehere");
+    var hasMap = typeof L !== "undefined";  // offline: the page still works, without the map
+    var map, pins, lines, hereLayer;
+
+    if (hasMap) {
+      map = L.map("map", { scrollWheelZoom: false }).setView(CAMPUS, 14);
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        { maxZoom: 19, attribution: "&copy; OpenStreetMap contributors" }).addTo(map);
+      pins = L.layerGroup().addTo(map);
+      lines = L.layerGroup().addTo(map);
+      hereLayer = L.layerGroup().addTo(map);
+    } else {
+      card.hidden = true;
+    }
+
+    function say(text) { status.textContent = text; }
+    function clearLegend() { legend.textContent = ""; legend.hidden = true; }
+    function legendRow(cls, text) {
+      var li = document.createElement("li");
+      if (cls) { var sw = document.createElement("span"); sw.className = "sw sw-" + cls; li.appendChild(sw); }
+      else li.className = "warn";
+      li.appendChild(document.createTextNode(text));
+      legend.appendChild(li); legend.hidden = false;
+    }
+
+    function pinIcon(kind) {
+      return L.divIcon({ className: "", html: '<span class="pin-icon">' + ICON[kind] + "</span>",
+                         iconSize: [30, 30], iconAnchor: [15, 28] });
+    }
+
+    function fitEverything(extra) {
+      var points = [];
+      [picked.origin, picked.destination].forEach(function (p) { if (p) points.push([p.lat, p.lon]); });
+      (extra || []).forEach(function (p) { points.push(p); });
+      if (points.length > 1) map.fitBounds(L.latLngBounds(points), { padding: [40, 40], maxZoom: 17 });
+      else if (points.length === 1) map.setView(points[0], 16);
+    }
+
+    function drawRoutes(routes) {
+      lines.clearLayers(); clearLegend();
+      var all = [], estimated = false;
+      ["drive", "bike", "walk"].forEach(function (mode) {
+        var route = routes.filter(function (r) { return r.mode === mode; })[0];
+        if (!route) return;
+        var style = Object.assign({}, STYLE[mode]);
+        if (route.estimated) { style.dashArray = "4 10"; estimated = true; }
+        L.polyline(route.path, style).addTo(lines);
+        route.path.forEach(function (p) { all.push(p); });
+        legendRow(mode, LABEL[mode] + " " + route.distance_km + " km, " + route.duration_min + " min");
       });
+      if (estimated) legendRow("", "Dashed straight lines are estimates: no routing answer was available.");
+      fitEverything(all);
     }
-    function ask(text) {
-      if (cache[text]) { show(cache[text]); return; }
-      var mine = ++latest;
-      fetch("/places?q=" + encodeURIComponent(text))
-        .then(function (r) { return r.ok ? r.json() : []; })
-        .then(function (labels) {
-          cache[text] = labels;
-          if (mine === latest) show(labels);  // ignore answers that arrive late
+
+    function refresh() {
+      if (!hasMap) return;
+      pins.clearLayers();
+      ["origin", "destination"].forEach(function (kind) {
+        var p = picked[kind];
+        if (p) L.marker([p.lat, p.lon], { title: p.label, icon: pinIcon(kind) }).addTo(pins);
+      });
+      var seq = ++routeSeq;
+      lines.clearLayers(); clearLegend();
+      if (!(picked.origin && picked.destination)) { fitEverything(); return; }
+      legendRow("", "Drawing the routes…");
+      var q = "olat=" + picked.origin.lat + "&olon=" + picked.origin.lon +
+              "&dlat=" + picked.destination.lat + "&dlon=" + picked.destination.lon;
+      fetch("/route-lines?" + q)
+        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+        .then(function (res) {
+          if (seq !== routeSeq) return;  // the choice changed while this was loading
+          if (res.ok) drawRoutes(res.d.routes);
+          else { clearLegend(); legendRow("", res.d.error || "Could not draw the routes."); fitEverything(); }
         })
-        .catch(function () {});  // offline or blocked: keep the sample places
+        .catch(function () {
+          if (seq !== routeSeq) return;
+          clearLegend(); legendRow("", "Could not draw the routes right now."); fitEverything();
+        });
     }
-    inputs.forEach(function (input) {
+
+    function drawHere() {
+      hereLayer.clearLayers();
+      L.circle([here.lat, here.lon], { radius: here.acc, color: "#2f7de1", weight: 1, fillOpacity: 0.12 }).addTo(hereLayer);
+      L.circleMarker([here.lat, here.lon], { radius: 8, color: "#fff", weight: 3, fillColor: "#2f7de1", fillOpacity: 1 })
+        .bindTooltip("You are here").addTo(hereLayer);
+    }
+
+    function locate() {
+      if (!hasMap) return;
+      if (!navigator.geolocation) { say("This browser cannot share a location, so the map shows the Cornell campus."); return; }
+      say("📍 Finding where you are…");
+      navigator.geolocation.getCurrentPosition(function (pos) {
+        here = { lat: pos.coords.latitude, lon: pos.coords.longitude, acc: pos.coords.accuracy || 50 };
+        drawHere(); useBtn.hidden = false;
+        say("📍 You are here (about ±" + Math.round(here.acc) + " m; desktop browsers can be less exact). " +
+            "Your position stays in this browser until you use it as the start.");
+        if (!picked.origin && !picked.destination) map.setView([here.lat, here.lon], 15);
+      }, function (err) {
+        say(err && err.code === 1
+          ? "Location is off, so the map shows the Cornell campus. Allow location for this site in your browser to see where you are."
+          : "Could not find your location, so the map shows the Cornell campus.");
+      }, { timeout: 8000, maximumAge: 60000 });
+    }
+
+    function combo(input, kind) {
+      var list = document.createElement("ul");
+      list.className = "suggest"; list.id = input.id + "-list"; list.hidden = true;
+      list.setAttribute("role", "listbox");
+      input.parentNode.appendChild(list);
+      input.setAttribute("role", "combobox");
+      input.setAttribute("aria-autocomplete", "list");
+      input.setAttribute("aria-controls", list.id);
+      input.setAttribute("aria-expanded", "false");
+      var items = [], active = -1, timer = null, latest = 0, cache = {};
+
+      function close() { list.hidden = true; input.setAttribute("aria-expanded", "false"); active = -1; }
+      function choose(place) {
+        input.value = place.label;
+        input.classList.add("picked");
+        picked[kind] = { kind: kind, label: place.label, lat: place.lat, lon: place.lon };
+        close(); refresh();
+      }
+      function highlight(n) {
+        active = n;
+        Array.prototype.forEach.call(list.children, function (li, i) { li.setAttribute("aria-selected", i === n ? "true" : "false"); });
+      }
+      function note(text) {
+        list.textContent = "";
+        var li = document.createElement("li");
+        li.className = "empty"; li.textContent = text;
+        list.appendChild(li); list.hidden = false;
+        input.setAttribute("aria-expanded", "true");
+      }
+      function render(places) {
+        items = places; active = -1;
+        if (!places.length) { note("No places found. Try another name."); return; }
+        list.textContent = "";
+        places.forEach(function (place, i) {
+          var li = document.createElement("li");
+          li.setAttribute("role", "option"); li.setAttribute("aria-selected", "false");
+          var pin = document.createElement("span"); pin.className = "pin"; pin.textContent = "📍";
+          var box = document.createElement("span");
+          var cut = place.label.indexOf(",");
+          var name = document.createElement("span"); name.className = "name";
+          name.textContent = cut > 0 ? place.label.slice(0, cut) : place.label;
+          box.appendChild(name);
+          if (cut > 0) {
+            var where = document.createElement("span"); where.className = "where";
+            where.textContent = place.label.slice(cut + 1).trim(); box.appendChild(where);
+          }
+          li.appendChild(pin); li.appendChild(box);
+          li.addEventListener("mousedown", function (e) { e.preventDefault(); choose(places[i]); });
+          list.appendChild(li);
+        });
+        list.hidden = false; input.setAttribute("aria-expanded", "true");
+      }
+      function ask(text) {
+        if (cache[text]) { render(cache[text]); return; }
+        var mine = ++latest;
+        fetch("/places?q=" + encodeURIComponent(text))
+          .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+          .then(function (places) { cache[text] = places; if (mine === latest) render(places); })
+          .catch(function () { if (mine === latest) note("Suggestions are unavailable right now."); });
+      }
+
       input.addEventListener("input", function () {
+        picked[kind] = null; input.classList.remove("picked"); refresh();
         clearTimeout(timer);
         var text = input.value.trim();
-        if (text.length < 2) return;
-        timer = setTimeout(function () { ask(text); }, 250);
+        if (text.length < 2) { close(); return; }
+        timer = setTimeout(function () { ask(text); }, 220);
       });
+      input.addEventListener("focus", function () {
+        var text = input.value.trim();
+        if (!picked[kind] && text.length >= 2) ask(text);
+      });
+      input.addEventListener("blur", close);
+      input.addEventListener("keydown", function (e) {
+        if (list.hidden || !items.length) return;
+        if (e.key === "ArrowDown") { e.preventDefault(); highlight((active + 1) % items.length); }
+        else if (e.key === "ArrowUp") { e.preventDefault(); highlight((active - 1 + items.length) % items.length); }
+        else if (e.key === "Enter" && active >= 0) { e.preventDefault(); choose(items[active]); }
+        else if (e.key === "Escape") { close(); }
+      });
+
+      // Show what is already filled in (a finished plan, or a "Try" link).
+      var done = planned.filter(function (p) { return p.kind === kind; })[0];
+      if (done) { picked[kind] = done; input.classList.add("picked"); }
+      else if (input.value.trim().length >= 2) {
+        fetch("/places?q=" + encodeURIComponent(input.value.trim()))
+          .then(function (r) { return r.ok ? r.json() : []; })
+          .then(function (places) {
+            var same = places.filter(function (p) { return p.label.toLowerCase() === input.value.trim().toLowerCase(); })[0];
+            if (same && !picked[kind]) { picked[kind] = { kind: kind, label: same.label, lat: same.lat, lon: same.lon };
+              input.classList.add("picked"); refresh(); }
+          }).catch(function () {});
+      }
+      combos[kind] = { choose: choose };
+    }
+
+    combo(document.getElementById("origin"), "origin");
+    combo(document.getElementById("destination"), "destination");
+    document.getElementById("locate").addEventListener("click", locate);
+    useBtn.addEventListener("click", function () {
+      if (!here) return;
+      combos.origin.choose({ label: "My location (" + here.lat.toFixed(4) + ", " + here.lon.toFixed(4) + ")", lat: here.lat, lon: here.lon });
     });
+    refresh();
+    locate();  // the browser asks for permission; saying no just leaves the campus view
   })();
 </script>
 {% endblock %}

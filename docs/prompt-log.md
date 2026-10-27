@@ -226,6 +226,47 @@ Rule: every GenAI-assisted change is logged here with the tool, the (constrained
 | Not claimed | The unit tests mock ORS. Afterwards one live check with the team's key (not stored in the repository) returned HTTP 200 on `api.openrouteservice.org` for `/geocode/autocomplete` ("statler hall" gave Statler Hall, Ithaca) and `/geocode/search` ("upson hall cornell" gave Upson Hall, Ithaca first); the same paths on `api.heigit.org` returned 404. The page's own request with the `focus.point` parameters was not exercised end to end in the browser with a key. Without a key only the eight sample places can be suggested. The new sample coordinates are approximate and unverified. The suggestion list is the browser's own list, so its look and keyboard behaviour differ by browser |
 | Human review | **Pending.** Reviewer and date: ____________ . |
 
+## Entry 018 - 2026-10-27 - Google-Maps-style place picker with a map
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `feat/place-picker` |
+| Prompt (summary, originally Chinese) | Searching a place should work like Google Maps: a list of close matches to choose from, a map showing where it is, and it must work for places never typed before (Statler Hall was not found). |
+| Constraining sources | The merged plan page and route adapter; Leaflet 1.9.4 from cdnjs; OpenStreetMap tiles |
+| What it produced | A custom suggestion list on the From and To boxes (name plus where it is, arrow keys, Enter, Escape, picked box turns green); a map card with a pin for the start and a flag for the destination that fits both; `/places` now returns label and coordinates; a line on the page saying whether place search is live (key set) or limited to the sample places; a routed result replaces the sample entry for the same place; tests in `tests/test_web_app.py` and `tests/test_routes.py` |
+| Cause found for the missing Statler Hall | The server the Commuter was using had no `ORS_API_KEY`, so only sample places could be found; with the key, `statler hall` resolves to Statler Hall, Ithaca (checked). A second, older server was also still listening on port 5000 and answered first |
+| Not claimed | The map needs internet for the Leaflet files and OpenStreetMap tiles (without it the page works and the map card stays hidden); OpenStreetMap's tile policy allows light use only, so a deployed demo with many users would need a tile provider; Leaflet is loaded without an integrity hash; keyboard use of the list was coded but only mouse and typing were exercised in the browser; place search results are ORS's ranking, so ambiguous names can list places elsewhere (for example "Upson County, GA") |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
+## Entry 019 - 2026-10-27 - Server finds the ORS key without a fresh terminal
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `feat/place-picker` |
+| Prompt (summary, originally Chinese) | The page says "Offline list only (no ORS key set)"; is the connection failing? Fix it. |
+| Constraining sources | The screenshot of the page; the saved Windows user variable |
+| What it produced | `src/key_loader.py`: at server start, use `ORS_API_KEY` from the process, else a git-ignored `.env` file, else the Windows user environment; `src/main_web.py` calls it and prints which source was used (never the key); `tests/test_key_loader.py` (5 tests, no real key or registry); README paragraph |
+| Cause | Not the network. The terminal that started the server was opened before the variable was saved, so it did not have it; a Windows user variable reaches only programs started afterwards |
+| Not claimed | Checked by starting a process with the variable removed: the loader found the key in the Windows user environment and place search returned Statler Hall. The registry lookup works on Windows only. Only the entry point calls the loader, so other ways of starting the app (for example `flask run`) still need the variable in the process |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
+## Entry 020 - 2026-10-27 - Map opens on the Commuter's location and draws the three routes
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `feat/place-picker` |
+| Prompt (summary, originally Chinese) | Open with the map on the current location; after the places are filled in, mark the start and the destination and draw the routes between them, possibly drive, walk and bike at once; propose improvements. |
+| Constraining sources | ORS Directions GeoJSON answers checked live on 2026-10-27 (LineString, lon/lat order, `properties.summary`); the browser Geolocation API |
+| What it produced | Routes now carry a `path` (ORS `/geojson` endpoint; a straight line for the estimate fallback); C.3 asks for the three modes in parallel and remembers all-ORS answers; C.2 `preview_routes`; `/route-lines` JSON endpoint; the map card is open by default, asks the browser for the position, shows a "you are here" dot, a *Start from my location* button (label `My location (lat, lon)`, resolved without a search service), pins for start and destination, three route styles with a legend; fix for `hidden` being overridden by button styles; tests in `tests/test_routes.py` and `tests/test_web_app.py` |
+| Not claimed | The browser pane here denied location, so the success path was exercised by replacing the position with a fixed one near Collegetown, not by a real device fix; desktop browsers can be less exact than a phone; the page loads Leaflet and OSM tiles from the internet; the first drive request after idle took about 3.5 s in one timing, later ones about 0.5 s; routes are shown only for the three modes ORS covers (no bus line); the position is sent to this server only when it is used as the start, and then to ORS as a route coordinate |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
 ## Entry template
 
 | Field | Value |

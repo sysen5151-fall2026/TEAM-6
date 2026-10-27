@@ -17,10 +17,19 @@ ORS_KEY = {"ORS_API_KEY": "test-key"}
 
 
 def fake_ors(url, headers=None, body=None):
-    """Different distance per profile, as a real routed answer would give."""
+    """Different distance per profile, as a real routed answer would give (GeoJSON shape)."""
     meters = {"driving-car": 3200, "foot-walking": 1800, "cycling-regular": 2100}
-    profile = url.rsplit("/", 1)[-1]
-    return {"routes": [{"summary": {"distance": meters[profile], "duration": 600}}]}
+    profile = url.split("/")[-2]  # .../v2/directions/<profile>/geojson
+    (lon1, lat1), (lon2, lat2) = body["coordinates"]
+    middle = [[(lon1 + lon2) / 2, (lat1 + lat2) / 2 + 0.001]]  # a bend, so it is not a straight line
+    return {
+        "features": [
+            {
+                "geometry": {"type": "LineString", "coordinates": [[lon1, lat1]] + middle + [[lon2, lat2]]},
+                "properties": {"summary": {"distance": meters[profile], "duration": 600}},
+            }
+        ]
+    }
 
 
 class TestFallbackWithoutKey(unittest.TestCase):
@@ -61,6 +70,9 @@ class TestFallbackWithoutKey(unittest.TestCase):
 
 
 class TestWithMockedOrs(unittest.TestCase):
+    def setUp(self):
+        route_adapter._route_cache.clear()
+
     def test_each_mode_keeps_its_own_routed_distance(self):
         with mock.patch.dict(os.environ, ORS_KEY), mock.patch.object(route_adapter, "_http_json", fake_ors):
             options = {o.mode: o for o in route_adapter.get_route_options(A, B)}
@@ -80,7 +92,7 @@ class TestWithMockedOrs(unittest.TestCase):
 
     def test_failed_mode_falls_back_alone(self):
         def flaky(url, headers=None, body=None):
-            if url.endswith("foot-walking"):
+            if "foot-walking" in url:
                 raise OSError("down")
             return fake_ors(url, headers, body)
 
@@ -130,14 +142,17 @@ class TestSuggestions(unittest.TestCase):
                 {"geometry": {"coordinates": [-76.48 - i / 1000, 42.44]}, "properties": {"label": f"Place {i}, Ithaca"}}
                 for i in range(8)
             ]
-            + [{"geometry": {"coordinates": [-76.4838, 42.4436]}, "properties": {"label": "upson hall"}}]
         }
+        reply["features"].insert(
+            0, {"geometry": {"coordinates": [-76.4839, 42.4437]}, "properties": {"label": "Upson Hall, Ithaca, NY, USA"}}
+        )
         with mock.patch.dict(os.environ, ORS_KEY), mock.patch.object(route_adapter, "_http_json", return_value=reply) as http:
             places = route_adapter.suggest_places("upson")
             route_adapter.suggest_places("upson")  # served from the cache
         self.assertEqual(http.call_count, 1)
         self.assertEqual(len(places), route_adapter.MAX_SUGGESTIONS)
-        self.assertEqual(places[0].label, "Upson Hall")  # sample first; ORS duplicate dropped
+        self.assertEqual(places[0].label, "Upson Hall, Ithaca, NY, USA")  # routed result replaces the sample entry
+        self.assertNotIn("Upson Hall", [p.label for p in places])
         self.assertEqual(len({p.label.lower() for p in places}), len(places))
         self.assertIn("focus.point.lon", http.call_args[0][0])  # biased to the campus
 
@@ -155,6 +170,67 @@ class TestSuggestions(unittest.TestCase):
             self.assertEqual(route_adapter.suggest_places("zzzz"), ())
         with mock.patch.dict(os.environ, ORS_KEY), mock.patch.object(route_adapter, "_http_json", return_value={"x": 1}):
             self.assertEqual(route_adapter.suggest_places("qqqq"), ())
+
+
+class TestRoutePaths(unittest.TestCase):
+    def setUp(self):
+        route_adapter._route_cache.clear()
+
+    def test_routes_carry_a_path_from_start_to_end_as_lat_lon(self):
+        with mock.patch.dict(os.environ, ORS_KEY), mock.patch.object(route_adapter, "_http_json", fake_ors):
+            options = route_adapter.get_route_options(A, B)
+        for o in options:
+            self.assertEqual(o.path[0], (A.lat, A.lon))  # lat first, although ORS sends lon first
+            self.assertEqual(o.path[-1], (B.lat, B.lon))
+            self.assertEqual(len(o.path), 3)
+
+    def test_fallback_path_is_a_straight_line_between_the_two_places(self):
+        with mock.patch.dict(os.environ):
+            os.environ.pop("ORS_API_KEY", None)
+            for o in route_adapter.get_route_options(A, B):
+                self.assertEqual(o.path, ((A.lat, A.lon), (B.lat, B.lon)))
+
+    def test_routed_answers_are_remembered_but_estimates_are_not(self):
+        with mock.patch.dict(os.environ, ORS_KEY), mock.patch.object(route_adapter, "_http_json", fake_ors) as http:
+            route_adapter.get_route_options(A, B)
+            route_adapter.get_route_options(A, B)
+        self.assertEqual(len(route_adapter._route_cache), 1)
+        with mock.patch.dict(os.environ, ORS_KEY), mock.patch.object(route_adapter, "_http_json", side_effect=OSError):
+            route_adapter._route_cache.clear()
+            route_adapter.get_route_options(A, B)
+        self.assertEqual(route_adapter._route_cache, {})
+
+    def test_second_lookup_makes_no_new_requests(self):
+        calls = []
+
+        def counting(url, headers=None, body=None):
+            calls.append(url)
+            return fake_ors(url, headers, body)
+
+        with mock.patch.dict(os.environ, ORS_KEY), mock.patch.object(route_adapter, "_http_json", counting):
+            route_adapter.get_route_options(A, B)
+            route_adapter.get_route_options(A, B)
+        self.assertEqual(len(calls), 3)  # one per mode, once
+
+    def test_long_paths_are_thinned_but_keep_both_ends(self):
+        points = [(42.0 + i / 10000, -76.0) for i in range(1000)]
+        thin = route_adapter._thin(points)
+        self.assertLessEqual(len(thin), route_adapter.MAX_PATH_POINTS + 1)
+        self.assertEqual((thin[0], thin[-1]), (points[0], points[-1]))
+        self.assertEqual(route_adapter._thin(points[:50]), tuple(points[:50]))
+
+    def test_a_route_without_a_line_falls_back(self):
+        empty = {"features": [{"geometry": {"coordinates": [[-76.5, 42.4]]}, "properties": {"summary": {"distance": 1, "duration": 1}}}]}
+        with mock.patch.dict(os.environ, ORS_KEY), mock.patch.object(route_adapter, "_http_json", return_value=empty):
+            self.assertTrue(all("estimate" in o.source for o in route_adapter.get_route_options(A, B)))
+
+    def test_my_location_label_resolves_without_any_service(self):
+        with mock.patch.dict(os.environ), mock.patch.object(route_adapter, "_http_json", side_effect=AssertionError):
+            os.environ.pop("ORS_API_KEY", None)
+            place = route_adapter.geocode("My location (42.4440, -76.4830)")
+            self.assertEqual((place.lat, place.lon), (42.444, -76.483))
+            self.assertIsNone(route_adapter.geocode("My location (99.0000, -76.4830)"))  # not a real latitude
+            self.assertIsNone(route_adapter.geocode("My location (north, west)"))
 
 
 if __name__ == "__main__":

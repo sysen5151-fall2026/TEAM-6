@@ -1,6 +1,6 @@
 """C.2 Application Service - calculation, baseline, recommendation, achievement rules."""
 from .achievements import campus_goal, evaluate_badges
-from .comparison import compare_modes
+from .comparison import compare_modes, preview_routes
 from .confirmation import confirm_trip
 from .demo_data import load_demo_trips
 from .plan import plan_commute
@@ -14,6 +14,7 @@ __all__ = [
     "evaluate_badges",
     "load_demo_trips",
     "plan_commute",
+    "preview_routes",
     "process_commute",
     "recommend_mode",
 ]
