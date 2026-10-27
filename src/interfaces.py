@@ -89,6 +89,7 @@ class RouteOption:  # one mode's route between two places
     distance_km: float
     duration_min: float
     source: str  # "OpenRouteService" or an estimate label
+    path: tuple = ()  # ((lat, lon), ...) along the route, for drawing on a map
 
 
 @dataclass(frozen=True)

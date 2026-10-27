@@ -1,5 +1,5 @@
 from src.c3_data_adapter import geocode, get_route_options, retrieve_factor
-from src.interfaces import CommuteRequest, ModeComparison, RouteOption
+from src.interfaces import CommuteRequest, ModeComparison, Place, RouteOption
 from src.model_trace import realizes
 
 MIN_DISTANCE_KM = 0.05  # origin and destination closer than this are treated as the same place
@@ -58,3 +58,14 @@ def compare_modes(origin_text: str, destination_text: str, transit_minutes=None)
             )
         )
     return tuple(comparisons), origin, dest, []
+
+
+def preview_routes(origin: Place, dest: Place):
+    """The routes between two chosen points, for drawing before the Commuter compares.
+
+    Returns (options, error); options is empty when error is not.
+    """
+    options = get_route_options(origin, dest)
+    if min(o.distance_km for o in options) < MIN_DISTANCE_KM:
+        return (), "Start and destination are the same place."
+    return options, ""

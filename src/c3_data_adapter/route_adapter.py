@@ -12,9 +12,11 @@ tests still use mocked responses; no automated test calls the network.
 import json
 import math
 import os
+import re
 import urllib.error
 import urllib.parse
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 
 from src.interfaces import Place, RouteOption
 from src.model_trace import realizes
@@ -50,6 +52,11 @@ MAX_SUGGESTIONS = 5
 _CACHE_LIMIT = 200
 _place_cache = {}  # label.lower() -> Place, so a picked suggestion resolves to the same point
 _suggest_cache = {}  # query.lower() -> tuple of Place, only successful ORS answers
+_route_cache = {}  # (lat, lon, lat, lon) -> routes that all came from ORS
+MAX_PATH_POINTS = 300
+
+# The page names the Commuter's own position like this; no search service is involved.
+_MY_LOCATION = re.compile(r"^My location \((-?\d{1,3}\.\d+), (-?\d{1,3}\.\d+)\)$")
 
 
 def sample_places() -> tuple:
@@ -102,7 +109,8 @@ def suggest_places(text: str) -> tuple:
                 _suggest_cache[text.lower()] = remote
             except (KeyError, IndexError, ValueError, TypeError, OSError):
                 remote = ()
-        found += remote
+        # A routed result for the same named place (within 0.5 km) replaces the sample entry.
+        found = [s for s in found if not any(_same_place(s, r) for r in remote)] + list(remote)
     seen, unique = set(), []
     for place in found:
         if place.label.lower() not in seen:
@@ -111,6 +119,11 @@ def suggest_places(text: str) -> tuple:
     for place in unique[:MAX_SUGGESTIONS]:
         _remember(place)
     return tuple(unique[:MAX_SUGGESTIONS])
+
+
+def _same_place(a: Place, b: Place) -> bool:
+    first = lambda label: label.split(",")[0].strip().lower()  # noqa: E731
+    return first(a.label) == first(b.label) and _haversine_km(a, b) < 0.5
 
 
 def _feature_to_place(feature: dict, fallback_label: str) -> Place:
@@ -125,6 +138,11 @@ def _feature_to_place(feature: dict, fallback_label: str) -> Place:
 
 def _api_key() -> str:
     return os.environ.get("ORS_API_KEY", "").strip()
+
+
+def place_search_is_live() -> bool:
+    """True when place search and routes use OpenRouteService (a key is set)."""
+    return bool(_api_key())
 
 
 def _http_json(url: str, headers=None, body=None):
@@ -149,6 +167,12 @@ def geocode(text: str):
     text = " ".join(text.split())
     if not text:
         return None
+    here = _MY_LOCATION.match(text)
+    if here:
+        lat, lon = float(here.group(1)), float(here.group(2))
+        if -90 <= lat <= 90 and -180 <= lon <= 180:
+            return Place(label=text, lon=lon, lat=lat, source="your device location")
+        return None
     picked = _place_cache.get(text.lower())  # a label the Commuter chose from the suggestions
     if picked is not None:
         return picked
@@ -166,18 +190,31 @@ def geocode(text: str):
         return None
 
 
+def _thin(points: list) -> tuple:
+    """Keep a long path drawable: at most MAX_PATH_POINTS points, always the first and last."""
+    if len(points) > MAX_PATH_POINTS:
+        step = math.ceil(len(points) / MAX_PATH_POINTS)
+        points = points[::step] + ([points[-1]] if (len(points) - 1) % step else [])
+    return tuple(points)
+
+
 def _ors_route(mode: str, origin: Place, dest: Place) -> RouteOption:
     data = _http_json(
-        f"{ORS_BASE}/v2/directions/{PROFILES[mode]}",
+        f"{ORS_BASE}/v2/directions/{PROFILES[mode]}/geojson",
         headers={"Authorization": _api_key(), "Content-Type": "application/json"},
         body={"coordinates": [[origin.lon, origin.lat], [dest.lon, dest.lat]]},
     )
-    summary = data["routes"][0]["summary"]
+    feature = data["features"][0]
+    summary = feature["properties"]["summary"]
+    path = _thin([(float(lat), float(lon)) for lon, lat in feature["geometry"]["coordinates"]])  # GeoJSON: lon, lat
+    if len(path) < 2:
+        raise ValueError("route has no line")
     return RouteOption(
         mode=mode,
         distance_km=round(float(summary["distance"]) / 1000, 2),  # metres -> km
         duration_min=round(float(summary["duration"]) / 60, 1),  # seconds -> min
         source="OpenRouteService",
+        path=path,
     )
 
 
@@ -188,19 +225,32 @@ def _fallback_route(mode: str, origin: Place, dest: Place) -> RouteOption:
         distance_km=km,
         duration_min=round(km / FALLBACK_SPEED_KMH[mode] * 60, 1),
         source=FALLBACK_SOURCE,
+        path=((origin.lat, origin.lon), (dest.lat, dest.lon)),  # a straight line, not a route
     )
 
 
 @realizes("UC.3.3")
 def get_route_options(origin: Place, dest: Place) -> tuple:
-    """One RouteOption per mode; a mode whose ORS call fails falls back individually."""
-    options = []
-    for mode in PROFILES:
+    """One RouteOption per mode; a mode whose ORS call fails falls back individually.
+
+    Answers that came entirely from ORS are remembered, so previewing the routes on the map
+    and then comparing them uses one set of requests.
+    """
+    key = tuple(round(v, 5) for v in (origin.lat, origin.lon, dest.lat, dest.lon))
+    if key in _route_cache:
+        return _route_cache[key]
+    def one(mode: str) -> RouteOption:
         if _api_key():
             try:
-                options.append(_ors_route(mode, origin, dest))
-                continue
+                return _ors_route(mode, origin, dest)
             except (KeyError, IndexError, ValueError, TypeError, OSError):
                 pass
-        options.append(_fallback_route(mode, origin, dest))
-    return tuple(options)
+        return _fallback_route(mode, origin, dest)
+
+    with ThreadPoolExecutor(max_workers=len(PROFILES)) as pool:  # the three requests wait on the network
+        result = tuple(pool.map(one, PROFILES))
+    if all(o.source == "OpenRouteService" for o in result):
+        if len(_route_cache) >= _CACHE_LIMIT:
+            _route_cache.clear()
+        _route_cache[key] = result
+    return result
