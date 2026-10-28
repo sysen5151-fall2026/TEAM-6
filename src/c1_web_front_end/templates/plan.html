@@ -33,8 +33,16 @@
     .whenrow input { width:auto; }
     .route-chip { display:inline-block; min-width:2.2em; padding:0 8px; border-radius:8px; border:2px solid var(--line); font-weight:900; text-align:center; }
     .busline { margin:6px 0 0; font-weight:800; }
+    .route-chip.small { min-width:1.8em; padding:0 6px; font-size:.85rem; border-width:1.5px; }
+    fieldset.busroutes label { font-size:.88rem; }
     ul.steps { text-align:left; }
     .legend .sw-bus { border-top-width:6px; border-top-style:solid; }
+    fieldset.share { margin:8px 0 0; padding:6px 10px 8px; border:2px dashed var(--line); border-radius:12px; text-align:left; }
+    fieldset.share legend { padding:0 6px; font-size:.85rem; font-weight:800; }
+    fieldset.share label { display:block; margin:2px 0; font-weight:700; font-size:.93rem; }
+    fieldset.share label.people { margin-top:6px; font-weight:600; }
+    fieldset.share input[type=number] { width:4.5em; padding:4px 6px; margin-left:6px; }
+    fieldset.share input[type=number]:disabled { opacity:.45; }
     .herebtn { width:100%; margin-top:8px; }
     .herenote { margin:6px 0 0; }
     fieldset.mine { margin:14px 0 0; padding:10px 14px 12px; border:2.5px dashed var(--line); border-radius:14px; }
@@ -137,22 +145,41 @@
           {% if c.mode == rec.mode %}<span class="tag">⭐ Recommended</span>{% elif out %}<span class="tag no">Not today</span>{% endif %}
           <div class="emoji" aria-hidden="true">{{ m.mode(c.mode) }}</div>
           <h3>{{ c.mode }}</h3>
-          <div class="time">{{ '%g'|format(c.duration_min) }} <small>min</small></div>
+          <div class="time" {% if c.mode == 'bus' %}id="bus-time"{% endif %}>{{ '%g'|format(c.duration_min) }} <small>min</small></div>
           <ul>
-            <li>📏 {{ '%g'|format(c.distance_km) }} km</li>
-            <li>💨 {{ '%g'|format(c.co2e_g) }} g CO2e</li>
-            <li class="save">{% if c.difference_g > 0 %}🌱 about {{ '%g'|format(c.difference_g) }} g less than driving{% else %}the driving baseline{% endif %}</li>
+            <li {% if c.mode == 'bus' %}id="bus-km"{% endif %}>📏 {{ '%g'|format(c.distance_km) }} km</li>
+            <li {% if c.mode == 'drive' %}id="drive-co2"{% elif c.mode == 'bus' %}id="bus-co2"{% endif %}>💨 {{ '%g'|format(c.co2e_g) }} g CO2e</li>
+            <li class="save" {% if c.mode == 'drive' %}id="drive-save"{% elif c.mode == 'bus' %}id="bus-save"{% endif %}>{% if c.difference_g > 0 %}🌱 about {{ '%g'|format(c.difference_g) }} g less than driving{% else %}the driving baseline{% endif %}</li>
           </ul>
-          {% if c.mode == 'bus' and plan.bus and plan.bus.itinerary %}
-          {% set b = plan.bus.itinerary %}
-          <p class="busline"><span class="route-chip" style="background:#{{ b.color }};color:#{{ b.text_color }}">{{ b.route_name }}</span> to {{ b.headsign }}</p>
-          <ul class="steps">
+          {% if c.mode == 'drive' %}
+          <fieldset class="share" data-drive-g="{{ '%g'|format(c.co2e_g) }}">
+            <legend>Who is in the car?</legend>
+            <label><input type="radio" name="share" value="alone" {% if values.get('share') != 'carpool' %}checked{% endif %}> 🚗 Alone</label>
+            <label><input type="radio" name="share" value="carpool" {% if values.get('share') == 'carpool' %}checked{% endif %}> 🧑‍🤝‍🧑 Carpool</label>
+            <label class="people" for="occupants">People, you included
+              <input id="occupants" name="occupants" type="number" min="2" max="8" step="1" value="{{ values.get('occupants') or 2 }}"></label>
+          </fieldset>
+          {% endif %}
+          {% if c.mode == 'bus' and plan.bus and plan.bus.options %}
+          {% set b = (plan.bus.options | selectattr('route_id', 'equalto', plan.bus_choice) | list)[0] %}
+          <p class="busline" id="bus-line"><span class="route-chip" style="background:#{{ b.color }};color:#{{ b.text_color }}">{{ b.route_name }}</span> to {{ b.headsign }}</p>
+          <ul class="steps" id="bus-steps">
             <li>🚶 {{ b.walk_to_min }} min ({{ b.walk_to_m }} m) to {{ b.board.name }}</li>
             <li>🕒 Bus {{ b.depart_time }} → {{ b.arrive_time }} ({{ b.ride_min }} min)</li>
             <li>🚶 {{ b.walk_from_min }} min ({{ b.walk_from_m }} m) from {{ b.alight.name }}</li>
             <li>⏱️ Leave by {{ b.leave_time }}, arrive about {{ b.arrive_destination }}</li>
             {% if b.next_departures %}<li>Next: {{ b.next_departures|join(', ') }}</li>{% endif %}
           </ul>
+          {% if plan.bus.options | length > 1 %}
+          <fieldset class="share busroutes">
+            <legend>{{ plan.bus.options | length }} routes go there: pick one</legend>
+            {% for o in plan.bus.options %}
+            <label><input type="radio" name="bus_route" value="{{ o.route_id }}" {% if o.route_id == plan.bus_choice %}checked{% endif %}>
+              <span class="route-chip small" style="background:#{{ o.color }};color:#{{ o.text_color }}">{{ o.route_name }}</span>
+              {{ o.depart_time }} → {{ o.arrive_time }} · {{ o.total_min }} min</label>
+            {% endfor %}
+          </fieldset>
+          {% endif %}
           {% endif %}
           {% if out %}<p class="why">Ruled out: {{ out[0][1] }}</p>{% endif %}
           <button class="btn small {{ 'alt' if c.mode == rec.mode else 'ghost' }}" type="submit" name="mode" value="{{ c.mode }}">Choose this way</button>
@@ -254,6 +281,15 @@
       else if (points.length === 1) map.setView(points[0], 16);
     }
 
+    // The bus option to show: the one ticked in the bus card, else the best one.
+    function selectedBus(bus) {
+      var options = bus && bus.options ? bus.options : (bus && bus.path ? [bus] : []);
+      if (!options.length) return null;
+      var ticked = document.querySelector('input[name="bus_route"]:checked');
+      var wanted = ticked ? ticked.value : "";
+      return options.filter(function (o) { return o.route_id === wanted; })[0] || options[0];
+    }
+
     // Draw the routes for the ways the Commuter can use. A scooter shares the bike route.
     function drawRoutes(routes, refit, bus) {
       lastRoutes = routes; lastBus = bus || null;
@@ -268,11 +304,17 @@
       }
       var drive = route("drive"), walk = route("walk"), bike = route("bike");
       if (drive) line(drive);
-      if (bus && bus.path) {  // the bus: its own line in the route colour, with the stops it uses
-        var tint = "#" + bus.color;
-        L.polyline(bus.path, { color: tint, weight: 7, opacity: 0.9 }).addTo(lines);
-        bus.path.forEach(function (p) { all.push(p); });
-        [bus.board, bus.alight].forEach(function (stop) {
+      var busOptions = bus && bus.options ? bus.options : (bus && bus.path ? [bus] : []);
+      var pickedBus = selectedBus(bus);
+      busOptions.forEach(function (option) {  // the routes that go there thin and faint, the picked one thick
+        if (option === pickedBus) return;
+        L.polyline(option.path, { color: "#" + option.color, weight: 4, opacity: 0.45 }).addTo(lines);
+      });
+      if (pickedBus) {  // the picked bus: its own line in the route colour, with the stops it uses
+        var tint = "#" + pickedBus.color;
+        L.polyline(pickedBus.path, { color: tint, weight: 7, opacity: 0.9 }).addTo(lines);
+        pickedBus.path.forEach(function (p) { all.push(p); });
+        [pickedBus.board, pickedBus.alight].forEach(function (stop) {
           L.circleMarker([stop.lat, stop.lon], { radius: 6, color: "#fff", weight: 2, fillColor: tint, fillOpacity: 1 })
             .bindTooltip(stop.name).addTo(lines);
         });
@@ -285,9 +327,10 @@
         legendRow(row[2], LABEL[row[0]] + " " + row[1].distance_km + " km, " + row[1].duration_min + " min" +
                           (row[0] === "scooter" ? " (bike route)" : ""));
       });
-      if (bus && bus.path) {
-        legendRow("bus", "🚌 Route " + bus.route + " to " + bus.headsign + ": " + bus.depart + " → " + bus.arrive +
-                         " (walk " + bus.walk_to_min + " min, ride " + bus.ride_min + " min, walk " + bus.walk_from_min + " min)", "#" + bus.color);
+      if (pickedBus) {
+        legendRow("bus", "🚌 Route " + pickedBus.route + " to " + pickedBus.headsign + ": " + pickedBus.depart + " → " + pickedBus.arrive +
+                         " (walk " + pickedBus.walk_to_min + " min, ride " + pickedBus.ride_min + " min, walk " + pickedBus.walk_from_min + " min)" +
+                         (busOptions.length > 1 ? " · " + busOptions.length + " routes go there" : ""), "#" + pickedBus.color);
       } else if (bus && bus.note) {
         legendRow("", "🚌 " + bus.note);
       }
@@ -377,16 +420,18 @@
         active = n;
         Array.prototype.forEach.call(list.children, function (li, i) { li.setAttribute("aria-selected", i === n ? "true" : "false"); });
       }
-      function note(text) {
-        list.textContent = "";
-        var li = document.createElement("li");
-        li.className = "empty"; li.textContent = text;
-        list.appendChild(li); list.hidden = false;
-        input.setAttribute("aria-expanded", "true");
+      var PAUSED = "Online search is paused for about a minute (its free quota ran out). Showing sample places.";
+      var SEARCHING = "🔎 Searching online…";
+      var quickCtl = null, onlineCtl = null, online = true, fullShownFor = 0;
+      function aborter() { return typeof AbortController !== "undefined" ? new AbortController() : null; }
+      function getJson(url, ctl) {
+        return fetch(url, ctl ? { signal: ctl.signal } : {}).then(function (r) {
+          if (!r.ok) throw new Error(r.status);
+          return r.json();
+        });
       }
-      function render(places) {
+      function render(places, footer) {
         items = places; active = -1;
-        if (!places.length) { note("No places found. Try another name."); return; }
         list.textContent = "";
         places.forEach(function (place, i) {
           var li = document.createElement("li");
@@ -405,27 +450,54 @@
           li.addEventListener("mousedown", function (e) { e.preventDefault(); choose(places[i]); });
           list.appendChild(li);
         });
+        footer = footer || (places.length ? "" : "No places found. Try another name.");
+        if (footer) {
+          var note = document.createElement("li");
+          note.className = "empty"; note.textContent = footer;
+          list.appendChild(note);
+        }
         list.hidden = false; input.setAttribute("aria-expanded", "true");
       }
-      function ask(text) {
-        if (cache[text]) { render(cache[text]); return; }
-        var mine = ++latest;
-        fetch("/places?q=" + encodeURIComponent(text))
-          .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-          .then(function (places) { cache[text] = places; if (mine === latest) render(places); })
-          .catch(function () { if (mine === latest) note("Suggestions are unavailable right now."); });
+      // Step 1, at once: sample places and anything already known (no online request).
+      function quick(text) {
+        var mine = ++latest;  // typing more makes older answers stale
+        if (quickCtl) quickCtl.abort();
+        quickCtl = aborter();
+        var known = cache[text];
+        if (known) { fullShownFor = mine; render(known.places, known.paused ? PAUSED : ""); return mine; }
+        getJson("/places?quick=1&q=" + encodeURIComponent(text), quickCtl).then(function (d) {
+          if (mine !== latest || fullShownFor === mine) return;
+          online = d.online;
+          render(d.places, online && text.length >= 3 ? SEARCHING : "");
+        }).catch(function () {});
+        return mine;
+      }
+      // Step 2, a moment after the last key: the online search, replacing the quick list.
+      function full(text, mine) {
+        if (!online || text.length < 3 || cache[text]) return;
+        if (onlineCtl) onlineCtl.abort();
+        onlineCtl = aborter();
+        getJson("/places?q=" + encodeURIComponent(text), onlineCtl).then(function (d) {
+          cache[text] = d;
+          if (mine !== latest) return;
+          fullShownFor = mine;
+          render(d.places, d.paused ? PAUSED : "");
+        }).catch(function (e) {
+          if (mine === latest && !(e && e.name === "AbortError")) render(items, "Online suggestions are unavailable right now.");
+        });
       }
 
       input.addEventListener("input", function () {
         picked[kind] = null; input.classList.remove("picked"); refresh();
         clearTimeout(timer);
         var text = input.value.trim();
-        if (text.length < 2) { close(); return; }
-        timer = setTimeout(function () { ask(text); }, 220);
+        if (text.length < 2) { latest++; close(); return; }
+        var mine = quick(text);
+        timer = setTimeout(function () { full(text, mine); }, 150);
       });
       input.addEventListener("focus", function () {
         var text = input.value.trim();
-        if (!picked[kind] && text.length >= 2) ask(text);
+        if (!picked[kind] && text.length >= 2) full(text, quick(text));
       });
       input.addEventListener("blur", close);
       input.addEventListener("keydown", function (e) {
@@ -469,9 +541,73 @@
       });
     });
 
-    // Enter in the date box must not pick the first way by accident.
-    var tripDate = document.getElementById("trip_date");
-    if (tripDate) tripDate.addEventListener("keydown", function (e) { if (e.key === "Enter") e.preventDefault(); });
+    // Enter in a box inside the way cards must not pick the first way by accident.
+    ["trip_date", "occupants"].forEach(function (id) {
+      var box = document.getElementById(id);
+      if (box) box.addEventListener("keydown", function (e) { if (e.key === "Enter") e.preventDefault(); });
+    });
+
+    // The bus card: switch between the routes that go there without leaving the page.
+    var busCards = {{ bus_cards|tojson }};
+    var busRadios = document.querySelectorAll('input[name="bus_route"]');
+    function showBus(card) {
+      var put = function (id, text) { var el = document.getElementById(id); if (el) el.textContent = text; };
+      document.getElementById("bus-time").textContent = card.total_min + " ";
+      var unit = document.createElement("small"); unit.textContent = "min";
+      document.getElementById("bus-time").appendChild(unit);
+      put("bus-km", "📏 " + card.ride_km + " km");
+      put("bus-co2", "💨 " + card.co2e_g + " g CO2e");
+      put("bus-save", card.difference_g > 0 ? "🌱 about " + card.difference_g + " g less than driving" : "the driving baseline");
+      var line = document.getElementById("bus-line");
+      line.textContent = "";
+      var chip = document.createElement("span");
+      chip.className = "route-chip"; chip.textContent = card.route;
+      chip.style.background = "#" + card.color; chip.style.color = "#" + card.text_color;
+      line.appendChild(chip); line.appendChild(document.createTextNode(" to " + card.headsign));
+      var steps = document.getElementById("bus-steps");
+      steps.textContent = "";
+      [ "🚶 " + card.walk_to_min + " min (" + card.walk_to_m + " m) to " + card.board,
+        "🕒 Bus " + card.depart + " → " + card.arrive + " (" + card.ride_min + " min)",
+        "🚶 " + card.walk_from_min + " min (" + card.walk_from_m + " m) from " + card.alight,
+        "⏱️ Leave by " + card.leave + ", arrive about " + card.arrive_destination
+      ].concat(card.next.length ? ["Next: " + card.next.join(", ")] : []).forEach(function (text) {
+        var li = document.createElement("li"); li.textContent = text; steps.appendChild(li);
+      });
+    }
+    Array.prototype.forEach.call(busRadios, function (radio) {
+      radio.addEventListener("change", function () {
+        var card = busCards.filter(function (c) { return c.route_id === radio.value; })[0];
+        if (card) showBus(card);
+        if (lastRoutes) drawRoutes(lastRoutes, false, lastBus);  // thick line moves to the picked route
+      });
+    });
+
+    // The drive card: alone, or a carpool whose emissions are shared by the people in the car.
+    var share = document.querySelector("fieldset.share");
+    if (share) {
+      var driveG = parseFloat(share.getAttribute("data-drive-g"));
+      var people = document.getElementById("occupants");
+      var co2Line = document.getElementById("drive-co2"), saveLine = document.getElementById("drive-save");
+      var carpoolOn = function () { return !!share.querySelector('input[value="carpool"]:checked'); };
+      var updateShare = function () {
+        var n = Math.round(parseFloat(people.value));
+        var valid = n >= 2 && n <= 8;
+        people.disabled = !carpoolOn();
+        if (!carpoolOn()) {
+          co2Line.textContent = "💨 " + driveG + " g CO2e";
+          saveLine.textContent = "the driving baseline";
+        } else if (valid) {
+          var each = Math.round(driveG / n);
+          co2Line.textContent = "💨 " + each + " g CO2e each";
+          saveLine.textContent = "🌱 about " + (driveG - each) + " g less than driving alone";
+        } else {
+          co2Line.textContent = "💨 " + driveG + " g CO2e";
+          saveLine.textContent = "Enter 2 to 8 people";
+        }
+      };
+      share.addEventListener("input", updateShare);
+      updateShare();
+    }
 
     combo(document.getElementById("origin"), "origin");
     combo(document.getElementById("destination"), "destination");

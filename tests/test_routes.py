@@ -3,8 +3,13 @@
 Run:  python -m unittest discover -s tests -t .
 """
 
+import http.server
+import json
 import os
+import threading
+import time
 import unittest
+import urllib.error
 from unittest import mock
 
 from src.c2_application_service import compare_modes
@@ -231,6 +236,290 @@ class TestRoutePaths(unittest.TestCase):
             self.assertEqual((place.lat, place.lon), (42.444, -76.483))
             self.assertIsNone(route_adapter.geocode("My location (99.0000, -76.4830)"))  # not a real latitude
             self.assertIsNone(route_adapter.geocode("My location (north, west)"))
+
+
+class TestSuggestionSpeed(unittest.TestCase):
+    def setUp(self):
+        route_adapter._place_cache.clear()
+        route_adapter._suggest_cache.clear()
+        for service in route_adapter._paused_until:
+            route_adapter._paused_until[service] = 0.0
+        self.addCleanup(lambda: [route_adapter._paused_until.__setitem__(k, 0.0) for k in route_adapter._paused_until])
+        env = mock.patch.dict(os.environ, ORS_KEY)
+        env.start()
+        self.addCleanup(env.stop)
+
+    @staticmethod
+    def reply(*labels):
+        return {"features": [{"geometry": {"coordinates": [-76.5 - i / 100, 42.44]}, "properties": {"label": label}}
+                             for i, label in enumerate(labels)]}
+
+    def test_offline_mode_shows_samples_at_once_without_any_request(self):
+        with mock.patch.object(route_adapter, "_http_json", side_effect=AssertionError("no request")):
+            self.assertEqual([p.label for p in route_adapter.suggest_places("upson", online=False)], ["Upson Hall"])
+
+    def test_the_online_search_waits_for_three_characters_and_uses_a_short_timeout(self):
+        with mock.patch.object(route_adapter, "_http_json", return_value=self.reply("Statler Hall, Ithaca, NY, USA")) as http:
+            route_adapter.suggest_places("st")
+            http.assert_not_called()
+            route_adapter.suggest_places("sta")
+        self.assertEqual(http.call_count, 1)
+        self.assertEqual(http.call_args.kwargs["timeout"], route_adapter.SUGGEST_TIMEOUT_S)
+
+    def test_a_longer_text_reuses_the_answer_for_its_start_without_a_request(self):
+        with mock.patch.object(route_adapter, "_http_json", return_value=self.reply(
+                "Statler Hall, Ithaca, NY, USA", "Statler Hotel, Ithaca, NY, USA", "State Street, Ithaca, NY, USA")):
+            route_adapter.suggest_places("stat")
+        with mock.patch.object(route_adapter, "_http_json", side_effect=AssertionError("no request")):
+            quick = route_adapter.suggest_places("statl", online=False)
+        self.assertEqual([p.label for p in quick], ["Statler Hall, Ithaca, NY, USA", "Statler Hotel, Ithaca, NY, USA"])
+
+    def test_when_both_services_are_out_of_quota_suggestions_pause_and_later_calls_cost_nothing(self):
+        quota = urllib.error.HTTPError("u", 403, "Forbidden", {}, None)
+        with mock.patch.object(route_adapter, "_http_json", side_effect=quota) as http:
+            first = route_adapter.suggest_places("upson")
+            self.assertTrue(route_adapter.search_paused())
+            second = route_adapter.suggest_places("upson h")
+            third = route_adapter.suggest_places("duffield")
+        self.assertEqual(http.call_count, 2)  # autocomplete, then search; nothing after that
+        self.assertEqual([p.label for p in first], ["Upson Hall"])  # samples still shown
+        self.assertEqual([p.label for p in second], ["Upson Hall"])
+        self.assertEqual([p.label for p in third], ["Duffield Hall"])
+
+    def test_when_autocomplete_is_out_of_quota_the_search_service_keeps_suggestions_coming(self):
+        quota = urllib.error.HTTPError("u", 403, "Forbidden", {}, None)
+        urls = []
+
+        def serve(url, headers=None, body=None, timeout=None):
+            urls.append(url.split("?")[0].rsplit("/", 1)[-1])
+            if "/geocode/autocomplete" in url:
+                raise quota
+            return self.reply("Statler Hall, Ithaca, NY, USA")
+
+        with mock.patch.object(route_adapter, "_http_json", side_effect=serve):
+            first = route_adapter.suggest_places("statler")
+            second = route_adapter.suggest_places("statler h")
+        self.assertEqual(urls, ["autocomplete", "search", "search"])  # the second call skipped the paused service
+        self.assertEqual([p.label for p in first], ["Statler Hall, Ithaca, NY, USA"])
+        self.assertEqual([p.label for p in second], ["Statler Hall, Ithaca, NY, USA"])
+        self.assertFalse(route_adapter.search_paused())  # suggestions are not paused: one source still works
+
+    def test_places_near_campus_are_asked_for_first_and_everywhere_only_if_none_found(self):
+        urls = []
+
+        def serve(url, headers=None, body=None, timeout=None):
+            urls.append(url)
+            return self.reply() if "boundary.circle" in url else self.reply("Faraway Cafe, Albany, NY, USA")
+
+        with mock.patch.object(route_adapter, "_http_json", side_effect=serve):
+            places = route_adapter.suggest_places("faraway")
+        self.assertEqual(len(urls), 2)
+        self.assertIn("boundary.circle.radius=25", urls[0])
+        self.assertNotIn("boundary.circle", urls[1])
+        self.assertEqual([p.label for p in places], ["Faraway Cafe, Albany, NY, USA"])
+
+    def test_a_local_answer_costs_one_request(self):
+        with mock.patch.object(route_adapter, "_http_json", return_value=self.reply("Statler Hall, Ithaca, NY, USA")) as http:
+            route_adapter.suggest_places("statler")
+        self.assertEqual(http.call_count, 1)
+        self.assertIn("boundary.circle.lon", http.call_args[0][0])
+
+    def test_typing_a_place_and_not_picking_it_is_looked_up_near_campus_first(self):
+        urls = []
+
+        def serve(url, headers=None, body=None, timeout=None):
+            urls.append(url)
+            return self.reply("Statler Hall, Ithaca, NY, USA")
+
+        with mock.patch.object(route_adapter, "_http_json", side_effect=serve):
+            place = route_adapter.geocode("statler hall")
+        self.assertEqual(place.label, "Statler Hall, Ithaca, NY, USA")
+        self.assertEqual(len(urls), 1)
+        self.assertIn("boundary.circle.radius", urls[0])
+
+    def test_the_pause_ends_after_the_cooldown(self):
+        quota = urllib.error.HTTPError("u", 429, "Too Many Requests", {}, None)
+        with mock.patch.object(route_adapter, "_http_json", side_effect=quota):
+            route_adapter.suggest_places("upson")
+        self.assertTrue(route_adapter.search_paused())
+        later = route_adapter.time.monotonic() + route_adapter.COOLDOWN_S + 1
+        with mock.patch.object(route_adapter.time, "monotonic", return_value=later):
+            self.assertFalse(route_adapter.search_paused())
+            with mock.patch.object(route_adapter, "_http_json", return_value=self.reply("Upson Hall, Ithaca, NY, USA")) as http:
+                route_adapter.suggest_places("upson hall")
+        self.assertEqual(http.call_count, 1)  # asking resumed
+
+    def test_other_failures_do_not_pause_anything(self):
+        for err in (OSError("down"), urllib.error.HTTPError("u", 500, "Server Error", {}, None), ValueError("bad json")):
+            with self.subTest(err=err), mock.patch.object(route_adapter, "_http_json", side_effect=err):
+                route_adapter.suggest_places("upson")
+                self.assertFalse(route_adapter.search_paused())
+
+    def test_the_services_have_separate_quotas(self):
+        quota = urllib.error.HTTPError("u", 403, "Forbidden", {}, None)
+        route_adapter._paused_until["autocomplete"] = route_adapter.time.monotonic() + 60
+        reply = {"features": [{"geometry": {"coordinates": [-76.482, 42.4458]}, "properties": {"label": "Statler Hall, Ithaca, NY, USA"}}]}
+        with mock.patch.object(route_adapter, "_http_json", return_value=reply):
+            self.assertEqual(route_adapter.geocode("statler hall").label, "Statler Hall, Ithaca, NY, USA")  # search still works
+        with mock.patch.object(route_adapter, "_http_json", side_effect=quota):
+            route_adapter.geocode("another place")  # now search runs out too
+        self.assertTrue(route_adapter.search_paused())
+
+    def test_a_quota_answer_on_search_falls_back_to_the_samples_and_pauses_search_only(self):
+        quota = urllib.error.HTTPError("u", 403, "Forbidden", {}, None)
+        with mock.patch.object(route_adapter, "_http_json", side_effect=quota) as http:
+            self.assertIsNone(route_adapter.geocode("somewhere unlisted"))
+            self.assertIsNone(route_adapter.geocode("another unlisted place"))
+        self.assertEqual(http.call_count, 1)
+        self.assertFalse(route_adapter.search_paused())  # autocomplete is a different quota
+
+    def test_a_quota_answer_on_routes_falls_back_to_estimates_without_more_requests(self):
+        route_adapter._route_cache.clear()
+        quota = urllib.error.HTTPError("u", 429, "Too Many", {}, None)
+        with mock.patch.object(route_adapter, "_http_json", side_effect=quota) as http:
+            first = route_adapter.get_route_options(A, B)
+            calls_after_first = http.call_count
+            c = Place("C", -76.49, 42.45, "test")
+            second = route_adapter.get_route_options(A, c)
+        self.assertTrue(all("estimate" in o.source for o in first + second))
+        self.assertLessEqual(calls_after_first, 3)
+        self.assertEqual(http.call_count, calls_after_first)  # the second pair cost no requests
+
+
+class _Handler(http.server.BaseHTTPRequestHandler):
+    protocol_version = "HTTP/1.1"
+
+    def do_GET(self):
+        code, body, drop = 200, b'{"ok": true}', False
+        if self.path.startswith("/forbidden"):
+            code, body = 403, b'{"error": "Quota exceeded"}'
+        elif self.path.startswith("/notjson"):
+            body = b"not json"
+        elif self.path.startswith("/headers"):
+            body = json.dumps({k.lower(): v for k, v in self.headers.items()}).encode()
+        elif self.path.startswith("/drop"):
+            drop = True  # answer, then close the socket without saying so
+        elif self.path.startswith("/slow"):
+            time.sleep(1.0)
+        self.send_response(code)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+        if drop:
+            self.close_connection = True
+
+    def do_POST(self):
+        body = self.rfile.read(int(self.headers.get("Content-Length", 0)))
+        reply = json.dumps({"echo": json.loads(body), "auth": self.headers.get("Authorization")}).encode()
+        self.send_response(200)
+        self.send_header("Content-Length", str(len(reply)))
+        self.end_headers()
+        self.wfile.write(reply)
+
+    def log_message(self, *args):
+        pass
+
+
+class _CountingServer(http.server.ThreadingHTTPServer):
+    daemon_threads = True
+    connections = 0
+
+    def get_request(self):
+        self.connections += 1
+        return super().get_request()
+
+    def handle_error(self, request, client_address):
+        pass  # a client that gave up (the timeout test) is not worth a traceback
+
+
+class TestHttpHelper(unittest.TestCase):
+    """The real _http_json against a small local server: no internet needed."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.server = _CountingServer(("127.0.0.1", 0), _Handler)
+        threading.Thread(target=cls.server.serve_forever, daemon=True).start()
+        cls.base = f"http://127.0.0.1:{cls.server.server_address[1]}"
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.server.shutdown()
+        cls.server.server_close()
+
+    def setUp(self):
+        self._close_idle()  # forget kept-open connections
+        self.addCleanup(self._close_idle)
+        self.start = self.server.connections
+
+    @staticmethod
+    def _close_idle():
+        for waiting in route_adapter._idle.values():
+            for conn in waiting:
+                conn.close()
+        route_adapter._idle.clear()
+
+    def test_one_connection_serves_several_requests(self):
+        for _ in range(5):
+            self.assertEqual(route_adapter._http_json(self.base + "/ok"), {"ok": True})
+        self.assertEqual(self.server.connections - self.start, 1)
+
+    def test_no_accept_header_is_forced_on_the_service(self):
+        # the route service answers 406 Not Acceptable to "Accept: application/json" on its GeoJSON endpoint
+        sent = route_adapter._http_json(self.base + "/headers")
+        self.assertNotIn("accept", sent)
+        sent = route_adapter._http_json(self.base + "/headers", headers={"Accept": "application/geo+json"})
+        self.assertEqual(sent["accept"], "application/geo+json")  # a caller can still ask for one
+
+    def test_post_sends_the_body_and_headers(self):
+        reply = route_adapter._http_json(self.base + "/x", headers={"Authorization": "k"}, body={"coordinates": [[1, 2]]})
+        self.assertEqual(reply, {"echo": {"coordinates": [[1, 2]]}, "auth": "k"})
+
+    def test_http_errors_keep_their_status_code(self):
+        with self.assertRaises(urllib.error.HTTPError) as caught:
+            route_adapter._http_json(self.base + "/forbidden")
+        self.assertEqual(caught.exception.code, 403)
+        self.assertIn(b"Quota exceeded", caught.exception.read())
+        self.assertEqual(route_adapter._http_json(self.base + "/ok"), {"ok": True})  # the connection still works
+
+    def test_a_reply_that_is_not_json_is_a_value_error(self):
+        with self.assertRaises(ValueError):
+            route_adapter._http_json(self.base + "/notjson")
+
+    def test_a_connection_the_server_closed_is_replaced_once(self):
+        self.assertEqual(route_adapter._http_json(self.base + "/drop"), {"ok": True})
+        self.assertEqual(route_adapter._http_json(self.base + "/ok"), {"ok": True})  # retried on a new connection
+        self.assertEqual(self.server.connections - self.start, 2)
+
+    def test_a_slow_answer_gives_up_after_the_timeout(self):
+        began = time.monotonic()
+        with self.assertRaises(OSError):
+            route_adapter._http_json(self.base + "/slow", timeout=0.2)
+        self.assertLess(time.monotonic() - began, 0.9)  # did not wait for the full second, nor retry
+
+    def test_connections_are_shared_between_threads_like_the_web_server_uses_them(self):
+        results = []
+        for _ in range(4):  # a new thread per request, as the development server does
+            thread = threading.Thread(target=lambda: results.append(route_adapter._http_json(self.base + "/ok")))
+            thread.start()
+            thread.join()
+        self.assertEqual(results, [{"ok": True}] * 4)
+        self.assertEqual(self.server.connections - self.start, 1)
+
+    def test_warm_up_opens_a_connection_without_a_key_it_does_nothing(self):
+        with mock.patch.object(route_adapter, "ORS_BASE", self.base), mock.patch.dict(os.environ, ORS_KEY):
+            route_adapter.warm_up()
+            before = self.server.connections
+            route_adapter._http_json(self.base + "/ok")
+        self.assertEqual(self.server.connections, before)  # the first real request reused the warmed connection
+        with mock.patch.dict(os.environ):
+            os.environ.pop("ORS_API_KEY", None)
+            with mock.patch.object(route_adapter, "_http_json", side_effect=AssertionError("no request")):
+                route_adapter.warm_up()
+
+    def test_a_refused_connection_is_an_os_error(self):
+        with self.assertRaises(OSError):
+            route_adapter._http_json("http://127.0.0.1:9/never", timeout=0.5)
 
 
 if __name__ == "__main__":

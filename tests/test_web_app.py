@@ -127,12 +127,31 @@ class TestPlanPage(unittest.TestCase):
     def test_places_endpoint_suggests_matching_places(self):
         response = self.client.get("/places?q=upson")
         self.assertEqual(response.status_code, 200)
-        found = response.get_json()
+        data = response.get_json()
+        found = data["places"]
         self.assertEqual([p["label"] for p in found], ["Upson Hall"])
         self.assertTrue(42 < found[0]["lat"] < 43 and -77 < found[0]["lon"] < -76)  # coordinates for the map
-        self.assertEqual(self.client.get("/places?q=").get_json(), [])
-        self.assertEqual(self.client.get("/places").get_json(), [])
+        self.assertEqual((data["online"], data["paused"]), (False, False))  # no key in the tests
+        for url in ("/places?q=", "/places"):
+            self.assertEqual(self.client.get(url).get_json()["places"], [])
         self.assertEqual(self.client.get("/places?q=" + "x" * 5000).status_code, 200)
+
+    def test_quick_mode_never_asks_the_online_service(self):
+        with mock.patch.dict(os.environ, {"ORS_API_KEY": "k"}), mock.patch(
+            "src.c3_data_adapter.route_adapter._http_json", side_effect=AssertionError("no request expected")
+        ):
+            quick = self.client.get("/places?quick=1&q=upson").get_json()
+        self.assertEqual([p["label"] for p in quick["places"]], ["Upson Hall"])
+        self.assertTrue(quick["online"])
+
+    def test_the_endpoint_reports_a_paused_online_search(self):
+        with mock.patch("src.c1_web_front_end.web_app.search_paused", return_value=True):
+            self.assertTrue(self.client.get("/places?q=upson").get_json()["paused"])
+
+    def test_the_page_shows_a_list_at_once_and_the_online_one_after(self):
+        page = self.client.get("/").get_data(as_text=True)
+        for needle in ("/places?quick=1&q=", "SEARCHING", "PAUSED", "AbortController", "}, 150);"):
+            self.assertIn(needle, page)
 
     def test_page_says_whether_place_search_is_live(self):
         self.assertIn(b"Offline list only", self.client.get("/").data)  # setUp removes the key

@@ -153,6 +153,7 @@ class BusResult:
     #              "no_direct_route", "no_service_that_day", "no_more_that_day"
     note: str  # plain-language reason shown on the bus card
     later: "BusItinerary | None" = None  # the next bus on a later day when there is none on the requested day
+    options: tuple = ()  # the best ride of each route that links the places, earliest arrival first
 
 
 @dataclass(frozen=True)
@@ -163,6 +164,8 @@ class CommutePlan:  # everything the compare page shows
     recommendation: "Recommendation | None"
     errors: tuple
     bus: "BusResult | None" = None
+    bus_rows: tuple = ()  # a ModeComparison for each bus option, in the same order as bus.options
+    bus_choice: str = ""  # route id of the option the bus row of `comparisons` is built from
 
 
 @dataclass(frozen=True)
@@ -175,6 +178,8 @@ class ConfirmedTrip:  # a trip the Commuter says they actually took
     co2e_g: float
     difference_g: float  # estimated difference from the always-drive baseline
     recommended_mode: str  # what the page recommended at the time ("" if none)
+    occupants: int = 1  # people sharing the car (the Commuter included); more than 1 means a carpool
+    route: str = ""  # the bus route number when the way was the bus
 
 
 @dataclass(frozen=True)

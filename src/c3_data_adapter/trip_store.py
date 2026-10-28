@@ -9,11 +9,15 @@ from src.model_trace import realizes
 _CONFIRMED = []
 
 
+def trip_key(trip: ConfirmedTrip) -> tuple:
+    """Date, places and way; a drive and a carpool of the same trip are the same car trip."""
+    return (trip.date, trip.origin, trip.destination, "drive" if trip.mode == "carpool" else trip.mode)
+
+
 @realizes("UC.3.8")
 def add_confirmed(trip: ConfirmedTrip) -> bool:
-    """Store the trip; False when the same date, places and mode were already confirmed."""
-    key = (trip.date, trip.origin, trip.destination, trip.mode)
-    if any((t.date, t.origin, t.destination, t.mode) == key for t in _CONFIRMED):
+    """Store the trip; False when the same date, places and way were already confirmed."""
+    if any(trip_key(t) == trip_key(trip) for t in _CONFIRMED):
         return False
     _CONFIRMED.append(trip)
     return True

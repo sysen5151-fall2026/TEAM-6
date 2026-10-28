@@ -26,7 +26,13 @@ from src.c2_application_service import (
 )
 from src.c2_application_service.achievements import counted_trips
 from src.c2_application_service.plan import VEHICLES
-from src.c3_data_adapter import confirmed_trips, place_search_is_live, reset_confirmed, suggest_places
+from src.c3_data_adapter import (
+    confirmed_trips,
+    place_search_is_live,
+    reset_confirmed,
+    search_paused,
+    suggest_places,
+)
 from src.interfaces import Place
 from src.model_trace import realizes
 
@@ -81,6 +87,7 @@ def render_plan(values, plan=None, errors=()):
         active="plan",
         live_search=place_search_is_live(),
         map_places=_map_places(plan),
+        bus_cards=_bus_cards(plan),
         vehicles=VEHICLES,
         today=today.isoformat(),
         when_value=when.strftime("%Y-%m-%dT%H:%M"),
@@ -120,19 +127,34 @@ def plan_page():
     if errors:
         return render_plan(values, errors=errors)
 
-    plan = plan_commute(origin, destination, have=parse_have(request.form), when=when)
+    plan = plan_commute(origin, destination, have=parse_have(request.form), when=when,
+                        bus_route=values.get("bus_route", ""))
     return render_plan(values, plan=plan, errors=plan.errors)
+
+
+def parse_share(form) -> tuple:
+    """(mode, people) for the drive card: "Alone" is a drive, "Carpool" a carpool of that many people."""
+    mode = form.get("mode", "")
+    if mode == "drive" and form.get("share") == "carpool":
+        try:
+            return "carpool", int(form.get("occupants", ""))
+        except ValueError:
+            return "carpool", 0  # the trip is refused with a message about the number of people
+    return mode, 1
 
 
 def confirm_page():
     when, _ = parse_when(request.form.get("when"))  # a bad value means "now"
+    mode, people = parse_share(request.form)
     trip, new_badges, errors = confirm_trip(
         request.form.get("origin", ""),
         request.form.get("destination", ""),
-        request.form.get("mode", ""),
+        mode,
         request.form.get("date", ""),
         parse_have(request.form),
         when,
+        people,
+        request.form.get("bus_route", ""),
     )
     if errors:
         return render_plan(form_values(), errors=errors)
@@ -189,9 +211,19 @@ def garden_page():
 
 
 def places_api():
-    """Place names matching the text typed so far, for the suggestion list."""
+    """Places matching the text typed so far, for the suggestion list.
+
+    quick=1 answers at once from sample places and what is already known, without asking
+    the online service; the page asks again without it a moment after the last key.
+    """
+    quick = request.args.get("quick") == "1"
+    places = suggest_places(request.args.get("q", ""), online=not quick)
     return jsonify(
-        [{"label": p.label, "lat": p.lat, "lon": p.lon} for p in suggest_places(request.args.get("q", ""))]
+        {
+            "places": [{"label": p.label, "lat": p.lat, "lon": p.lon} for p in places],
+            "online": place_search_is_live(),
+            "paused": search_paused(),
+        }
     )
 
 
@@ -202,20 +234,45 @@ def _coordinate(name: str, low: float, high: float) -> float:
     return value
 
 
+def _option_json(bus) -> dict:
+    """One bus option for the map: its route, times, stops and line."""
+    return {
+        "route_id": bus.route_id, "route": bus.route_name, "color": bus.color, "headsign": bus.headsign,
+        "depart": bus.depart_time, "arrive": bus.arrive_time, "leave": bus.leave_time,
+        "walk_to_min": bus.walk_to_min, "ride_min": bus.ride_min, "walk_from_min": bus.walk_from_min,
+        "board": {"name": bus.board.name, "lat": bus.board.lat, "lon": bus.board.lon},
+        "alight": {"name": bus.alight.name, "lat": bus.alight.lat, "lon": bus.alight.lon},
+        "path": [[lat, lon] for lat, lon in bus.path],
+    }
+
+
 def _bus_json(result) -> dict:
-    """The bus for the map: its line and stops when there is one, else why not."""
+    """The bus for the map: the best option's fields at the top, every option under "options", else why not."""
     out = {"status": result.status, "note": result.note}
-    bus = result.itinerary
-    if bus:
-        out.update(
-            route=bus.route_name, color=bus.color, headsign=bus.headsign,
-            depart=bus.depart_time, arrive=bus.arrive_time, leave=bus.leave_time,
-            walk_to_min=bus.walk_to_min, ride_min=bus.ride_min, walk_from_min=bus.walk_from_min,
-            board={"name": bus.board.name, "lat": bus.board.lat, "lon": bus.board.lon},
-            alight={"name": bus.alight.name, "lat": bus.alight.lat, "lon": bus.alight.lon},
-            path=[[lat, lon] for lat, lon in bus.path],
-        )
+    if result.options:
+        out.update(_option_json(result.options[0]))
+        out["options"] = [_option_json(o) for o in result.options]
     return out
+
+
+def _bus_cards(plan) -> list:
+    """What the page script needs to switch the bus card between the routes that link the places."""
+    if plan is None or not plan.bus or not plan.bus.options:
+        return []
+    cards = []
+    for option, row in zip(plan.bus.options, plan.bus_rows):
+        cards.append({
+            "route_id": option.route_id, "route": option.route_name, "color": option.color,
+            "text_color": option.text_color, "headsign": option.headsign,
+            "board": option.board.name, "alight": option.alight.name,
+            "depart": option.depart_time, "arrive": option.arrive_time, "leave": option.leave_time,
+            "arrive_destination": option.arrive_destination, "next": list(option.next_departures),
+            "walk_to_min": option.walk_to_min, "walk_to_m": option.walk_to_m,
+            "walk_from_min": option.walk_from_min, "walk_from_m": option.walk_from_m,
+            "ride_min": option.ride_min, "total_min": row.duration_min, "ride_km": row.distance_km,
+            "co2e_g": row.co2e_g, "difference_g": row.difference_g,
+        })
+    return cards
 
 
 def route_lines_api():

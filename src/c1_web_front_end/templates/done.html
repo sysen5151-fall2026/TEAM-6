@@ -7,7 +7,7 @@
     <div class="big-emoji" aria-hidden="true">{{ m.mode(trip.mode) }}</div>
     {% if saved %}
     <h1>Congratulations! 🎉</h1>
-    <p class="lead">You saved about <strong class="num">{{ '%g'|format(trip.difference_g) }} g</strong> of CO2e by going {{ m.by(trip.mode) }}.</p>
+    <p class="lead">You saved about <strong class="num">{{ '%g'|format(trip.difference_g) }} g</strong> of CO2e by going {{ m.by(trip.mode) }}{% if trip.occupants > 1 %} with {{ trip.occupants }} people{% endif %}.</p>
     {% else %}
     <h1>Trip logged! ✅</h1>
     <p class="lead">Driving is our baseline, so there's no saving to count this time.

@@ -22,7 +22,7 @@
       <li>
         <span class="emoji" aria-hidden="true">{{ m.mode(t.mode) }}</span>
         <span class="grow"><strong>{{ t.origin }} ➜ {{ t.destination }}</strong><br>
-          <span class="note">{{ t.date }} · {{ t.mode }} · {{ '%g'|format(t.distance_km) }} km</span></span>
+          <span class="note">{{ t.date }} · {{ t.mode }}{% if t.route %} {{ t.route }}{% endif %}{% if t.occupants > 1 %} ({{ t.occupants }} people){% endif %} · {{ '%g'|format(t.distance_km) }} km</span></span>
         <span class="save">{% if t.difference_g > 0 %}🌱 {{ '%g'|format(t.difference_g) }} g{% else %}baseline{% endif %}</span>
       </li>
       {% endfor %}

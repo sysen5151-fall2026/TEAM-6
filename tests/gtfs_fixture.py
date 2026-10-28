@@ -97,8 +97,9 @@ def feed_files(version="test-1", start="20260101", end="20261231") -> dict:
     # route 65 runs on weekdays only: a slow trip that leaves early, and a fast one that leaves late
     add_trip("r3slow", "R3", "WK", "Downtown", 0, "S_ABC", [("A1", 8 * 3600 + 3300, 0, 0, 0), ("B1", 9 * 3600 + 2400, d_ab, 0, 0), ("C1", 9 * 3600 + 3000, d_abc, 0, 0)])
     add_trip("r3fast", "R3", "WK", "Downtown", 0, "S_ABC", [("A1", 9 * 3600 + 1200, 0, 0, 0), ("B1", 9 * 3600 + 1500, d_ab, 0, 0), ("C1", 9 * 3600 + 2000, d_abc, 0, 0)])
-    abc(10 * 3600, "r4sa", route="R4", service="SA")  # weekend-only route
-    abc(10 * 3600, "r4su", route="R4", service="SU")
+    for trip_id, service in (("r4sa", "SA"), ("r4su", "SU")):  # a weekend-only route, faster than route 30
+        add_trip(trip_id, "R4", service, "Weekend", 0, "S_ABC",
+                 [("A1", 10 * 3600, 0, 0, 0), ("B1", 10 * 3600 + 300, d_ab, 0, 0), ("C1", 10 * 3600 + 900, d_abc, 0, 0)])
     add_trip("ce", "R5", "WK", "Island", 0, "S_CE", [("C1", 12 * 3600, 0, 0, 0), ("E1", 12 * 3600 + 900, d_ce, 0, 0)])
     # nobody may get off at B1 on this one, though it would arrive there first
     add_trip("nodrop", "R1", "WK", "Downtown", 0, "S_ABC",

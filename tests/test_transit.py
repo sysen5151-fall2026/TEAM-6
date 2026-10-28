@@ -236,7 +236,7 @@ class TestPlanner(unittest.TestCase):
 
     def test_weekend_uses_the_weekend_timetable_and_routes(self):
         sat = self.find(fx.SATURDAY, "09:30").itinerary
-        self.assertEqual((sat.route_name, sat.depart_time), ("115", "10:00"))  # the weekend-only route is first
+        self.assertEqual((sat.route_name, sat.depart_time, sat.arrive_time), ("115", "10:00", "10:05"))  # the weekend-only route is first
         names = {n for _, n, _ in self.store.routes_connecting(["A1"], ["B1"])}
         self.assertIn("65", names)  # exists, but only on weekdays
         sun = self.find(fx.SUNDAY, "10:30").itinerary
