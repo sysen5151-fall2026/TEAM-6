@@ -34,31 +34,39 @@
 
   <h2>🎖️ Earned</h2>
   {% if earned %}
-  <div class="grid">
+  <p class="note" style="margin-top:-4px">Tap a badge to see how you earned it.</p>
+  <div class="tiles">
     {% for b in earned %}
-    <section class="card badge earned">
-      <div class="icon" aria-hidden="true">{{ m.badge(b.icon) }}</div>
-      <h2>{{ b.name }}</h2>
-      <p class="note">{{ b.condition }}</p>
-      <span class="pill">Earned</span>
-    </section>
+    <button type="button" class="tile" data-name="{{ b.name }}" data-icon="{{ m.badge(b.icon) }}"
+            data-how="{{ b.condition }}" data-date="{{ earned_on.get(b.id, '') }}">
+      <span class="icon" aria-hidden="true">{{ m.badge(b.icon) }}</span>
+      <span class="label">{{ b.name }}</span>
+    </button>
     {% endfor %}
   </div>
+  <dialog id="badge-info" aria-labelledby="badge-info-name">
+    <div class="medal disc" id="badge-info-icon" aria-hidden="true"></div>
+    <h2 id="badge-info-name"></h2>
+    <p id="badge-info-how"></p>
+    <p class="note" id="badge-info-date"></p>
+    <form method="dialog"><button class="btn" type="submit">Close</button></form>
+  </dialog>
   {% else %}
   <section class="card"><p style="margin:0">Nothing yet - your first badge is one trip away.</p></section>
   {% endif %}
 
   <h2 style="margin-top:22px">🔒 Still to go</h2>
   {% if todo %}
-  <div class="grid">
+  <p class="note" style="margin-top:-4px">Tap a badge to see what it takes.</p>
+  <div class="tiles">
     {% for b in todo %}
-    <section class="card badge locked">
-      <div class="icon" aria-hidden="true">{{ m.badge(b.icon) }}</div>
-      <h2>{{ b.name }}</h2>
-      <p class="note">{{ b.condition }}</p>
-      <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="{{ b.target }}" aria-valuenow="{{ b.progress }}"><i style="width:{{ (100 * b.progress / b.target)|round|int }}%"></i></div>
-      <p class="note" style="margin:6px 0 0">{{ b.progress }} of {{ b.target }} {{ b.unit }}</p>
-    </section>
+    <button type="button" class="tile locked" data-name="{{ b.name }}" data-icon="{{ m.badge(b.icon) }}"
+            data-how="{{ b.condition }}" data-date="" data-progress="{{ b.progress }} of {{ b.target }} {{ b.unit }}">
+      <span class="icon" aria-hidden="true">{{ m.badge(b.icon) }}</span>
+      <span class="label">{{ b.name }}</span>
+      <span class="bar mini" role="progressbar" aria-valuemin="0" aria-valuemax="{{ b.target }}" aria-valuenow="{{ b.progress }}"><i style="width:{{ (100 * b.progress / b.target)|round|int }}%"></i></span>
+      <span class="count">{{ b.progress }} / {{ b.target }}</span>
+    </button>
     {% endfor %}
   </div>
   {% else %}
@@ -67,8 +75,27 @@
 
   <section class="card" style="margin-top:22px">
     <p class="note" style="margin-top:0">At most 2 trips a day count, trips over 50 km count as 50 km, and the same trip can't be confirmed twice.
-      Trips live in memory and reset when the server restarts.</p>
-    <form method="post" action="/demo" style="display:inline"><input type="hidden" name="next" value="/achievements"><button class="btn small ghost" style="width:auto" type="submit">Load sample trips</button></form>
-    <form method="post" action="/reset" style="display:inline"><input type="hidden" name="next" value="/achievements"><button class="btn small ghost" style="width:auto" type="submit">Clear my trips</button></form>
+      Your trips are saved with your account.</p>
+    <form method="post" action="/demo" style="display:inline">{{ csrf_input() }}<input type="hidden" name="next" value="/achievements"><button class="btn small ghost" style="width:auto" type="submit">Load sample trips</button></form>
+    <form method="post" action="/reset" style="display:inline">{{ csrf_input() }}<input type="hidden" name="next" value="/achievements"><button class="btn small ghost" style="width:auto" type="submit">Clear my trips</button></form>
   </section>
+{% endblock %}
+{% block scripts %}
+<script>
+  (function () {
+    var box = document.getElementById('badge-info');
+    if (!box || !box.showModal) return;
+    document.querySelectorAll('.tile').forEach(function (tile) {
+      tile.addEventListener('click', function () {
+        document.getElementById('badge-info-icon').textContent = tile.dataset.icon;
+        document.getElementById('badge-info-name').textContent = tile.dataset.name;
+        document.getElementById('badge-info-how').textContent = tile.dataset.how;
+        document.getElementById('badge-info-date').textContent = tile.dataset.date ? 'Earned on ' + tile.dataset.date
+          : (tile.dataset.progress ? 'Your progress: ' + tile.dataset.progress : '');
+        box.showModal();
+      });
+    });
+    box.addEventListener('click', function (e) { if (e.target === box) box.close(); });
+  })();
+</script>
 {% endblock %}

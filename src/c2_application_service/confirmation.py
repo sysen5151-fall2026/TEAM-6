@@ -10,13 +10,16 @@ from src.model_trace import realizes
 MIN_PEOPLE, MAX_PEOPLE = 2, 8  # a carpool, the Commuter included (a car or a van)
 
 
-def _earned(trips) -> dict:
-    return {b.id: b.name for b in evaluate_badges(trips) if b.earned}
+def _earned(trips, community=()) -> dict:
+    return {b.id: b.name for b in evaluate_badges(trips, community) if b.earned}
 
 
 @realizes("UC.3.8")
-def confirm_trip(origin_text: str, destination_text: str, mode: str, day: str, have=(), when=None, occupants: int = 1, bus_route: str = ""):
-    """Record a trip the Commuter says they took.
+def confirm_trip(origin_text: str, destination_text: str, mode: str, day: str, have=(), when=None, occupants: int = 1, bus_route: str = "", trips=None,
+                 community=()):
+    """Record a trip the Commuter says they took, in `trips` (their store; default the in-memory one).
+
+    `community` is what everyone else has confirmed, for the shared tree when badges are worked out.
 
     The distance and emissions are recomputed here from the places and mode, never
     taken from the browser. Returns (trip or None, names of newly earned badges, errors).
@@ -54,8 +57,8 @@ def confirm_trip(origin_text: str, destination_text: str, mode: str, day: str, h
         occupants=occupants if carpool else 1,
         route=next((o.route_name for o in plan.bus.options if o.route_id == plan.bus_choice), "") if mode == "bus" and plan.bus else "",
     )
-    before = _earned(confirmed_trips())
-    if not add_confirmed(trip):
+    before = _earned(confirmed_trips(trips), community)
+    if not add_confirmed(trip, trips):
         return None, (), ["You already confirmed this trip for that date."]
-    after = _earned(confirmed_trips())
+    after = _earned(confirmed_trips(trips), community)
     return trip, tuple(name for id_, name in after.items() if id_ not in before), []

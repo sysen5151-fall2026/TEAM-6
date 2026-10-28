@@ -31,11 +31,11 @@ def _g(mode: str, km: float) -> float:
     return round(km * retrieve_factor(request).g_co2e_per_km)
 
 
-def load_demo_trips() -> int:
+def load_demo_trips(trips=None) -> int:
     """Add the sample trips; returns how many were new."""
     added = 0
     for day, mode, destination, km, recommended in _SAMPLE:
         co2e = _g(mode, km)
         trip = ConfirmedTrip(day, mode, ORIGIN, destination, km, co2e, _g("drive", km) - co2e, recommended)
-        added += add_confirmed(trip)
+        added += add_confirmed(trip, trips)
     return added

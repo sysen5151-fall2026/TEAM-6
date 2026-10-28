@@ -62,22 +62,40 @@ def _longest_run(weeks) -> int:
 
 
 @realizes("UC.3.10")
-def campus_goal(trips) -> CampusGoal:
+def campus_goal(trips, community=()) -> CampusGoal:
+    """The shared tree: the sample data, this Commuter's trips, and every other account's trips.
+
+    `community` is one tuple of trips per other account. Each account is counted by the same
+    anti-gaming rules, and only the totals are used.
+    """
     mine = counted_trips(trips)
-    total = CAMPUS_SEED["difference_g"] + sum(max(_counted_difference_g(t), 0) for t in mine)
+    others = [counted_trips(t) for t in community]
+    total = (CAMPUS_SEED["difference_g"] + sum(max(_counted_difference_g(t), 0) for t in mine)
+             + sum(max(_counted_difference_g(t), 0) for group in others for t in group))
     return CampusGoal(
         total_g=round(total),
         goal_g=TREE_GOAL_G,
         trees_reached=int(total // TREE_GOAL_G),
         into_next_g=round(total % TREE_GOAL_G),
-        trips=CAMPUS_SEED["trips"] + len(mine),
-        students=CAMPUS_SEED["students"] + (1 if mine else 0),
+        trips=CAMPUS_SEED["trips"] + len(mine) + sum(len(g) for g in others),
+        students=CAMPUS_SEED["students"] + (1 if mine else 0) + sum(1 for g in others if g),
         sample_note=f"{CAMPUS_SEED['trips']} trips by {CAMPUS_SEED['students']} students are sample data",
     )
 
 
+def earned_dates(trips, community=()) -> dict:
+    """{badge id: date of the trip that earned it}, found by adding the trips one by one in date order."""
+    ordered = sorted(trips, key=lambda t: t.date)
+    found = {}
+    for i, trip in enumerate(ordered):
+        for b in evaluate_badges(ordered[: i + 1], community):
+            if b.earned:
+                found.setdefault(b.id, trip.date)
+    return found
+
+
 @realizes("UC.3.10")
-def evaluate_badges(trips) -> tuple:
+def evaluate_badges(trips, community=()) -> tuple:
     mine = counted_trips(trips)
     low = [t for t in mine if t.mode in LOW_CARBON]
 
@@ -99,7 +117,7 @@ def evaluate_badges(trips) -> tuple:
 
     run = _longest_run(_week_of(t.date) for t in mine)
     difference_g = sum(max(_counted_difference_g(t), 0) for t in low)
-    goal = campus_goal(trips)
+    goal = campus_goal(trips, community)
     planted = 1 if goal.trees_reached >= 1 and mine else 0
 
     def badge(id_, name, condition, icon, progress, target, unit):

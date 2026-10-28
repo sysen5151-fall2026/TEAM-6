@@ -57,7 +57,7 @@ python -m venv .venv
 .venv\Scripts\python -m src.main_web
 ```
 
-Then open <http://127.0.0.1:5000>. Emission factors are still placeholders and trips are kept in memory only.
+Then open <http://127.0.0.1:5000>. Everything needs an account (next section). Emission factors are still placeholders.
 
 The pages: **Plan** (start and destination are required; every way is compared and one is recommended; you then choose the way you took), a **done** page after choosing (estimated saving, campus tree progress, and a popup for any new badge), **Garden** (an animated campus garden with one tree per reached goal) and **Achievements** (your trip history, earned badges and badges still to go). The earlier "log a trip with a typed distance" web form was removed; the command-line UC.1 path (`python -m src.main`) is unchanged.
 
@@ -87,6 +87,57 @@ $env:ORS_API_KEY = "your-key"
 The server looks for the key in this order and prints which one it used when it starts: the process environment, a `.env` file in the project folder (one line `ORS_API_KEY=your-key`; git ignores it), then the Windows user environment variable. A variable saved after a terminal was opened is not visible to that terminal, which is why the last two exist. The page itself says whether place search is live.
 
 **Status (Milestone 1):** one stubbed end-to-end path for UC.1; emission factors are placeholders, the web UI is a single minimal page (see below), there is no persistence, no real weather call and no language model yet. See [docs/walking-skeleton.md](docs/walking-skeleton.md).
+
+## Accounts and invites
+
+The site is for a small invited group (the team, the professor and the TA), not the public ([ADR 0009](docs/adr/0009-accounts-invites-and-persistence.md)). Accounts, trips and the place and route cache live in one file, `data/app.sqlite`, so everything is still there after the server stops. `data/` is git-ignored: **keep it private and back it up.**
+
+Make invite codes and demo accounts on the computer that runs the site:
+
+```powershell
+.venv\Scripts\python -m src.manage create-invite --label "Karen"
+.venv\Scripts\python -m src.manage create-user professor --generate --with-sample-trips
+.venv\Scripts\python -m src.manage users
+.venv\Scripts\python -m src.manage invites
+.venv\Scripts\python -m src.manage backup
+```
+
+- **The simple way (what the team uses):** write `data/roster.json` (git-ignored, so it never reaches GitHub) and run `python -m src.manage seed`. The file lists the accounts (user name, password) and **three shared invite codes** (team members, Luyu, the professor), for example `{"invites": [{"label": "team", "code": "ECO-TEAM-XXXX"}], "users": [{"username": "karen", "password": "pass#one"}, {"username": "test01", "password": "111111", "sample_trips": true}]}`. Running it again changes nothing that already exists.
+- A person with a code opens the site, chooses **Create an account**, and fills in user name, password, password again and the invite code (no email). A shared code works for many accounts and never expires; the sign-up form has no daily limit because the site is private.
+- `create-invite` makes one more random code, printed **once** and stored only as a hash. `create-user ... --generate` makes an account without an invite and prints a random password once; `--with-sample-trips` fills it with labelled sample trips, so a demo shows badges and the tree at once.
+- Other commands: `revoke-invite ID`, `set-password NAME` (signs that account out everywhere), `delete-user NAME`, `cache-stats`, `clear-cache`. Run `python -m src.manage --help`.
+- Passwords (at least 6 characters) are stored as salted scrypt hashes, never in the clear. Five wrong passwords lock a user name for 15 minutes. `data/roster.json` itself holds the passwords in plain text: keep it on your computer only and delete it after seeding if you prefer.
+- Each account sees only its own trips. The shared tree adds every account's trips (and the labelled sample data) and shows only the total. On the **My account** page a person can change their password, download their data or delete the account.
+- Online place search and routes need a signed-in account, which keeps the free quota for invited people. Places looked up once are kept, so they are not looked up again for months.
+
+### Using it from other computers
+
+By default the site listens on this computer only. For teammates on other computers, while it runs on yours, in order of preference:
+
+1. **A private network (Tailscale).** Everyone installs Tailscale and joins your network; they open `http://<your Tailscale address>:5000`. Start with `python -m src.main_web --host 0.0.0.0`. The traffic is encrypted by Tailscale and nothing is opened to the internet. (Not tested here.)
+2. **An https tunnel** (for example Cloudflare's `cloudflared`). It gives a public https address; only invite holders can make accounts, but anyone can open the log-in page. Set `ECOCOMMUTE_BEHIND_PROXY=1` and `ECOCOMMUTE_SECURE_COOKIES=1` before starting. Free tunnels usually change address each time. (Not tested here.)
+3. **Your phone's hotspot** (tested on 2026-10-28 with an iPhone hotspot and the same iPhone's browser; steps below).
+4. **The same Wi-Fi.** `--host 0.0.0.0` and your computer's local address. Pages are not encrypted, so passwords cross the network as plain text; use only a network you trust. Campus Wi-Fi often stops devices from reaching each other.
+
+The demonstration can simply run on your own computer. If the computer is off, the site is off.
+
+#### Step by step: the phone hotspot
+
+1. Turn on the personal hotspot on the phone and connect the computer's Wi-Fi to it. Teammates connect their devices to the same hotspot.
+2. On the computer, in the project folder, start the site so that other devices may connect:
+   ```powershell
+   .venv\Scripts\python -m src.main_web --host 0.0.0.0
+   ```
+   If Windows asks whether to allow Python through the firewall, allow it on **private** networks.
+3. In another PowerShell window run `ipconfig`. Under the **Wireless LAN adapter** (WLAN) that is connected to the hotspot, read the **IPv4 address** (for an iPhone hotspot it looks like `172.20.10.3`; ignore Ethernet, vEthernet, WSL and VMware entries).
+4. On the phone or any device on the same hotspot, open `http://<that address>:5000` and log in.
+5. The address can change each time the hotspot is switched on, so run `ipconfig` again before each session. If the page does not open, check that both devices are on the same hotspot, that the site is still running, and the firewall prompt in step 2.
+
+What does and does not work over the hotspot:
+
+- Everything works except **"Start from my location" and "Show my location"**. Browsers only share a location with `https` pages (or with the computer itself, at `localhost`), and `http://172.20.10.3:5000` is plain http, so no permission question is ever shown. The page says so and asks the person to type a place. Nothing on the site can change this.
+- To use locations on a phone, the site must be reached over `https`: an https tunnel (item 2 above, for example Cloudflare's `cloudflared tunnel --url http://localhost:5000`, with `ECOCOMMUTE_BEHIND_PROXY=1` and `ECOCOMMUTE_SECURE_COOKIES=1` set first) or Tailscale's https. This was **not tested here**.
+- Traffic on the hotspot is not encrypted, so passwords cross it as plain text; only the people connected to the hotspot could read them. Route lookups use the phone's mobile data.
 
 ## Team
 

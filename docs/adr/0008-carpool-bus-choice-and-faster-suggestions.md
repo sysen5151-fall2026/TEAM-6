@@ -17,7 +17,7 @@ Three things the team asked for after trying the page: several bus routes can li
 - The online search starts at 3 characters.
 - Connections to the service are kept open and shared by all threads (the development server runs each request in its own thread), and opened ahead of time at start-up.
 - Answers for a longer text reuse what is known for its start.
-- Places within 25 km of campus are asked for first; the whole world only if nothing is found there.
+- Places within 25 km of campus were asked for first and the whole world only if nothing was found there. **Changed on 2026-10-28 at the team's request:** the service area is Ithaca and its surroundings, a 40 km circle around campus, and nothing outside it is searched.
 - A "quota exceeded" or "too many requests" answer pauses that service for a minute instead of failing every keystroke. Autocomplete and search have **separate quotas**, so when autocomplete is used up, the search service answers instead. Routes are paused separately.
 
 ## Consequences
