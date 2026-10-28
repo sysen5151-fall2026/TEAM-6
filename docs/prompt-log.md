@@ -294,6 +294,20 @@ Rule: every GenAI-assisted change is logged here with the tool, the (constrained
 | Not claimed | Direct rides only, no transfers; walking legs are straight lines times 1.25; the bus factor is still the placeholder 105 g per km; the schedule is not live; the feed's terms of use were not found, so the data is not committed; walking speed, 900 m reach and the one-minute slack are project assumptions; checked against the real feed at a few places and times, not against TCAT's own trip planner; **SPEC.md 2.1.11 and model 10.9 still describe a typed bus time and were not changed** |
 | Human review | **Pending.** Reviewer and date: ____________ . |
 
+## Entry 023 - 2026-10-28 - Bus route choice, carpool share and faster place suggestions
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `feat/choices-and-speed` |
+| Prompt (summary, originally Chinese) | Several bus routes can link the same places (for example Cayuga Place to Upson): let the student choose; under the drive card offer alone or carpool with a number of people; make the suggestions under the start and destination boxes appear faster. |
+| Constraining sources | The TCAT feed already built (ADR 0007); live calls to the OpenRouteService geocoder and directions on 2026-10-28 |
+| What it produced | `bus_planner`: the best ride of each route, within an hour of the best, at most 5; `plan_commute(..., bus_route)`, `confirm_trip(..., occupants, bus_route)`; the bus card with a route pick that switches the card and the map line; the drive card with Alone or Carpool and live numbers; carpool recorded as its own way with people and the share of emissions; a drive and a carpool of one trip count once; trips remember the bus route; `route_adapter`: kept-open shared connections with warm-up, quick local answers first, prefix reuse, a pause after quota or rate-limit answers, separate autocomplete / search / route quotas, search as a fallback for autocomplete, near-campus first; the page script shows a list at once and the online one after 150 ms, cancelling stale requests; ADR 0008; tests (254 pass) |
+| Found while checking | The team key's autocomplete quota was used up (403 "Quota exceeded", unchanged after 70 s, so a daily quota; search still worked). A first version of the faster HTTP helper sent `Accept: application/json`, which made the GeoJSON route service answer 406 and every route fall back to an estimate; mocked tests did not show it, a live check did, and the header is no longer sent (a local-server test guards it). Searching "cayuga place" near campus finds no place of that name, only Cayuga Trail, Street and Heights |
+| Not claimed | The people range (2 to 8), the one-hour option window, the 25 km radius and the 150 ms delay are project assumptions; occupants are self-reported; timing figures come from a few runs on one machine; my own testing used part of the free quota; SPEC.md and model 10.9 do not describe the carpool share or the bus choice |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
 ## Entry template
 
 | Field | Value |

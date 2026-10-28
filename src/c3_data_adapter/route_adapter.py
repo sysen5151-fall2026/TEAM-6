@@ -9,13 +9,16 @@ three Directions profiles on api.openrouteservice.org, free key). The unit
 tests still use mocked responses; no automated test calls the network.
 """
 
+import http.client
+import io
 import json
 import math
 import os
 import re
+import threading
+import time
 import urllib.error
 import urllib.parse
-import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 
 from src.interfaces import Place, RouteOption
@@ -25,8 +28,13 @@ from src.model_trace import realizes
 # so the old host stays the default and ORS_BASE_URL can switch it without a code change.
 ORS_BASE = os.environ.get("ORS_BASE_URL", "https://api.openrouteservice.org").rstrip("/")
 TIMEOUT_S = 5
+SUGGEST_TIMEOUT_S = 2.5  # a suggestion that takes longer is not worth waiting for
+COOLDOWN_S = 60.0  # after a "quota exceeded" or "too many requests" answer, stop asking for this long
+ONLINE_MIN_CHARS = 3  # sample places show from 2 characters; the online search starts at 3
+LOCAL_RADIUS_KM = 25  # look near campus first; only if nothing is found there look everywhere
 
 PROFILES = {"drive": "driving-car", "walk": "foot-walking", "bike": "cycling-regular"}
+_route_pool = ThreadPoolExecutor(max_workers=len(PROFILES), thread_name_prefix="ors")  # long-lived, so its threads keep their connections
 
 # Fallback assumptions (NOT measured): road distance = straight line x detour factor.
 FALLBACK_DETOUR = {"drive": 1.3, "walk": 1.2, "bike": 1.25}
@@ -54,6 +62,7 @@ _place_cache = {}  # label.lower() -> Place, so a picked suggestion resolves to 
 _suggest_cache = {}  # query.lower() -> tuple of Place, only successful ORS answers
 _route_cache = {}  # (lat, lon, lat, lon) -> routes that all came from ORS
 MAX_PATH_POINTS = 300
+_paused_until = {"autocomplete": 0.0, "search": 0.0, "route": 0.0}  # separate quotas; monotonic time each is left alone until
 
 # The page names the Commuter's own position like this; no search service is involved.
 _MY_LOCATION = re.compile(r"^My location \((-?\d{1,3}\.\d+), (-?\d{1,3}\.\d+)\)$")
@@ -79,46 +88,84 @@ def _remember(place: Place) -> None:
     _place_cache[place.label.lower()] = place
 
 
-def suggest_places(text: str) -> tuple:
-    """Up to MAX_SUGGESTIONS places matching what the Commuter has typed so far.
-
-    Sample places come first (instant, offline), then OpenRouteService autocomplete when
-    a key is set. A failed or malformed ORS answer leaves just the sample matches.
-    """
-    text = " ".join(text.split())[:100]
-    if len(text) < MIN_SUGGEST_CHARS:
+def _quick_remote(text: str) -> tuple:
+    """Online answers already known for this text, or for a shorter start of it, narrowed to this text."""
+    key = text.lower()
+    starts = [k for k in _suggest_cache if key.startswith(k)]
+    if not starts:
         return ()
-    found = list(_sample_matches(text))
-    if _api_key() and len(found) < MAX_SUGGESTIONS:
-        remote = _suggest_cache.get(text.lower())
-        if remote is None:
-            query = urllib.parse.urlencode(
-                {
-                    "api_key": _api_key(),
-                    "text": text,
-                    "size": MAX_SUGGESTIONS,
-                    "focus.point.lon": FOCUS_LON,
-                    "focus.point.lat": FOCUS_LAT,
-                }
-            )
-            try:
-                data = _http_json(f"{ORS_BASE}/geocode/autocomplete?{query}")
-                remote = tuple(_feature_to_place(f, text) for f in data["features"])
-                if len(_suggest_cache) >= _CACHE_LIMIT:
-                    _suggest_cache.clear()
-                _suggest_cache[text.lower()] = remote
-            except (KeyError, IndexError, ValueError, TypeError, OSError):
-                remote = ()
-        # A routed result for the same named place (within 0.5 km) replaces the sample entry.
-        found = [s for s in found if not any(_same_place(s, r) for r in remote)] + list(remote)
+    words = key.split()
+    return tuple(p for p in _suggest_cache[max(starts, key=len)] if all(w in p.label.lower() for w in words))
+
+
+def _merge(samples, remote) -> tuple:
+    """Sample matches first; a routed result for the same named place (within 0.5 km) replaces the sample."""
+    found = [s for s in samples if not any(_same_place(s, r) for r in remote)] + list(remote)
     seen, unique = set(), []
     for place in found:
         if place.label.lower() not in seen:
             seen.add(place.label.lower())
             unique.append(place)
-    for place in unique[:MAX_SUGGESTIONS]:
+    chosen = tuple(unique[:MAX_SUGGESTIONS])
+    for place in chosen:
         _remember(place)
-    return tuple(unique[:MAX_SUGGESTIONS])
+    return chosen
+
+
+def _geo_url(service: str, text: str, size: int, near_campus: bool) -> str:
+    params = {"api_key": _api_key(), "text": text, "size": size,
+              "focus.point.lon": FOCUS_LON, "focus.point.lat": FOCUS_LAT}
+    if near_campus:  # a hard limit, so "statler" is not answered with Boston and Michigan
+        params.update({"boundary.circle.lon": FOCUS_LON, "boundary.circle.lat": FOCUS_LAT,
+                       "boundary.circle.radius": LOCAL_RADIUS_KM})
+    return f"{ORS_BASE}/geocode/{service}?{urllib.parse.urlencode(params)}"
+
+
+def _ask_remote(text: str):
+    """Suggestions from the online service, or None when none could be had.
+
+    Autocomplete is asked first. When its quota is used up the search service (a separate
+    quota) answers instead, so suggestions keep coming; each is left alone for a minute
+    after it says "quota exceeded". Places within LOCAL_RADIUS_KM of campus are asked for
+    first; the whole world only when nothing is found there.
+    """
+    for service in ("autocomplete", "search"):
+        if _paused(service):
+            continue
+        try:
+            for near_campus in (True, False):
+                data = _http_json(_geo_url(service, text, MAX_SUGGESTIONS, near_campus), timeout=SUGGEST_TIMEOUT_S)
+                places = tuple(_feature_to_place(f, text) for f in data["features"])
+                if places or not near_campus:
+                    return places
+        except (KeyError, IndexError, ValueError, TypeError, OSError) as err:
+            _note_failure(service, err)
+    return None
+
+
+def suggest_places(text: str, online: bool = True) -> tuple:
+    """Up to MAX_SUGGESTIONS places matching what the Commuter has typed so far.
+
+    With online=False nothing is sent anywhere: sample places plus answers already known
+    (so the list can appear at once). With online=True, and a key set, OpenRouteService
+    autocomplete is asked too, from ONLINE_MIN_CHARS characters, unless it is paused after a
+    quota answer. A failed or malformed answer leaves what was known.
+    """
+    text = " ".join(text.split())[:100]
+    if len(text) < MIN_SUGGEST_CHARS:
+        return ()
+    samples = _sample_matches(text)
+    remote = _suggest_cache.get(text.lower())
+    if remote is None:
+        remote = _quick_remote(text)
+        if online and _api_key() and len(text) >= ONLINE_MIN_CHARS and len(samples) < MAX_SUGGESTIONS and not search_paused():
+            fresh = _ask_remote(text)
+            if fresh is not None:
+                remote = fresh
+                if len(_suggest_cache) >= _CACHE_LIMIT:
+                    _suggest_cache.clear()
+                _suggest_cache[text.lower()] = remote
+    return _merge(samples, remote)
 
 
 def _same_place(a: Place, b: Place) -> bool:
@@ -145,12 +192,95 @@ def place_search_is_live() -> bool:
     return bool(_api_key())
 
 
-def _http_json(url: str, headers=None, body=None):
-    """GET (no body) or POST (JSON body) and return parsed JSON. Raises on any failure."""
+_pool_lock = threading.Lock()
+_idle = {}  # (scheme, host) -> connections that are open and free; shared by every thread
+MAX_IDLE = 4
+
+
+def _acquire(scheme: str, host: str, timeout: float, fresh: bool = False):
+    """A free open connection to the host, or a new one. The web server runs each request in its
+    own thread, so the connections are shared across threads rather than kept per thread."""
+    key = (scheme, host)
+    with _pool_lock:
+        waiting = _idle.get(key, [])
+        conn = None if fresh or not waiting else waiting.pop()
+    if conn is None:
+        cls = http.client.HTTPSConnection if scheme == "https" else http.client.HTTPConnection
+        conn = cls(host, timeout=timeout)
+    conn.timeout = timeout
+    if conn.sock is not None:
+        conn.sock.settimeout(timeout)
+    return conn
+
+
+def _release(scheme: str, host: str, conn) -> None:
+    with _pool_lock:
+        waiting = _idle.setdefault((scheme, host), [])
+        if len(waiting) < MAX_IDLE:
+            waiting.append(conn)
+            return
+    conn.close()
+
+
+def _http_json(url: str, headers=None, body=None, timeout=None):
+    """GET (no body) or POST (JSON body) and return parsed JSON. Raises on any failure.
+
+    Connections are kept open and reused, which saves the TLS handshake on every request. If
+    the server closed one while it sat idle, the request is sent once more on a new one.
+    HTTP errors raise urllib.error.HTTPError, as before.
+    """
+    timeout = TIMEOUT_S if timeout is None else timeout
+    parts = urllib.parse.urlsplit(url)
+    target = parts.path + (f"?{parts.query}" if parts.query else "")
     data = json.dumps(body).encode() if body is not None else None
-    req = urllib.request.Request(url, data=data, headers=headers or {})
-    with urllib.request.urlopen(req, timeout=TIMEOUT_S) as resp:
-        return json.load(resp)
+    # No Accept header of our own: the GeoJSON route service answers "406 Not Acceptable" to application/json.
+    sent_headers = dict(headers or {})
+    method = "POST" if data is not None else "GET"
+    for attempt in (0, 1):
+        conn = _acquire(parts.scheme, parts.netloc, timeout, fresh=attempt == 1)
+        reused = conn.sock is not None
+        try:
+            conn.request(method, target, body=data, headers=sent_headers)
+            resp = conn.getresponse()
+            payload = resp.read()
+        except (http.client.HTTPException, OSError):
+            conn.close()
+            if attempt == 0 and reused:
+                continue  # an idle connection the server had closed: try once on a fresh one
+            raise
+        if resp.will_close:
+            conn.close()
+        else:
+            _release(parts.scheme, parts.netloc, conn)
+        if resp.status >= 400:
+            raise urllib.error.HTTPError(url, resp.status, resp.reason, resp.msg, io.BytesIO(payload))
+        return json.loads(payload)
+
+
+def warm_up() -> None:
+    """Open the connection to the online service ahead of the first keystroke (the root path costs no quota)."""
+    if not _api_key():
+        return
+    try:
+        _http_json(f"{ORS_BASE}/", timeout=SUGGEST_TIMEOUT_S * 2)
+    except (ValueError, OSError):
+        pass  # a 404 or a reply that is not JSON still leaves the connection open and ready
+
+
+def _paused(service: str) -> bool:
+    return time.monotonic() < _paused_until[service]
+
+
+def _note_failure(service: str, err: Exception) -> None:
+    """A quota or rate-limit answer pauses that service for COOLDOWN_S instead of retrying every keystroke."""
+    if isinstance(err, urllib.error.HTTPError) and err.code in (403, 429):
+        _paused_until[service] = time.monotonic() + COOLDOWN_S
+
+
+def search_paused() -> bool:
+    """True while online suggestions are being left alone: both the autocomplete and the search
+    service have answered "quota exceeded" or "too many requests" within the last minute."""
+    return _paused("autocomplete") and _paused("search")
 
 
 def _haversine_km(a: Place, b: Place) -> float:
@@ -180,14 +310,17 @@ def geocode(text: str):
     for place in matches:
         if place.label.lower() == text.lower():
             return place
-    if not _api_key():
+    if not _api_key() or _paused("search"):
         return matches[0] if len(matches) == 1 else None  # "upson" alone is unambiguous
-    query = urllib.parse.urlencode({"api_key": _api_key(), "text": text, "size": 1})
     try:
-        data = _http_json(f"{ORS_BASE}/geocode/search?{query}")
-        return _feature_to_place(data["features"][0], text)
-    except (KeyError, IndexError, ValueError, TypeError, OSError):
-        return None
+        for near_campus in (True, False):  # near campus first, then anywhere
+            data = _http_json(_geo_url("search", text, 1, near_campus))
+            if data["features"]:
+                return _feature_to_place(data["features"][0], text)
+        return matches[0] if len(matches) == 1 else None
+    except (KeyError, IndexError, ValueError, TypeError, OSError) as err:
+        _note_failure("search", err)
+        return matches[0] if len(matches) == 1 else None
 
 
 def _thin(points: list) -> tuple:
@@ -240,15 +373,14 @@ def get_route_options(origin: Place, dest: Place) -> tuple:
     if key in _route_cache:
         return _route_cache[key]
     def one(mode: str) -> RouteOption:
-        if _api_key():
+        if _api_key() and not _paused("route"):
             try:
                 return _ors_route(mode, origin, dest)
-            except (KeyError, IndexError, ValueError, TypeError, OSError):
-                pass
+            except (KeyError, IndexError, ValueError, TypeError, OSError) as err:
+                _note_failure("route", err)
         return _fallback_route(mode, origin, dest)
 
-    with ThreadPoolExecutor(max_workers=len(PROFILES)) as pool:  # the three requests wait on the network
-        result = tuple(pool.map(one, PROFILES))
+    result = tuple(_route_pool.map(one, PROFILES))  # the three requests wait on the network, so run side by side
     if all(o.source == "OpenRouteService" for o in result):
         if len(_route_cache) >= _CACHE_LIMIT:
             _route_cache.clear()

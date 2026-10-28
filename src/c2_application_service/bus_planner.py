@@ -22,6 +22,9 @@ WALK_DETOUR = 1.25  # street distance over straight line
 SLACK_S = 60  # be at the stop a minute before the bus
 LOOKAHEAD_DAYS = 7  # how far to look for the next bus when there is none on the day
 NEXT_SHOWN = 3
+MAX_OPTIONS = 5  # routes offered when several link the same two places
+OPTION_WINDOW_S = 3600  # an alternative must arrive within an hour of the best (a night-only route is not one)
+DEPARTURES_LOOKED_AT = 400  # enough that a route with few trips is not crowded out by a busy one
 DAY = 86400
 UPDATE_HINT = "python -m src.update_transit"
 
@@ -107,8 +110,12 @@ def _build(store, row, board, alight, day, offset, walk_to_s, walk_from_s, tod_s
     )
 
 
-def _best_on_day(store, day, tod_s, boards, alights):
-    """Earliest-arriving direct ride that leaves on `day` at or after tod_s (seconds), else None."""
+def _options_on_day(store, day, tod_s, boards, alights) -> list:
+    """The best direct ride of each route that leaves on `day` at or after tod_s (seconds).
+
+    One ride per route (the one that arrives first), earliest arrival first, at most MAX_OPTIONS,
+    and only those that arrive within OPTION_WINDOW_S of the best one.
+    """
     walk_in = {b["stop_id"]: b["straight_m"] * WALK_DETOUR / WALK_SPEED_MPS for b in boards}
     walk_out = {a["stop_id"]: a["straight_m"] * WALK_DETOUR / WALK_SPEED_MPS for a in alights}
     by_board = {b["stop_id"]: b for b in boards}
@@ -117,25 +124,37 @@ def _best_on_day(store, day, tod_s, boards, alights):
     # service day `day` itself, and the previous service day's trips that run past midnight
     for service_day, offset in ((day, 0), (day - timedelta(days=1), DAY)):
         services = store.active_services(_gtfs_date(service_day), service_day.weekday())
-        rows = store.departures(by_board, by_alight, services, tod_s + offset)
+        rows = store.departures(by_board, by_alight, services, tod_s + offset, limit=DEPARTURES_LOOKED_AT)
         for r in rows:
             dep = r["dep_s"] - offset
             if dep < tod_s + walk_in[r["board_stop"]] + SLACK_S:
                 continue  # cannot reach this stop in time
             reach = r["arr_s"] - offset + walk_out[r["alight_stop"]]
             candidates.append((reach, dep, r, offset))
-    if not candidates:
-        return None
-    reach, dep, row, offset = min(candidates, key=lambda c: (c[0], c[1], c[2]["trip_id"]))
-    same = sorted({c[1] for c in candidates
-                   if c[2]["route_id"] == row["route_id"] and c[2]["board_stop"] == row["board_stop"] and c[1] > dep})
-    return _build(store, row, by_board[row["board_stop"]], by_alight[row["alight_stop"]], day, offset,
-                  walk_in[row["board_stop"]], walk_out[row["alight_stop"]], tod_s, same)
+    best = {}
+    for c in sorted(candidates, key=lambda c: (c[0], c[1], c[2]["trip_id"])):
+        best.setdefault(c[2]["route_id"], c)
+    ordered = sorted(best.values(), key=lambda c: (c[0], c[1], c[2]["route_id"]))
+    # only routes that are a real alternative: not one that gets there more than an hour after the best
+    chosen = [c for c in ordered if ordered and c[0] <= ordered[0][0] + OPTION_WINDOW_S][:MAX_OPTIONS]
+    options = []
+    for reach, dep, row, offset in chosen:
+        same = sorted({c[1] for c in candidates
+                       if c[2]["route_id"] == row["route_id"] and c[2]["board_stop"] == row["board_stop"] and c[1] > dep})
+        options.append(_build(store, row, by_board[row["board_stop"]], by_alight[row["alight_stop"]], day, offset,
+                              walk_in[row["board_stop"]], walk_out[row["alight_stop"]], tod_s, same))
+    return options
+
+
+def _best_on_day(store, day, tod_s, boards, alights):
+    """Earliest-arriving direct ride that leaves on `day` at or after tod_s (seconds), else None."""
+    options = _options_on_day(store, day, tod_s, boards, alights)
+    return options[0] if options else None
 
 
 @realizes("UC.3.4")
 def find_bus(origin: Place, dest: Place, when: datetime, store=None) -> BusResult:
-    """The best direct bus for leaving `origin` at `when`, or the reason there is none."""
+    """The direct buses for leaving `origin` at `when` (one ride per route, best first), or the reason there is none."""
     store = store or open_store()
     if store is None:
         return BusResult(None, "not_installed", f"Bus times are not installed yet. Run: {UPDATE_HINT}")
@@ -161,9 +180,9 @@ def find_bus(origin: Place, dest: Place, when: datetime, store=None) -> BusResul
                          "No single TCAT route links the stops near these two places (transfers are not planned yet).")
 
     tod_s = when.hour * 3600 + when.minute * 60
-    found = _best_on_day(store, day, tod_s, boards, alights)
-    if found:
-        return BusResult(found, "ok", "")
+    options = _options_on_day(store, day, tod_s, boards, alights)
+    if options:
+        return BusResult(options[0], "ok", "", None, tuple(options))
 
     # Nothing on that day at that time: say why, and find the next bus.
     active = store.active_services(_gtfs_date(day), day.weekday())

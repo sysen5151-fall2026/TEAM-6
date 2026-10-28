@@ -31,7 +31,7 @@ def counted_trips(trips) -> list:
     """Drop repeats of date, places and mode, and keep at most two trips per date."""
     seen, per_day, kept = set(), {}, []
     for t in trips:
-        key = (t.date, t.origin, t.destination, t.mode)
+        key = (t.date, t.origin, t.destination, "drive" if t.mode == "carpool" else t.mode)
         if key in seen or per_day.get(t.date, 0) >= MAX_COUNTED_PER_DAY:
             continue
         seen.add(key)
