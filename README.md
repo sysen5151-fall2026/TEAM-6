@@ -27,6 +27,7 @@ The nominal scenario assumes an existing account and consent, valid supported in
 | [docs/walking-skeleton.md](docs/walking-skeleton.md) | UC.1 call order; what is real vs stubbed |
 | [docs/traceability.md](docs/traceability.md) | Need -> requirement -> UC.1 action -> code -> test |
 | [docs/environment.md](docs/environment.md), [docs/adr/](docs/adr/) | Toolchain and decisions |
+| [docs/ch4-ch5/](docs/ch4-ch5/) | Chapter 4 and 5 report (System Requirements Definition) as `.docx` and its Innoslate figures |
 | [docs/ch6-ch7/](docs/ch6-ch7/) | Chapter 6 and 7 report (Architecture Definition: Function: UC.1 trace, first-level IDEF0, hierarchy, N2, requirements traceability) as `.docx` and `.pdf`, its Innoslate figures and the scripts that build it (`scripts/`) |
 | [docs/model/](docs/model/) | Innoslate exports: 10.6, 10.7 (and the 24 Oct 2026 re-export), 10.8 (10.7 plus the two trace edits, restored risk links) and 10.9 (10.8 plus the web-flow needs, requirements, route service, UC.3 and risks; [changes](docs/model/10.9-changes.md); imported into Innoslate, Intelligence 81% with no errors) |
 | [docs/prompt-log.md](docs/prompt-log.md) | GenAI provenance log (required by the course) |
@@ -86,7 +87,7 @@ $env:ORS_API_KEY = "your-key"
 
 The server looks for the key in this order and prints which one it used when it starts: the process environment, a `.env` file in the project folder (one line `ORS_API_KEY=your-key`; git ignores it), then the Windows user environment variable. A variable saved after a terminal was opened is not visible to that terminal, which is why the last two exist. The page itself says whether place search is live.
 
-**Status (Milestone 1):** one stubbed end-to-end path for UC.1; emission factors are placeholders, the web UI is a single minimal page (see below), there is no persistence, no real weather call and no language model yet. See [docs/walking-skeleton.md](docs/walking-skeleton.md).
+**Status:** two paths run today. The command-line UC.1 walking skeleton (`python -m src.main`) is still one stubbed end-to-end path. The Flask web app adds invite-only accounts, saved trips (SQLite), the Plan, Done, Garden and Achievements pages with real route (OpenRouteService), weather (Open-Meteo) and TCAT bus data, a feasibility-based recommendation, carpool, badges and the campus tree. Still open: reviewed emission factors (placeholders today), a language-model explanation, and the pilot usability measurements. 386 automated tests pass (those needing Flask or a built bus index are skipped when it is missing). See [docs/walking-skeleton.md](docs/walking-skeleton.md) and the [project home page](https://sysen5151-fall2026.github.io/TEAM-6/).
 
 ## Accounts and invites
 
