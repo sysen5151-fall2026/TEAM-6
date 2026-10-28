@@ -12,9 +12,13 @@ import math
 from datetime import date as _date
 from datetime import datetime
 
-from flask import Flask, jsonify, redirect, render_template, request, url_for
+from datetime import datetime as _dt
 
+from flask import Flask, g, jsonify, redirect, render_template, request, url_for
+
+from src.c1_web_front_end import auth
 from src.c2_application_service import (
+    accounts,
     campus_goal,
     confirm_trip,
     evaluate_badges,
@@ -24,12 +28,10 @@ from src.c2_application_service import (
     plan_commute,
     preview_routes,
 )
-from src.c2_application_service.achievements import counted_trips
+from src.c2_application_service.achievements import counted_trips, earned_dates
 from src.c2_application_service.plan import VEHICLES
 from src.c3_data_adapter import (
-    confirmed_trips,
     place_search_is_live,
-    reset_confirmed,
     search_paused,
     suggest_places,
 )
@@ -77,6 +79,17 @@ def _map_places(plan) -> list:
     ]
 
 
+def recent_pairs(trips, limit=4) -> list:
+    """The latest distinct start and destination pairs this account has recorded (never a raw position)."""
+    seen, pairs = set(), []
+    for t in reversed(trips):
+        pair = (t.origin, t.destination)
+        if pair not in seen and not t.origin.startswith("My location") and not t.destination.startswith("My location"):
+            seen.add(pair)
+            pairs.append(pair)
+    return pairs[:limit]
+
+
 @realizes("UC.3.6")
 def render_plan(values, plan=None, errors=()):
     when, _ = parse_when(values.get("when"))
@@ -92,7 +105,8 @@ def render_plan(values, plan=None, errors=()):
         today=today.isoformat(),
         when_value=when.strftime("%Y-%m-%dT%H:%M"),
         confirm_date=min(when.date(), today).isoformat(),  # a trip can only be confirmed once it has happened
-        restore_have=request.method == "GET",
+        restore_have=False,  # the account remembers it, not the browser
+        recent=recent_pairs(g.trips.all()),
         values=values,
         plan=plan,
         errors=list(errors),
@@ -107,10 +121,12 @@ def form_values():
 
 def plan_page():
     if request.method == "GET":
+        have = [v for v in accounts.get_prefs(g.db, g.user["id"]).get("have", []) if v in VEHICLES]
         return render_plan(
             {
                 "origin": request.args.get("origin", "")[:100],
                 "destination": request.args.get("destination", "")[:100],
+                "have": have,
             }
         )
 
@@ -127,6 +143,7 @@ def plan_page():
     if errors:
         return render_plan(values, errors=errors)
 
+    accounts.set_pref(g.db, g.user["id"], "have", list(parse_have(request.form)))  # remembered for next time
     plan = plan_commute(origin, destination, have=parse_have(request.form), when=when,
                         bus_route=values.get("bus_route", ""))
     return render_plan(values, plan=plan, errors=plan.errors)
@@ -155,20 +172,23 @@ def confirm_page():
         when,
         people,
         request.form.get("bus_route", ""),
+        g.trips,
+        auth.community_trips(),
     )
     if errors:
         return render_plan(form_values(), errors=errors)
-    return redirect(url_for("done_page", index=len(confirmed_trips()) - 1, new=",".join(new_badges)))
+    return redirect(url_for("done_page", index=len(g.trips.all()) - 1, new=",".join(new_badges)))
 
 
 @realizes("UC.3.9")
 def done_page(index):
-    trips = confirmed_trips()
+    trips = g.trips.all()
     if not 0 <= index < len(trips):
         return redirect(url_for("plan_page"))
-    before, after = campus_goal(trips[:index]), campus_goal(trips[: index + 1])
+    community = auth.community_trips()
+    before, after = campus_goal(trips[:index], community), campus_goal(trips[: index + 1], community)
     wanted = {n for n in request.args.get("new", "").split(",") if n}
-    new_badges = [b for b in evaluate_badges(trips) if b.earned and b.name in wanted]
+    new_badges = [b for b in evaluate_badges(trips, community) if b.earned and b.name in wanted]
     return render_template(
         "done.html",
         active="",
@@ -183,8 +203,9 @@ def done_page(index):
 
 @realizes("UC.3.10")
 def achievements_page():
-    trips = confirmed_trips()
-    badges = evaluate_badges(trips)
+    trips = g.trips.all()
+    community = auth.community_trips()
+    badges = evaluate_badges(trips, community)
     return render_template(
         "achievements.html",
         active="achievements",
@@ -193,13 +214,14 @@ def achievements_page():
         saved_g=round(sum(max(t.difference_g, 0) for t in counted_trips(trips))),
         badges=badges,
         earned=[b for b in badges if b.earned],
+        earned_on=earned_dates(trips, community),
         todo=[b for b in badges if not b.earned],
     )
 
 
 @realizes("UC.3.10")
 def garden_page():
-    goal = campus_goal(confirmed_trips())
+    goal = campus_goal(g.trips.all(), auth.community_trips())
     return render_template(
         "garden.html",
         active="garden",
@@ -311,17 +333,20 @@ def back():
 
 
 def demo_page():
-    load_demo_trips()
+    load_demo_trips(g.trips)
     return back()
 
 
 def reset_page():
-    reset_confirmed()
+    g.trips.clear()
     return back()
 
 
-def create_app() -> Flask:
+def create_app(db_path=None) -> Flask:
+    """The web application. db_path is the account database (default data/app.sqlite)."""
     app = Flask(__name__)
+    app.jinja_env.filters["epoch_date"] = lambda ts: _dt.fromtimestamp(ts).strftime("%b %d, %Y").replace(" 0", " ")
+    auth.init_auth(app, db_path)
     app.add_url_rule("/", view_func=plan_page, methods=["GET", "POST"])
     app.add_url_rule("/compare", view_func=plan_page, methods=["GET", "POST"])
     app.add_url_rule("/places", view_func=places_api)

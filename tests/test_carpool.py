@@ -10,8 +10,9 @@ from unittest import mock
 
 try:
     from src.c1_web_front_end.web_app import create_app, parse_share
+    from tests.webhelper import make_client, store_of
 except ImportError:  # Flask is the only non-standard dependency
-    create_app = parse_share = None
+    create_app = parse_share = make_client = store_of = None
 
 from src.c2_application_service import campus_goal, confirm_trip, plan_commute
 from src.c2_application_service.confirmation import MAX_PEOPLE, MIN_PEOPLE
@@ -89,7 +90,8 @@ class TestConfirmCarpool(Base):
 class TestCarpoolOnThePage(Base):
     def setUp(self):
         super().setUp()
-        self.client = create_app().test_client()
+        self.client = make_client()
+        self.store = store_of(self.client, self)
         self.form = {"origin": A, "destination": B, "date": self.today, "mode": "drive"}
 
     def plan_page(self):
@@ -123,7 +125,7 @@ class TestCarpoolOnThePage(Base):
     def test_choosing_drive_as_a_carpool_records_a_carpool(self):
         response = self.client.post("/confirm", data={**self.form, "share": "carpool", "occupants": "3"})
         self.assertEqual(response.status_code, 302)
-        trip = confirmed_trips()[0]
+        trip = self.store.all()[0]
         self.assertEqual((trip.mode, trip.occupants, trip.co2e_g), ("carpool", 3, round(self.drive_g / 3)))
         done = self.client.get(response.headers["Location"]).get_data(as_text=True)
         self.assertIn("with 3 people", done)
@@ -133,9 +135,9 @@ class TestCarpoolOnThePage(Base):
     def test_choosing_drive_alone_records_a_drive(self):
         for extra in ({"share": "alone", "occupants": "5"}, {}):
             with self.subTest(extra=extra):
-                reset_confirmed()
+                self.store.clear()
                 self.assertEqual(self.client.post("/confirm", data={**self.form, **extra}).status_code, 302)
-                self.assertEqual((confirmed_trips()[0].mode, confirmed_trips()[0].occupants), ("drive", 1))
+                self.assertEqual((self.store.all()[0].mode, self.store.all()[0].occupants), ("drive", 1))
 
     def test_a_bad_number_of_people_is_a_message_not_a_crash(self):
         for bad in ("", "x", "1", "9", "-3", "2.5", "1e3"):
@@ -143,12 +145,12 @@ class TestCarpoolOnThePage(Base):
                 response = self.client.post("/confirm", data={**self.form, "share": "carpool", "occupants": bad})
                 self.assertEqual(response.status_code, 200)
                 self.assertIn('role="alert"', response.get_data(as_text=True))
-        self.assertEqual(confirmed_trips(), ())
+        self.assertEqual(self.store.all(), ())
 
     def test_the_people_count_is_not_used_when_another_way_is_chosen(self):
         response = self.client.post("/confirm", data={**self.form, "mode": "walk", "share": "carpool", "occupants": "x"})
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(confirmed_trips()[0].mode, "walk")
+        self.assertEqual(self.store.all()[0].mode, "walk")
 
 
 if __name__ == "__main__":

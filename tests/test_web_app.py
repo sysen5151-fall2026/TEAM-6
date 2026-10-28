@@ -9,8 +9,9 @@ from unittest import mock
 
 try:
     from src.c1_web_front_end.web_app import create_app
+    from tests.webhelper import make_client, store_of
 except ImportError:  # Flask is the only non-standard dependency
-    create_app = None
+    create_app = make_client = store_of = None
 
 from src.c3_data_adapter import reset_confirmed
 
@@ -29,7 +30,7 @@ class TestPlanPage(unittest.TestCase):
         no_weather = mock.patch("src.c3_data_adapter.weather_adapter._http_json", side_effect=OSError)
         no_weather.start()  # the plan page asks Open-Meteo; tests must not use the network
         self.addCleanup(no_weather.stop)
-        self.client = create_app().test_client()
+        self.client = make_client()
 
     def test_home_is_the_plan_form_and_both_places_are_required(self):
         page = self.client.get("/").data
@@ -224,7 +225,7 @@ class TestPlanPageWithBus(unittest.TestCase):
         store = mock.patch("src.c2_application_service.bus_planner.open_store", return_value=self.store)
         store.start()
         self.addCleanup(store.stop)
-        self.client = create_app().test_client()
+        self.client = make_client()
 
     def post(self, when, **extra):
         return self.client.post("/", data={**PLACES, "when": when, **extra}).get_data(as_text=True)

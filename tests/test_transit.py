@@ -444,6 +444,41 @@ class TestStartupLine(unittest.TestCase):
         self.assertIn("python -m src.update_transit", missing)
 
 
+class TestStartupLines(unittest.TestCase):
+    def setUp(self):
+        try:
+            from src import main_web
+        except ImportError:
+            self.skipTest("Flask not installed")
+        self.main_web = main_web
+
+    def test_the_server_says_how_many_accounts_and_invites_there_are_and_what_to_do_first(self):
+        from src.c2_application_service import accounts
+        from src.c3_data_adapter import app_db
+
+        path = Path(tempfile.mkdtemp()) / "app.sqlite"
+        empty = self.main_web.accounts_status(path)
+        self.assertIn("0 accounts, 0 open invite codes", empty)
+        self.assertIn("create-invite", empty)
+        db = app_db.connect(path)
+        accounts.create_user(db, "alice", "alice password")
+        accounts.create_invite(db, "bob")
+        db.close()
+        later = self.main_web.accounts_status(path)
+        self.assertIn("1 account, 1 open invite code", later)
+        self.assertNotIn("Nobody can log in", later)
+
+    def test_it_warns_when_other_devices_can_reach_it_and_not_when_only_this_computer_can(self):
+        warn = self.main_web.network_warning
+        self.assertEqual(warn("127.0.0.1", False, False), "")
+        self.assertEqual(warn("localhost", False, False), "")
+        open_lan = warn("0.0.0.0", False, False)
+        self.assertIn("NOT encrypted", open_lan)
+        self.assertIn("Tailscale", open_lan)
+        self.assertIn("https", warn("0.0.0.0", True, True))
+        self.assertNotIn("Tailscale", warn("0.0.0.0", True, True))  # already behind a tunnel
+
+
 REAL_DB = Path(__file__).resolve().parent.parent / "data" / "tcat" / "tcat.sqlite"
 ARTS_QUAD = Place("Arts Quad", -76.4835, 42.4491, "test")
 COMMONS = Place("Ithaca Commons", -76.4968, 42.4396, "test")

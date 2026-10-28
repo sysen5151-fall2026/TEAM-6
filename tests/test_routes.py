@@ -39,6 +39,8 @@ def fake_ors(url, headers=None, body=None):
 
 class TestFallbackWithoutKey(unittest.TestCase):
     def setUp(self):
+        route_adapter.set_cache_backend(None)
+        route_adapter._route_cache.clear()  # an answer cached by an earlier test must not stand in for the fallback
         patcher = mock.patch.dict(os.environ, {}, clear=False)
         patcher.start()
         os.environ.pop("ORS_API_KEY", None)
@@ -304,19 +306,24 @@ class TestSuggestionSpeed(unittest.TestCase):
         self.assertEqual([p.label for p in second], ["Statler Hall, Ithaca, NY, USA"])
         self.assertFalse(route_adapter.search_paused())  # suggestions are not paused: one source still works
 
-    def test_places_near_campus_are_asked_for_first_and_everywhere_only_if_none_found(self):
+    def test_places_are_only_searched_within_the_ithaca_service_area(self):
         urls = []
 
         def serve(url, headers=None, body=None, timeout=None):
             urls.append(url)
-            return self.reply() if "boundary.circle" in url else self.reply("Faraway Cafe, Albany, NY, USA")
+            return self.reply()  # nothing inside the area
 
         with mock.patch.object(route_adapter, "_http_json", side_effect=serve):
             places = route_adapter.suggest_places("faraway")
-        self.assertEqual(len(urls), 2)
-        self.assertIn("boundary.circle.radius=25", urls[0])
-        self.assertNotIn("boundary.circle", urls[1])
-        self.assertEqual([p.label for p in places], ["Faraway Cafe, Albany, NY, USA"])
+        self.assertEqual(len(urls), 1)  # never asked again without the limit
+        self.assertIn("boundary.circle.radius=40", urls[0])
+        self.assertEqual(places, ())
+
+    def test_a_typed_place_outside_the_area_is_not_found(self):
+        with mock.patch.object(route_adapter, "_http_json", return_value=self.reply()) as http:
+            self.assertIsNone(route_adapter.geocode("faraway cafe albany"))
+        self.assertEqual(http.call_count, 1)
+        self.assertIn("boundary.circle.radius=40", http.call_args[0][0])
 
     def test_a_local_answer_costs_one_request(self):
         with mock.patch.object(route_adapter, "_http_json", return_value=self.reply("Statler Hall, Ithaca, NY, USA")) as http:
@@ -324,7 +331,7 @@ class TestSuggestionSpeed(unittest.TestCase):
         self.assertEqual(http.call_count, 1)
         self.assertIn("boundary.circle.lon", http.call_args[0][0])
 
-    def test_typing_a_place_and_not_picking_it_is_looked_up_near_campus_first(self):
+    def test_typing_a_place_and_not_picking_it_is_looked_up_within_the_area(self):
         urls = []
 
         def serve(url, headers=None, body=None, timeout=None):

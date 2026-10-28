@@ -15,8 +15,9 @@ from src.interfaces import ConfirmedTrip, WeatherForecast
 
 try:
     from src.c1_web_front_end.web_app import create_app
+    from tests.webhelper import make_client, store_of
 except ImportError:
-    create_app = None
+    create_app = make_client = store_of = None
 
 DRY = WeatherForecast(precipitation_mm=0.0, forecast_timestamp="t", temperature_c=15.0, wind_kmh=5.0)
 
@@ -78,6 +79,18 @@ class TestBadgeRules(unittest.TestCase):
         self.assertEqual(evaluate_badges(trips), evaluate_badges(trips))
 
 
+class TestEarnedDates(unittest.TestCase):
+    def test_a_badge_is_dated_by_the_trip_that_earned_it(self):
+        from src.c2_application_service.achievements import earned_dates
+
+        trips = [trip("2026-10-12", dest="B"), trip("2026-10-05", dest="A", diff=600), trip("2026-10-20", dest="C", diff=600)]
+        found = earned_dates(trips)
+        self.assertEqual(found["first_step"], "2026-10-05")  # the earliest trip, whatever the order given
+        self.assertEqual(found["green_starter"], "2026-10-12")  # 600 + 500 reaches 1 kg on the second trip
+        self.assertNotIn("five_day_flow", found)
+        self.assertEqual(earned_dates([]), {})
+
+
 class TestAntiGaming(unittest.TestCase):
     def test_only_two_trips_per_day_count(self):
         many = [trip("2026-10-05", dest=f"P{i}") for i in range(6)]
@@ -128,7 +141,8 @@ class TestConfirmAndPages(unittest.TestCase):
         weather = mock.patch("src.c2_application_service.plan.current_weather", return_value=DRY)
         weather.start()
         self.addCleanup(weather.stop)
-        self.client = create_app().test_client()
+        self.client = make_client()
+        self.store = store_of(self.client, self)
         self.today = date.today().isoformat()
         self.form = {"origin": "Cornell Arts Quad", "destination": "Ithaca Commons", "mode": "bike", "date": self.today,
                      "have": "bike"}  # the student ticked "I have a bike"
@@ -198,8 +212,8 @@ class TestConfirmAndPages(unittest.TestCase):
         empty = self.client.get("/garden").data
         self.assertEqual(empty.count(b'class="tree"'), 0)
         self.assertEqual(empty.count(b'class="sapling"'), 1)
-        load_demo_trips()
-        confirm_trip("Cornell Arts Quad", "Ithaca Commons", "bike", self.today, have=("bike",))  # reaches the first tree
+        load_demo_trips(self.store)
+        confirm_trip("Cornell Arts Quad", "Ithaca Commons", "bike", self.today, have=("bike",), trips=self.store)  # reaches the first tree
         grown = self.client.get("/garden").data
         self.assertEqual(grown.count(b'class="tree"'), 1)
         self.assertIn(b"1 tree planted", grown)
@@ -213,12 +227,12 @@ class TestConfirmAndPages(unittest.TestCase):
 
     def test_demo_data_then_reset(self):
         self.client.post("/demo")
-        self.assertEqual(len(confirmed_trips()), load_demo_trips() + 12)  # second load adds nothing
+        self.assertEqual(len(self.store.all()), load_demo_trips(self.store) + 12)  # second load adds nothing
         page = self.client.get("/achievements").data
         self.assertIn(b"Earned", page)
         self.assertIn(b"sample data", self.client.get("/garden").data)  # the campus share is disclosed as sample data
         self.client.post("/reset")
-        self.assertEqual(confirmed_trips(), ())
+        self.assertEqual(self.store.all(), ())
 
     def test_demo_stops_just_short_of_a_tree_and_one_trip_reaches_it(self):
         load_demo_trips()
