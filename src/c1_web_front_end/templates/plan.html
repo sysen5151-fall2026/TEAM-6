@@ -53,6 +53,9 @@
     .datepick input { width:auto; }
     .mode.soon { opacity:.78; border-style:dashed; box-shadow:3px 3px 0 var(--shadow); }
     .legend .sw-scooter { border-color:#8e5bd6; border-top-style:dashed; }
+    details.why-rec { padding:0; margin-top:14px; }
+    details.why-rec > summary { cursor:pointer; padding:12px 16px; font-weight:800; }
+    details.why-rec > :not(summary) { margin-left:16px; margin-right:16px; }
   </style>
   <section class="hero">
     <span class="floaty" aria-hidden="true">🚲</span><span class="floaty" aria-hidden="true">🌤️</span>
@@ -67,6 +70,7 @@
   {% endif %}
 
   <form class="card" method="post" action="/" id="planform">
+    {{ csrf_input() }}
     <div class="route-row">
       <div>
         <label for="origin">📍 From</label>
@@ -88,6 +92,12 @@
     </div>
     {% if not live_search %}
     <p class="note searchmode" id="searchmode">📴 Offline list only (no ORS key set): only a few sample places can be found. Set ORS_API_KEY and restart to search anywhere.</p>
+    {% endif %}
+
+    {% if recent %}
+    <p class="chips">Recent:
+      {% for a, b in recent %}<a class="chip" href="/?origin={{ a|urlencode }}&amp;destination={{ b|urlencode }}">{{ a.split(',')[0] }} ➜ {{ b.split(',')[0] }}</a>{% endfor %}
+    </p>
     {% endif %}
 
     <fieldset class="mine">
@@ -120,15 +130,8 @@
   <section class="results" aria-live="polite">
     <h2 class="route-title">{{ plan.origin.label }} <span>➜</span> {{ plan.destination.label }}</h2>
 
-    <div class="card rec">
-      {% if rec.mode %}<div class="rec-emoji" aria-hidden="true">{{ m.mode(rec.mode) }}</div>{% endif %}
-      <div>
-        <p class="rec-text">{{ rec.reason }}</p>
-        <p class="note" style="margin:0">{{ rec.weather_note }}</p>
-      </div>
-    </div>
-
     <form method="post" action="/confirm" class="confirm" id="confirmform">
+      {{ csrf_input() }}
       <input type="hidden" name="origin" value="{{ values.get('origin', '') }}">
       <input type="hidden" name="destination" value="{{ values.get('destination', '') }}">
       {% for v in values.get('have', []) %}<input type="hidden" name="have" value="{{ v }}">{% endfor %}
@@ -139,9 +142,10 @@
         <input id="trip_date" name="date" type="date" required max="{{ today }}" value="{{ values.get('date') or confirm_date }}">
       </div>
       <div class="modes">
-        {% for c in plan.comparisons %}
+        {% set ordered = (plan.comparisons | selectattr('mode', 'equalto', rec.mode) | list) + (plan.comparisons | rejectattr('mode', 'equalto', rec.mode) | list) %}
+        {% for c in ordered %}
         {% set out = rec.excluded | selectattr(0, 'equalto', c.mode) | list %}
-        <article class="card mode {% if c.mode == rec.mode %}best{% endif %} {% if out %}ruled{% endif %}">
+        <article class="card mode {% if c.mode == rec.mode %}best{% endif %} {% if out %}ruled{% endif %} {% if c.mode == 'bus' %}wide{% endif %}">
           {% if c.mode == rec.mode %}<span class="tag">⭐ Recommended</span>{% elif out %}<span class="tag no">Not today</span>{% endif %}
           <div class="emoji" aria-hidden="true">{{ m.mode(c.mode) }}</div>
           <h3>{{ c.mode }}</h3>
@@ -198,6 +202,11 @@
         {% endif %}
       </div>
     </form>
+    <details class="card why-rec">
+      <summary>{% if rec.mode %}{{ m.mode(rec.mode) }} {% endif %}Why this recommendation?</summary>
+      <p class="rec-text">{{ rec.reason }}</p>
+      <p class="note" style="margin:0 0 4px">{{ rec.weather_note }}</p>
+    </details>
     {% set missing = vehicles | reject('in', values.get('have', [])) | list %}
     {% if missing %}
     <p class="note">Have a {{ missing | join(' or a ') }}? Tick it under “What I have with me” and compare again.</p>
@@ -376,6 +385,10 @@
     function locate(then) {
       var fail = function (text) { say(text); if (then) tell(text); };
       if (!navigator.geolocation) { fail("This browser cannot share a location, so the map shows the Cornell campus."); return; }
+      if (window.isSecureContext === false) {  // browsers only share a location with https pages (or this computer)
+        fail("Your browser only shares a location with secure (https) pages, and this address is not one. Type a place instead.");
+        return;
+      }
       say("📍 Finding where you are…"); if (then) tell("📍 Finding where you are…");
       navigator.geolocation.getCurrentPosition(function (pos) {
         here = { lat: pos.coords.latitude, lon: pos.coords.longitude, acc: pos.coords.accuracy || 50 };

@@ -308,6 +308,20 @@ Rule: every GenAI-assisted change is logged here with the tool, the (constrained
 | Not claimed | The people range (2 to 8), the one-hour option window, the 25 km radius and the 150 ms delay are project assumptions; occupants are self-reported; timing figures come from a few runs on one machine; my own testing used part of the free quota; SPEC.md and model 10.9 do not describe the carpool share or the bus choice |
 | Human review | **Pending.** Reviewer and date: ____________ . |
 
+## Entry 024 - 2026-10-28 - Invite-only accounts, saved trips and a persistent place cache
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `feat/accounts` (stacked on `feat/choices-and-speed`, PR 20) |
+| Prompt (summary, originally Chinese) | Keep accounts and records between runs; use invite codes (at least one per team member plus three for the professor and TA); let teammates use the site while the terminal runs on the owner's computer, not the open internet; no email verification; keep places that were searched so they are not searched again. |
+| Constraining sources | The team's choices in the prompt; the earlier discussion of risks of a public site |
+| What it produced | `src/c3_data_adapter/app_db.py` (SQLite file, schema, backup); `src/c2_application_service/accounts.py` (scrypt passwords, invites stored as hashes, sign-up and log-in limits, lockout, password change, delete, preferences; standard library only); `trip_store.py` with an in-memory and an SQLite per-account store and the other accounts' totals; the shared tree over all accounts; `src/c1_web_front_end/auth.py` (signed sessions, form tokens, page guards, security headers, log-in, sign-up, account, export pages); templates; per-account preferences and recent trips; `persistent_cache.py` and its use in the route adapter (suggestions, looked-up places, routes between known places); `src/manage.py`; `main_web.py` options (`--host`, `--port`, waitress, start-up lines); ADR 0009; README sections; about 120 new tests (381 in all) |
+| Found while testing | An empty form token matched an empty session token, so a browser without a session could post the log-in form (fixed and tested). A failed invite attempt was recorded inside a transaction that the raised error rolled back, which would have disabled the guessing limit (fixed and tested). Checked against a fresh database in the browser: invite sign-up, saving a trip, restarting the server (still signed in; trips, vehicles and recent trip kept), isolation from another account, and that the Content-Security-Policy lets the map load |
+| Not claimed | Not a security review. Follow-up the same day (team request): the invite system was simplified to three shared codes (team members, project manager, professor), the sign-up form became user name, password, password again, invite code, the sign-up limits were removed because the site is private, the password rule was relaxed to 6 characters, and `manage seed` creates the named accounts from a git-ignored roster file. The log-in lockout (5 wrong passwords, 15 minutes) is a project assumption for a small invited group. Tailscale and tunnel use is described but was not tried here. Plain http on a shared network is readable by others. The database holds personal data: whether the course allows keeping real people's trips was not checked. SPEC.md and model 10.9 do not describe accounts or invites. Timing of the test suite grew (about 30 s) |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
 ## Entry template
 
 | Field | Value |

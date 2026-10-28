@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}My account - EcoCommute{% endblock %}
+{% block content %}
+  {% set action = request.form.get('action', '') if request.method == 'POST' else '' %}
+  <h1>👤 {{ user.username }}</h1>
+  <p class="sub">Member since {{ user.created_at | epoch_date }}. {{ trip_count }} trip{{ '' if trip_count == 1 else 's' }} saved.</p>
+
+  {% if message %}<div class="card" role="status"><strong>{{ message }}</strong></div>{% endif %}
+  {% if error %}<div class="card errors" role="alert"><ul><li>{{ error }}</li></ul></div>{% endif %}
+
+  <details class="card acc">
+    <summary><span aria-hidden="true">🌓</span> Appearance</summary>
+    <p class="note">Light or dark. “Match my device” follows your phone or computer setting. Saved on this device only.</p>
+    <div class="themepick" role="radiogroup" aria-label="Appearance">
+      <button type="button" class="btn ghost" role="radio" data-theme-choice="auto">📱 Match my device</button>
+      <button type="button" class="btn ghost" role="radio" data-theme-choice="light">☀️ Light</button>
+      <button type="button" class="btn ghost" role="radio" data-theme-choice="dark">🌙 Dark</button>
+    </div>
+  </details>
+
+  <details class="card acc"{% if action == 'password' and error %} open{% endif %}>
+    <summary><span aria-hidden="true">🔑</span> Change my password</summary>
+    <form method="post" action="/account">
+      {{ csrf_input() }}<input type="hidden" name="action" value="password">
+      <label for="current">Current password</label>
+      <input id="current" name="current" type="password" required maxlength="128" autocomplete="current-password">
+      <label for="new_password">New password</label>
+      <input id="new_password" name="new_password" type="password" required minlength="6" maxlength="128" autocomplete="new-password">
+      <label for="confirm">New password again</label>
+      <input id="confirm" name="confirm" type="password" required minlength="6" maxlength="128" autocomplete="new-password">
+      <button class="btn full" type="submit">Change password</button>
+    </form>
+  </details>
+
+  <details class="card acc">
+    <summary><span aria-hidden="true">📦</span> My data</summary>
+    <p class="note">Your account keeps your trips and your choices (like which vehicles you have). Nothing else.
+      Only totals are added into the shared tree; no page shows another account's trips.</p>
+    <a class="btn ghost full" href="/account/export" download>⬇️ Download my data</a>
+  </details>
+
+  <details class="card acc danger"{% if action == 'delete' and error %} open{% endif %}>
+    <summary><span aria-hidden="true">🗑️</span> Delete my account</summary>
+    <form method="post" action="/account">
+      {{ csrf_input() }}<input type="hidden" name="action" value="delete">
+      <p class="note">This removes your account and all your trips for good. Your part in the shared tree goes with them.</p>
+      <label for="password">Your password</label>
+      <input id="password" name="password" type="password" required maxlength="128" autocomplete="current-password">
+      <label for="confirm_word">Type <b>delete</b> to confirm</label>
+      <input id="confirm_word" name="confirm_word" type="text" required maxlength="10" autocomplete="off">
+      <button class="btn pink full" type="submit">Delete my account</button>
+    </form>
+  </details>
+
+  <form method="post" action="/logout" class="logout-row">
+    {{ csrf_input() }}<button class="btn ghost full" type="submit">Log out</button>
+  </form>
+{% endblock %}
+{% block scripts %}
+<script>
+  (function () {
+    var root = document.documentElement, buttons = document.querySelectorAll('[data-theme-choice]');
+    function current() { var t = root.getAttribute('data-theme'); return t === 'light' || t === 'dark' ? t : 'auto'; }
+    function mark() {
+      buttons.forEach(function (b) {
+        var on = b.dataset.themeChoice === current();
+        b.setAttribute('aria-checked', on ? 'true' : 'false');
+        b.classList.toggle('on', on);
+      });
+    }
+    buttons.forEach(function (b) {
+      b.addEventListener('click', function () {
+        var choice = b.dataset.themeChoice;
+        if (choice === 'auto') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', choice);
+        try { if (choice === 'auto') localStorage.removeItem('ecocommute.theme'); else localStorage.setItem('ecocommute.theme', choice); } catch (e) {}
+        mark();
+      });
+    });
+    mark();
+  })();
+</script>
+{% endblock %}

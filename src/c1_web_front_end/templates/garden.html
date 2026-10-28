@@ -71,7 +71,7 @@
       <li>🌳 Every {{ '%g'|format(goal.goal_g / 1000) }} kg, a tree is planted</li>
     </ul>
     <p class="note" style="margin-bottom:0">{{ goal.sample_note }}. The {{ '%g'|format(goal.goal_g / 1000) }} kg per tree is a project assumption, and the savings are estimates, not verified avoided emissions.</p>
-    <form method="post" action="/demo" style="display:inline"><input type="hidden" name="next" value="/garden"><button class="btn small ghost" style="width:auto" type="submit">Load sample trips</button></form>
-    <form method="post" action="/reset" style="display:inline"><input type="hidden" name="next" value="/garden"><button class="btn small ghost" style="width:auto" type="submit">Clear my trips</button></form>
+    <form method="post" action="/demo" style="display:inline">{{ csrf_input() }}<input type="hidden" name="next" value="/garden"><button class="btn small ghost" style="width:auto" type="submit">Load sample trips</button></form>
+    <form method="post" action="/reset" style="display:inline">{{ csrf_input() }}<input type="hidden" name="next" value="/garden"><button class="btn small ghost" style="width:auto" type="submit">Clear my trips</button></form>
   </section>
 {% endblock %}

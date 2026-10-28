@@ -31,7 +31,7 @@ TIMEOUT_S = 5
 SUGGEST_TIMEOUT_S = 2.5  # a suggestion that takes longer is not worth waiting for
 COOLDOWN_S = 60.0  # after a "quota exceeded" or "too many requests" answer, stop asking for this long
 ONLINE_MIN_CHARS = 3  # sample places show from 2 characters; the online search starts at 3
-LOCAL_RADIUS_KM = 25  # look near campus first; only if nothing is found there look everywhere
+LOCAL_RADIUS_KM = 40  # the service area: places are only searched within this distance of campus (Ithaca and its surroundings)
 
 PROFILES = {"drive": "driving-car", "walk": "foot-walking", "bike": "cycling-regular"}
 _route_pool = ThreadPoolExecutor(max_workers=len(PROFILES), thread_name_prefix="ors")  # long-lived, so its threads keep their connections
@@ -62,6 +62,56 @@ _place_cache = {}  # label.lower() -> Place, so a picked suggestion resolves to 
 _suggest_cache = {}  # query.lower() -> tuple of Place, only successful ORS answers
 _route_cache = {}  # (lat, lon, lat, lon) -> routes that all came from ORS
 MAX_PATH_POINTS = 300
+_backend = None  # a persistent cache (SqliteCache) when the application sets one
+
+
+def set_cache_backend(backend) -> None:
+    """Use `backend` to keep answers between runs (None to go back to memory only)."""
+    global _backend
+    _backend = backend
+
+
+def _stored(namespace: str, key: str):
+    return _backend.get(namespace, key) if _backend is not None else None
+
+
+def _store(namespace: str, key: str, value) -> None:
+    if _backend is not None:
+        _backend.put(namespace, key, value)
+
+
+def _place_to_dict(p: Place) -> dict:
+    return {"label": p.label, "lat": p.lat, "lon": p.lon, "source": p.source}
+
+
+def _place_from_dict(d: dict) -> Place:
+    return Place(label=d["label"], lon=float(d["lon"]), lat=float(d["lat"]), source=d["source"])
+
+
+def _places_from_payload(payload) -> tuple:
+    try:
+        return tuple(_place_from_dict(d) for d in payload["places"])
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
+def _route_to_dict(o) -> dict:
+    return {"mode": o.mode, "distance_km": o.distance_km, "duration_min": o.duration_min, "source": o.source,
+            "path": [list(p) for p in o.path]}
+
+
+def _route_from_dict(d: dict):
+    return RouteOption(d["mode"], float(d["distance_km"]), float(d["duration_min"]), d["source"],
+                       tuple((float(a), float(b)) for a, b in d["path"]))
+
+
+def _is_known(p: Place) -> bool:
+    """A place that is not somebody's position: a sample place or one that was looked up by name."""
+    if any(abs(lat - p.lat) < 0.0003 and abs(lon - p.lon) < 0.0003 for lat, lon in SAMPLE_PLACES.values()):
+        return True
+    return _backend is not None and _backend.known_place_near(p.lat, p.lon)
+
+
 _paused_until = {"autocomplete": 0.0, "search": 0.0, "route": 0.0}  # separate quotas; monotonic time each is left alone until
 
 # The page names the Commuter's own position like this; no search service is involved.
@@ -86,6 +136,7 @@ def _remember(place: Place) -> None:
     if len(_place_cache) >= _CACHE_LIMIT:
         _place_cache.clear()
     _place_cache[place.label.lower()] = place
+    _store("place", place.label.lower(), _place_to_dict(place))  # so a picked suggestion still resolves after a restart
 
 
 def _quick_remote(text: str) -> tuple:
@@ -112,12 +163,12 @@ def _merge(samples, remote) -> tuple:
     return chosen
 
 
-def _geo_url(service: str, text: str, size: int, near_campus: bool) -> str:
+def _geo_url(service: str, text: str, size: int) -> str:
+    """A hard limit to the service area, so "statler" is not answered with Boston or Michigan."""
     params = {"api_key": _api_key(), "text": text, "size": size,
-              "focus.point.lon": FOCUS_LON, "focus.point.lat": FOCUS_LAT}
-    if near_campus:  # a hard limit, so "statler" is not answered with Boston and Michigan
-        params.update({"boundary.circle.lon": FOCUS_LON, "boundary.circle.lat": FOCUS_LAT,
-                       "boundary.circle.radius": LOCAL_RADIUS_KM})
+              "focus.point.lon": FOCUS_LON, "focus.point.lat": FOCUS_LAT,
+              "boundary.circle.lon": FOCUS_LON, "boundary.circle.lat": FOCUS_LAT,
+              "boundary.circle.radius": LOCAL_RADIUS_KM}
     return f"{ORS_BASE}/geocode/{service}?{urllib.parse.urlencode(params)}"
 
 
@@ -126,18 +177,14 @@ def _ask_remote(text: str):
 
     Autocomplete is asked first. When its quota is used up the search service (a separate
     quota) answers instead, so suggestions keep coming; each is left alone for a minute
-    after it says "quota exceeded". Places within LOCAL_RADIUS_KM of campus are asked for
-    first; the whole world only when nothing is found there.
+    after it says "quota exceeded". Only places within LOCAL_RADIUS_KM of campus are asked for.
     """
     for service in ("autocomplete", "search"):
         if _paused(service):
             continue
         try:
-            for near_campus in (True, False):
-                data = _http_json(_geo_url(service, text, MAX_SUGGESTIONS, near_campus), timeout=SUGGEST_TIMEOUT_S)
-                places = tuple(_feature_to_place(f, text) for f in data["features"])
-                if places or not near_campus:
-                    return places
+            data = _http_json(_geo_url(service, text, MAX_SUGGESTIONS), timeout=SUGGEST_TIMEOUT_S)
+            return tuple(_feature_to_place(f, text) for f in data["features"])
         except (KeyError, IndexError, ValueError, TypeError, OSError) as err:
             _note_failure(service, err)
     return None
@@ -157,6 +204,10 @@ def suggest_places(text: str, online: bool = True) -> tuple:
     samples = _sample_matches(text)
     remote = _suggest_cache.get(text.lower())
     if remote is None:
+        remote = _places_from_payload(_stored("suggest", text.lower()))  # asked and answered before, perhaps last week
+        if remote is not None:
+            _suggest_cache[text.lower()] = remote
+    if remote is None:
         remote = _quick_remote(text)
         if online and _api_key() and len(text) >= ONLINE_MIN_CHARS and len(samples) < MAX_SUGGESTIONS and not search_paused():
             fresh = _ask_remote(text)
@@ -165,6 +216,7 @@ def suggest_places(text: str, online: bool = True) -> tuple:
                 if len(_suggest_cache) >= _CACHE_LIMIT:
                     _suggest_cache.clear()
                 _suggest_cache[text.lower()] = remote
+                _store("suggest", text.lower(), {"places": [_place_to_dict(p) for p in remote]})
     return _merge(samples, remote)
 
 
@@ -304,6 +356,9 @@ def geocode(text: str):
             return Place(label=text, lon=lon, lat=lat, source="your device location")
         return None
     picked = _place_cache.get(text.lower())  # a label the Commuter chose from the suggestions
+    if picked is None and _backend is not None:
+        stored = _stored("place", text.lower())
+        picked = _place_from_dict(stored) if stored else None
     if picked is not None:
         return picked
     matches = _sample_matches(text)
@@ -312,11 +367,16 @@ def geocode(text: str):
             return place
     if not _api_key() or _paused("search"):
         return matches[0] if len(matches) == 1 else None  # "upson" alone is unambiguous
+    found = _places_from_payload(_stored("suggest", "search:" + text.lower()))
+    if found:
+        return found[0]
     try:
-        for near_campus in (True, False):  # near campus first, then anywhere
-            data = _http_json(_geo_url("search", text, 1, near_campus))
-            if data["features"]:
-                return _feature_to_place(data["features"][0], text)
+        data = _http_json(_geo_url("search", text, 1))
+        if data["features"]:
+            place = _feature_to_place(data["features"][0], text)
+            _store("suggest", "search:" + text.lower(), {"places": [_place_to_dict(place)]})
+            _store("place", place.label.lower(), _place_to_dict(place))
+            return place
         return matches[0] if len(matches) == 1 else None
     except (KeyError, IndexError, ValueError, TypeError, OSError) as err:
         _note_failure("search", err)
@@ -372,6 +432,17 @@ def get_route_options(origin: Place, dest: Place) -> tuple:
     key = tuple(round(v, 5) for v in (origin.lat, origin.lon, dest.lat, dest.lon))
     if key in _route_cache:
         return _route_cache[key]
+    keep = _backend is not None and _is_known(origin) and _is_known(dest)  # never a position someone is standing at
+    stored_key = "|".join(f"{v:.4f}" for v in key)
+    if keep:
+        stored = _stored("route", stored_key)
+        try:
+            from_disk = tuple(_route_from_dict(d) for d in stored["routes"]) if stored else ()
+        except (KeyError, TypeError, ValueError):
+            from_disk = ()
+        if len(from_disk) == len(PROFILES) and all(o.source == "OpenRouteService" for o in from_disk):
+            _route_cache[key] = from_disk
+            return from_disk
     def one(mode: str) -> RouteOption:
         if _api_key() and not _paused("route"):
             try:
@@ -385,4 +456,6 @@ def get_route_options(origin: Place, dest: Place) -> tuple:
         if len(_route_cache) >= _CACHE_LIMIT:
             _route_cache.clear()
         _route_cache[key] = result
+        if keep:
+            _store("route", stored_key, {"routes": [_route_to_dict(o) for o in result]})
     return result

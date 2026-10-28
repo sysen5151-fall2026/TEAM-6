@@ -15,8 +15,9 @@ from unittest import mock
 
 try:
     from src.c1_web_front_end.web_app import create_app
+    from tests.webhelper import make_client, store_of
 except ImportError:  # Flask is the only non-standard dependency
-    create_app = None
+    create_app = make_client = store_of = None
 
 from src.c2_application_service import bus_planner, confirm_trip, plan_commute
 from src.c2_application_service.bus_planner import find_bus
@@ -218,7 +219,8 @@ class TestPageChoice(Base):
         env.start()
         os.environ.pop("ORS_API_KEY", None)
         self.addCleanup(env.stop)
-        self.client = create_app().test_client()
+        self.client = make_client()
+        self.trips = store_of(self.client, self)
         self.form = {"origin": "Cornell Arts Quad", "destination": "Ithaca Commons"}
         # the page geocodes the sample places, whose coordinates are the fixture's stops
         for target in ("src.c2_application_service.comparison.geocode",):
@@ -272,14 +274,14 @@ class TestPageChoice(Base):
         response = self.client.post("/confirm", data={**self.form, "mode": "bus", "date": "2026-06-03",
                                                       "when": "2026-06-03T09:15", "bus_route": "R1"})
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(confirmed_trips()[0].route, "30")
+        self.assertEqual(self.trips.all()[0].route, "30")
         self.assertIn("bus 30", self.client.get("/achievements").get_data(as_text=True))
 
     def test_a_made_up_route_in_the_form_does_nothing_harmful(self):
         response = self.client.post("/confirm", data={**self.form, "mode": "bus", "date": "2026-06-03",
                                                       "when": "2026-06-03T09:15", "bus_route": "<script>"})
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(confirmed_trips()[0].route, "65")  # fell back to the best
+        self.assertEqual(self.trips.all()[0].route, "65")  # fell back to the best
 
     def test_the_map_endpoint_lists_every_option_with_its_line(self):
         reply = self.client.get("/route-lines?olat=42.4491&olon=-76.4835&dlat=42.4396&dlon=-76.4968&when=2026-06-03T09:15")
