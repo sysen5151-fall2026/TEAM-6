@@ -35,7 +35,7 @@
     .busline { margin:6px 0 0; font-weight:800; }
     .route-chip.small { min-width:1.8em; padding:0 6px; font-size:.85rem; border-width:1.5px; }
     fieldset.busroutes label { font-size:.88rem; }
-    ul.steps { text-align:left; }
+    ul.steps { text-align:center; }
     .legend .sw-bus { border-top-width:6px; border-top-style:solid; }
     fieldset.share { margin:8px 0 0; padding:6px 10px 8px; border:2px dashed var(--line); border-radius:12px; text-align:left; }
     fieldset.share legend { padding:0 6px; font-size:.85rem; font-weight:800; }
@@ -55,7 +55,8 @@
     .legend .sw-scooter { border-color:#8e5bd6; border-top-style:dashed; }
     details.why-rec { padding:0; margin-top:14px; }
     details.why-rec > summary { cursor:pointer; padding:12px 16px; font-weight:800; }
-    details.why-rec > :not(summary) { margin-left:16px; margin-right:16px; }
+    details.why-rec > :not(summary) { margin-left:18px; margin-right:18px; }
+    details.why-rec > :last-child { margin-bottom:20px; }
   </style>
   <section class="hero">
     <span class="floaty" aria-hidden="true">🚲</span><span class="floaty" aria-hidden="true">🌤️</span>
@@ -205,7 +206,7 @@
     <details class="card why-rec">
       <summary>{% if rec.mode %}{{ m.mode(rec.mode) }} {% endif %}Why this recommendation?</summary>
       <p class="rec-text">{{ rec.reason }}</p>
-      <p class="note" style="margin:0 0 4px">{{ rec.weather_note }}</p>
+      <p class="note" style="margin-top:0">{{ rec.weather_note }}</p>
     </details>
     {% set missing = vehicles | reject('in', values.get('have', [])) | list %}
     {% if missing %}

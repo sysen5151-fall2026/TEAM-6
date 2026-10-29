@@ -2,7 +2,7 @@
 {% block title %}My account - EcoCommute{% endblock %}
 {% block content %}
   {% set action = request.form.get('action', '') if request.method == 'POST' else '' %}
-  <h1>👤 {{ user.username }}</h1>
+  <h1>{{ avatar }} {{ user.username }}</h1>
   <p class="sub">Member since {{ user.created_at | epoch_date }}. {{ trip_count }} trip{{ '' if trip_count == 1 else 's' }} saved.</p>
 
   {% if message %}<div class="card" role="status"><strong>{{ message }}</strong></div>{% endif %}
@@ -12,10 +12,21 @@
     <summary><span aria-hidden="true">🌓</span> Appearance</summary>
     <p class="note">Light or dark. “Match my device” follows your phone or computer setting. Saved on this device only.</p>
     <div class="themepick" role="radiogroup" aria-label="Appearance">
-      <button type="button" class="btn ghost" role="radio" data-theme-choice="auto">📱 Match my device</button>
       <button type="button" class="btn ghost" role="radio" data-theme-choice="light">☀️ Light</button>
       <button type="button" class="btn ghost" role="radio" data-theme-choice="dark">🌙 Dark</button>
+      <button type="button" class="btn ghost" role="radio" data-theme-choice="auto">📱 Match my device</button>
     </div>
+  </details>
+
+  <details class="card acc"{% if action == 'avatar' and error %} open{% endif %}>
+    <summary><span aria-hidden="true">{{ avatar }}</span> My avatar</summary>
+    <p class="note">Tap the one you like. It shows in the top bar.</p>
+    <form method="post" action="/account">
+      {{ csrf_input() }}<input type="hidden" name="action" value="avatar">
+      <div class="facepick" role="radiogroup" aria-label="Avatar">
+        {% for a in avatar_choices %}<button type="submit" name="avatar" value="{{ a }}" role="radio" aria-checked="{{ 'true' if a == avatar else 'false' }}"{% if a == avatar %} class="on"{% endif %}>{{ a }}</button>{% endfor %}
+      </div>
+    </form>
   </details>
 
   <details class="card acc"{% if action == 'password' and error %} open{% endif %}>
