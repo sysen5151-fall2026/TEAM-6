@@ -21,7 +21,7 @@ The nominal scenario assumes an existing account and consent, valid supported in
 
 | Path | What it is |
 |---|---|
-| [Project home page](https://sysen5151-fall2026.github.io/TEAM-6/) ([source](docs/index.html)) | Live site with an interactive commute demo, UC.1 walkthrough and traceability explorer (GitHub Pages, served from `/docs`) |
+| [Project home page](https://sysen5151-fall2026.github.io/TEAM-6/) ([source](docs/index.html)) | Product home page (features, in-page planner demo, FAQ) plus an [About the project](docs/project.html) page (architecture, traceability, status, roadmap, documents, team); GitHub Pages, served from `/docs` |
 | [SPEC.md](SPEC.md) | Stakeholder requirements (33: 27 from the SRD, 2.1.10, and five web-flow drafts 2.1.11-2.1.14 and 2.2.5) with acceptance criteria and model links |
 | [docs/context.md](docs/context.md) | Boundary, interface inventory, component-to-directory map |
 | [docs/walking-skeleton.md](docs/walking-skeleton.md) | UC.1 call order; what is real vs stubbed |
