@@ -60,7 +60,11 @@
     details.acc > :last-child { margin-bottom:18px; }
     details.acc .btn { margin-top:12px; }
     .logout-row { margin-top:6px; }
-    .themepick { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:8px; }
+    .themepick { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .themepick .btn[data-theme-choice=auto] { grid-column:1 / -1; }
+    .facepick { display:grid; grid-template-columns:repeat(auto-fill,minmax(54px,1fr)); gap:8px; margin-top:8px; }
+    .facepick button { font:inherit; line-height:1; cursor:pointer; padding:0; background:var(--paper); border:2.5px solid var(--line); border-radius:14px; height:54px; font-size:2rem; }
+    .facepick button.on { background:var(--sun); box-shadow:3px 3px 0 var(--shadow); }
     .themepick .btn { margin-top:0; }
     .themepick .btn.on { background:var(--sun); color:#2b3a30; }
     nav a .short { display:none; }
@@ -156,7 +160,7 @@
     .bar { height:20px; border-radius:999px; border:2.5px solid var(--line); background:var(--soft); overflow:hidden; }
     .bar i { display:block; height:100%; border-radius:999px; background:repeating-linear-gradient(-45deg,var(--green) 0 10px,var(--green-d) 10px 20px); background-size:28px 28px; animation:stripes 1.2s linear infinite, fill 1s ease-out both; }
     .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-bottom:18px; }
-    .stat { margin:0; text-align:center; padding:12px; }
+    .stat { margin:0; text-align:center; padding:12px; display:flex; flex-direction:column; justify-content:center; align-items:center; }
     .stat b { display:block; font-size:1.8rem; line-height:1.1; }
     .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:16px; }
     .badge { margin:0; text-align:center; }
@@ -262,7 +266,7 @@
     <a href="/" class="{{ 'on' if active == 'plan' }}"><span class="ico">🧭</span> Plan</a>
     <a href="/garden" class="{{ 'on' if active == 'garden' }}"><span class="ico">🌳</span> Garden</a>
     <a href="/achievements" class="{{ 'on' if active == 'achievements' }}"><span class="ico">🏅</span> <span class="long">Achievements</span><span class="short">Badges</span></a>
-    <a href="/account" class="{{ 'on' if active == 'account' }}"><span class="ico">👤</span> <span class="who">{{ current_user.username }}</span></a>
+    <a href="/account" class="{{ 'on' if active == 'account' }}"><span class="ico">{{ current_user_avatar }}</span> <span class="who">{{ current_user.username }}</span></a>
   </nav>
   {% endif %}
 </header>

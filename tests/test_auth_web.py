@@ -314,6 +314,21 @@ class TestAccountPage(unittest.TestCase):
         self.assertIn("Download my data", page)
         self.assertIn("no page shows another account", page)
 
+    def test_an_avatar_from_the_list_is_saved_and_shown_in_the_top_bar_but_anything_else_is_refused(self):
+        choice = auth.AVATAR_CHOICES[7]
+        page = self.client.get("/account").get_data(as_text=True)
+        self.assertEqual(len(auth.AVATAR_CHOICES), len(set(auth.AVATAR_CHOICES)))
+        for avatar in auth.AVATAR_CHOICES:
+            self.assertIn(f'value="{avatar}"', page)
+        response = self.post(action="avatar", avatar=choice)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Avatar saved", response.get_data(as_text=True))
+        for path in ("/", "/garden", "/achievements", "/account"):
+            self.assertIn(f'<span class="ico">{choice}</span>', self.client.get(path).get_data(as_text=True))
+        for bad in ("<script>", "x", ""):
+            self.assertEqual(self.post(action="avatar", avatar=bad).status_code, 400)
+        self.assertIn(f'<span class="ico">{choice}</span>', self.client.get("/garden").get_data(as_text=True))
+
     def test_the_account_page_offers_light_dark_and_device_themes_on_every_page(self):
         page = self.client.get("/account").get_data(as_text=True)
         for choice in ("auto", "light", "dark"):

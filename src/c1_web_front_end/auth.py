@@ -24,6 +24,37 @@ PUBLIC_ENDPOINTS = {"login_page", "register_page", "static"}
 JSON_ENDPOINTS = {"places_api", "route_lines_api"}
 SESSION_DAYS = 14
 
+TONES = ("", "\U0001F3FB", "\U0001F3FC", "\U0001F3FD", "\U0001F3FE", "\U0001F3FF")
+HAIR = {"red": "\u200d\U0001F9B0", "curly": "\u200d\U0001F9B1", "white": "\u200d\U0001F9B3", "bald": "\u200d\U0001F9B2",
+        "blond_f": "\u200d\u2640\ufe0f", "blond_m": "\u200d\u2642\ufe0f", "": ""}
+
+
+def _person(head: str, tone: int, hair: str = "") -> str:
+    return head + TONES[tone] + HAIR[hair]
+
+
+GIRL, BOY, CHILD, WOMAN, MAN, PERSON = "\U0001F467", "\U0001F466", "\U0001F9D2", "\U0001F469", "\U0001F468", "\U0001F9D1"
+OLD_WOMAN, OLD_MAN, OLD_PERSON, BLOND = "\U0001F475", "\U0001F474", "\U0001F9D3", "\U0001F471"
+BEARD, HEADSCARF, TURBAN = "\U0001F9D4", "\U0001F9D5", "\U0001F473"
+AVATAR_CHOICES = tuple(_person(*spec) for spec in (  # ready-made faces: kids, grown-ups and older people, many skin tones and hair styles
+    (GIRL, 1), (GIRL, 4), (BOY, 3), (BOY, 5), (CHILD, 2), (CHILD, 0),
+    (WOMAN, 3), (WOMAN, 5), (MAN, 1), (MAN, 4), (PERSON, 2), (PERSON, 0),
+    (WOMAN, 1, "red"), (MAN, 3, "red"), (WOMAN, 5, "curly"), (MAN, 4, "curly"),
+    (BLOND, 1, "blond_f"), (BLOND, 2, "blond_m"), (WOMAN, 3, "white"), (MAN, 5, "white"),
+    (WOMAN, 4, "bald"), (MAN, 2, "bald"), (BEARD, 3), (HEADSCARF, 2), (TURBAN, 4),
+    (OLD_WOMAN, 1), (OLD_MAN, 4), (OLD_PERSON, 5), (OLD_WOMAN, 3), (OLD_MAN, 2),
+))
+DEFAULT_AVATAR = "\U0001F464"
+AVATARS = {DEFAULT_AVATAR, *AVATAR_CHOICES}
+
+
+def avatar_of(user) -> str:
+    try:
+        choice = json.loads(user["prefs"] or "{}").get("avatar", "")
+    except (ValueError, AttributeError, TypeError):
+        return DEFAULT_AVATAR
+    return choice if choice in AVATARS else DEFAULT_AVATAR
+
 CSP = (
     "default-src 'self'; "
     "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
@@ -128,7 +159,8 @@ def init_auth(app, db_path=None):
 
     @app.context_processor
     def who():
-        return {"current_user": g.get("user")}
+        user = g.get("user")
+        return {"current_user": user, "current_user_avatar": avatar_of(user) if user else DEFAULT_AVATAR}
 
     @app.after_request
     def headers(response: Response):
@@ -209,12 +241,20 @@ def init_auth(app, db_path=None):
                     accounts.delete_user(g.db, g.user["id"])
                     session.clear()
                     return redirect(url_for("login_page"))
+                elif action == "avatar":
+                    choice = request.form.get("avatar", "")
+                    if choice not in AVATARS:
+                        raise AccountError("Pick one of the avatars on the list.")
+                    accounts.set_pref(g.db, g.user["id"], "avatar", choice)
+                    g.user = accounts.get_user(g.db, g.user["id"])  # the top bar shows the new one at once
+                    message = "Avatar saved."
                 else:
                     abort(400)
             except AccountError as err:
                 error = str(err)
         user = accounts.get_user(g.db, g.user["id"])
         return render_template("account.html", active="account", message=message, error=error, user=user,
+                               avatar=avatar_of(user), avatar_choices=AVATAR_CHOICES,
                                trip_count=len(g.trips.all())), (400 if error else 200)
 
     def export_page():
