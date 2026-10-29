@@ -2,7 +2,20 @@
 
 {% macro by(name) %}{{ {'drive': 'by car', 'carpool': 'by carpool', 'bus': 'by bus', 'bike': 'by bike', 'scooter': 'by scooter', 'walk': 'on foot'}.get(name, 'this way') }}{% endmacro %}
 
-{% macro badge(icon) %}{{ {'walk': '👣', 'leaf': '🍃', 'calendar-check': '📅', 'map-pin': '📍', 'target': '🎯', 'car-off': '🏞️', 'flame': '🔥', 'seeding': '🌱'}.get(icon, '🏅') }}{% endmacro %}
+{# Three badges are drawn as SVG (McGraw Tower, compass, open book); the rest stay emoji. Colours come from the .bi-* rules in base.html so they change with the theme. #}
+{% macro badge(icon) -%}
+{%- if icon == 'calendar-check' -%}
+<svg class="bi bi-tower" viewBox="0 0 64 64" aria-hidden="true"><rect class="f1" x="25" y="15" width="14" height="44"/><rect class="f2" x="34" y="15" width="5" height="44"/><rect class="f6" x="25" y="15" width="2.5" height="44"/><path class="f3" d="M32 2L25 16h14z"/><path class="f4" d="M32 2L39 16h-7z"/><path class="f5" d="M27.5 28v-7.5a2 2 0 0 1 4 0V28zM32.5 28v-7.5a2 2 0 0 1 4 0V28z"/><rect class="f2" x="25" y="30" width="14" height="1.8"/><circle class="fh" cx="32" cy="39" r="4.8"/><circle cx="32" cy="39" r="4.8" fill="none" style="stroke:var(--c2)" stroke-width="1.5"/><path fill="none" style="stroke:var(--c5)" stroke-width="1.4" stroke-linecap="round" d="M32 35.8V39l2.2 1.6"/><rect class="f5" x="31" y="47" width="2" height="6" rx="1"/><path class="f5" d="M29.5 59v-3.5a2.5 2.5 0 0 1 5 0V59z"/><rect class="f2" x="22" y="59" width="20" height="3" rx="1.5"/></svg>
+{%- elif icon == 'map-pin' -%}
+<svg class="bi bi-compass" viewBox="0 0 64 64" aria-hidden="true"><circle class="f1" cx="32" cy="32" r="27"/><circle class="f2" cx="32" cy="32" r="22"/><path fill="none" style="stroke:var(--c1)" stroke-width="2.6" d="M32 12.5v4M32 47.5v4M12.5 32h4M47.5 32h4"/><g transform="rotate(40 32 32)"><path class="f4" d="M32 14L38.5 32h-13z"/><path class="f5" d="M32 50L25.5 32h13z"/></g><circle class="fh" cx="32" cy="32" r="3"/><path fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity=".4" d="M11.5 22A22 22 0 0 1 22 11.5"/></svg>
+{%- elif icon == 'target' -%}
+<svg class="bi bi-book" viewBox="0 0 64 64" aria-hidden="true"><path class="f1" d="M5 22v32c9-3 19-2 27 3 8-5 18-6 27-3V22z"/><path class="f2" d="M9 14c8-2 17-1 23 4v36c-6-5-15-6-23-4z"/><path class="f2" d="M55 14c-8-2-17-1-23 4v36c6-5 15-6 23-4z"/><path fill="none" style="stroke:var(--c6)" stroke-width="2.6" d="M32 18v36"/><path fill="none" style="stroke:var(--c3)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" d="M14 31l4.5 4.5L27 26"/><path fill="none" style="stroke:var(--c5)" stroke-width="2" stroke-linecap="round" d="M38 26h12M38 33h12M38 40h7"/><path class="f4" d="M44 14v15l3.5-3 3.5 3V15z"/></svg>
+{%- elif icon == 'walk' -%}
+<span class="bi-feet">👣</span>
+{%- else -%}
+{{ {'leaf': '🍃', 'car-off': '🏞️', 'flame': '🔥', 'seeding': '🌱'}.get(icon, '🏅') }}
+{%- endif -%}
+{%- endmacro %}
 
 {# One tree in the garden, drawn upward from (0, 0). scale < 1 draws a sapling. #}
 {% macro tree(scale=1, delay=0) %}
