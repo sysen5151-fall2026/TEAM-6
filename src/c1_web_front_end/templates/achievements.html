@@ -37,7 +37,7 @@
   <p class="note" style="margin-top:-4px">Tap a badge to see how you earned it.</p>
   <div class="tiles">
     {% for b in earned %}
-    <button type="button" class="tile" data-name="{{ b.name }}" data-icon="{{ m.badge(b.icon) }}"
+    <button type="button" class="tile" data-name="{{ b.name }}"
             data-how="{{ b.condition }}" data-date="{{ earned_on.get(b.id, '') }}">
       <span class="icon" aria-hidden="true">{{ m.badge(b.icon) }}</span>
       <span class="label">{{ b.name }}</span>
@@ -60,7 +60,7 @@
   <p class="note" style="margin-top:-4px">Tap a badge to see what it takes.</p>
   <div class="tiles">
     {% for b in todo %}
-    <button type="button" class="tile locked" data-name="{{ b.name }}" data-icon="{{ m.badge(b.icon) }}"
+    <button type="button" class="tile locked" data-name="{{ b.name }}"
             data-how="{{ b.condition }}" data-date="" data-progress="{{ b.progress }} of {{ b.target }} {{ b.unit }}">
       <span class="icon" aria-hidden="true">{{ m.badge(b.icon) }}</span>
       <span class="label">{{ b.name }}</span>
@@ -87,7 +87,7 @@
     if (!box || !box.showModal) return;
     document.querySelectorAll('.tile').forEach(function (tile) {
       tile.addEventListener('click', function () {
-        document.getElementById('badge-info-icon').textContent = tile.dataset.icon;
+        document.getElementById('badge-info-icon').innerHTML = tile.querySelector('.icon').innerHTML;
         document.getElementById('badge-info-name').textContent = tile.dataset.name;
         document.getElementById('badge-info-how').textContent = tile.dataset.how;
         document.getElementById('badge-info-date').textContent = tile.dataset.date ? 'Earned on ' + tile.dataset.date
