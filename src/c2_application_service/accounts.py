@@ -17,6 +17,7 @@ import secrets
 import time
 
 from src.c3_data_adapter import app_db
+from src.model_trace import realizes
 
 USERNAME = re.compile(r"^[a-z0-9][a-z0-9_.-]{2,31}$")
 MIN_PASSWORD, MAX_PASSWORD = 6, 128
@@ -133,6 +134,7 @@ def _wait_text(seconds: int) -> str:
 
 
 # ------------------------------------------------------------------ sign-up
+@realizes("UC.4.3")
 def register(db, username: str, password: str, invite_code: str, ip: str = "", now=None) -> int:
     """Create an account with a valid invite code. Returns the new user id or raises AccountError."""
     now = int(now if now is not None else time.time())
@@ -173,6 +175,7 @@ def create_user(db, username: str, password: str, demo: bool = False, now=None) 
 
 
 # ------------------------------------------------------------------ log-in
+@realizes("UC.4.3")
 def authenticate(db, username: str, password: str, ip: str = "", now=None) -> int:
     """Check a user name and password. Returns the user id or raises AccountError."""
     now = int(now if now is not None else time.time())
