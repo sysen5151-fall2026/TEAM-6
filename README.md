@@ -29,7 +29,7 @@ The nominal scenario assumes an existing account and consent, valid supported in
 | [docs/environment.md](docs/environment.md), [docs/adr/](docs/adr/) | Toolchain and decisions |
 | [docs/ch4-ch5/](docs/ch4-ch5/) | Chapter 4 and 5 report (System Requirements Definition) as `.docx` and its Innoslate figures |
 | [docs/ch6-ch7/](docs/ch6-ch7/) | Chapter 6 and 7 report (Architecture Definition: Function: UC.1 trace, first-level IDEF0, hierarchy, N2, requirements traceability) as `.docx` and `.pdf`, its Innoslate figures and the scripts that build it (`scripts/`) |
-| [docs/model/](docs/model/) | Innoslate exports: 10.6, 10.7 (and the 24 Oct 2026 re-export), 10.8 (10.7 plus the two trace edits, restored risk links) and 10.9 (10.8 plus the web-flow needs, requirements, route service, UC.3 and risks; [changes](docs/model/10.9-changes.md); imported into Innoslate, Intelligence 81% with no errors) |
+| [docs/model/](docs/model/) | Innoslate exports: 10.6, 10.7 (and the 24 Oct 2026 re-export), 10.8 (10.7 plus the two trace edits, restored risk links) and 10.9 (10.8 plus the web-flow needs, requirements, route service, UC.3 and risks; [changes](docs/model/10.9-changes.md); imported into Innoslate, Intelligence 81% with no errors) and 11.0 (10.9 plus the TCAT bus timetable, vehicles and carpool, place suggestions and invite-only accounts; [changes](docs/model/11.0-changes.md); imported into a new project: Intelligence 77%, no errors) |
 | [docs/prompt-log.md](docs/prompt-log.md) | GenAI provenance log (required by the course) |
 | `src/c1_web_front_end` ... `src/c4_explanation_model` | Internal assets C.1-C.4 |
 | `src/x1_commuter_sim`, `src/x3_open_meteo_stub` | Simulated external actor X.1 and stubbed external system X.3 |

@@ -19,6 +19,7 @@ from markupsafe import Markup
 from src.c2_application_service import accounts
 from src.c2_application_service.accounts import AccountError
 from src.c3_data_adapter import SqliteTrips, app_db, other_users_trips
+from src.model_trace import realizes
 
 PUBLIC_ENDPOINTS = {"login_page", "register_page", "static"}
 JSON_ENDPOINTS = {"places_api", "route_lines_api"}
@@ -110,6 +111,7 @@ def community_trips() -> tuple:
     return other_users_trips(g.db, g.user["id"])
 
 
+@realizes("UC.4.5")
 def init_auth(app, db_path=None):
     """Wire accounts into the app: configuration, guards, headers and the account pages."""
     app.config.update(

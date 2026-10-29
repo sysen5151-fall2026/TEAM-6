@@ -152,7 +152,7 @@ def _best_on_day(store, day, tod_s, boards, alights):
     return options[0] if options else None
 
 
-@realizes("UC.3.4")
+@realizes("UC.3.13")
 def find_bus(origin: Place, dest: Place, when: datetime, store=None) -> BusResult:
     """The direct buses for leaving `origin` at `when` (one ride per route, best first), or the reason there is none."""
     store = store or open_store()

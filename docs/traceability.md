@@ -45,6 +45,20 @@ The browser pages go beyond the modeled UC.1 log-a-trip flow. Model 10.9 ([docs/
 
 UC.3.1, UC.3.2, UC.3.7 and UC.3.11 are performed by the Commuter and UC.3.4 by the Route Service, so no code claims them. `tests/test_model_linkage.py` checks the rest against the model, and `tests/test_model_10_9.py` checks the structure of the 10.9 file.
 
+## Bus, vehicles, accounts and place suggestions (draft model 11.0)
+
+Model 11.0 ([docs/model/11.0-changes.md](model/11.0-changes.md)) adds what the app gained after 10.9 as **drafts, imported into a new project: Intelligence 77%, no errors (warnings only)**: needs 1.1.12-1.1.14 and 1.3.5, requirements 2.1.15-2.1.18 and 2.3.8, 16 system requirements, X.7 Transit Schedule Publisher, UC.3.12-UC.3.15, UC.4 Sign Up and Log In, and risks TR.13-TR.15. Chain example: need 1.1.12 Plan with the real bus schedule -> requirement **2.1.15** -> system requirements 3.1.1.11, 3.1.2.9, 3.2.11, 3.3.1.13, 3.4.6.3 -> actions **UC.3.13, UC.3.15** -> `bus_planner.find_bus` -> `tests/test_transit.py`, `tests/test_bus_options.py`.
+
+| Action | Performer | Code | Requirements (model 11.0) | Test |
+|---|---|---|---|---|
+| UC.3.13 Plan Bus Ride | C.2 | `c2...bus_planner.find_bus` (was tagged UC.3.4, which is the Route Service's step) | 2.1.15 | `tests/test_transit.py`, `tests/test_bus_options.py` |
+| UC.3.14 Suggest Places | C.3 | `c3...route_adapter.suggest_places` | 2.1.18 | `tests/test_routes.py`, `tests/test_web_app.py` |
+| UC.4.3 Verify Invite Code and Credentials | C.2 | `c2...accounts.register`, `authenticate` | 2.3.8, 2.1.17 | `tests/test_accounts.py`, `tests/test_auth_web.py` |
+| UC.4.4 Store Account and Trips | C.3 | `c3...app_db.connect` (opens and creates the account file) | 2.1.17 | `tests/test_accounts.py` |
+| UC.4.5 Present Signed-in Pages | C.1 | `c1...auth.init_auth` (guards, log-in, sign-up and account pages) | 2.1.17 | `tests/test_auth_web.py` |
+
+UC.3.15 is the transit agency's step, UC.3.12 the Commuter's choice of vehicles and sharing (the carpool share itself is computed in `confirm_trip`, already UC.3.8), and UC.4.1 and UC.4.2 the Commuter's, so no code claims them. `tests/test_model_linkage.py` checks the rest against the model, and `tests/test_model_11_0.py` checks the structure of the 11.0 file.
+
 ## Requirements not exercised by the skeleton
 
 Institutional (2.2.x: UC.2), operational and retirement (2.1.7, 2.1.8, 2.3.x, 2.5.1, 2.5.2: OP.1-OP.5) requirements are outside the UC.1 nominal path; SPEC.md marks them "Not in skeleton". No code claims to implement them.
@@ -63,3 +77,4 @@ Institutional (2.2.x: UC.2), operational and retirement (2.1.7, 2.1.8, 2.3.x, 2.
 | O-8 | The Chapter 4 first-level functions F.2.0-F.2.7 are not yet mapped to modules or mechanisms (eight functions against components C.1-C.4); no requirement or test columns for the 3.x.x system requirements yet. | Allocate functions to mechanisms and extend this table in the next chapter (risk TR.9 in the Chapter 4-5 report). |
 | O-9 | The web flow (plan, choose, done, garden, achievements), the Route Service, badges and the campus tree goal are now **drafted in model 10.9** (needs 1.1.9-1.1.11, 1.2.4; requirements 2.1.11-2.1.14, 2.2.5 and 14 system requirements; X.6; UC.3; TR.10-TR.12) and the file was imported (Intelligence 81%, no errors), but the function architecture was not extended, and the Chapter 4-7 reports describe 10.7 and 10.8. | The team decides whether the web flow needs functions of its own. |
 | O-10 | Confirmed trips keep the start and destination labels, finer than the coarse location 2.5.1 and 3.4.5.2 require (risk TR.10); the 22 kg per tree has no cited source (TR.12). | Decide what location detail is stored; cite or replace the conversion. |
+| O-11 | Bus, vehicles, carpool, place suggestions and accounts exist in the app and are **drafted in model 11.0** (imported: Intelligence 77%, no errors); no new F.x functions were added. TR.13-TR.15 record the unknown timetable terms, the personal data held on one computer and the shared invite codes. | Import 11.0 and read Intelligence; the team decides whether bus and accounts need functions of their own. |

@@ -8,6 +8,8 @@ Requirement 2.1.10 and its need 1.1.8 (plain-language explanation, performed by 
 
 Requirements 2.1.11-2.1.14 and 2.2.5, with their needs 1.1.9-1.1.11 and 1.2.4, describe the web flow (compare every way between two places, confirm the trip, badges, shared campus tree). They are **drafts proposed in Innoslate model 10.9** (see [docs/model/10.9-changes.md](docs/model/10.9-changes.md)), are not in the SRD report, and their targets are proposals for the team to confirm.
 
+Requirements 2.1.15-2.1.18 and 2.3.8, with their needs 1.1.12-1.1.14 and 1.3.5, describe what the app gained after 10.9: the bus from the published TCAT timetable, vehicles the Commuter has and a carpool share, place suggestions while typing, and invite-only accounts with saved trips. They are **drafts proposed in Innoslate model 11.0** (see [docs/model/11.0-changes.md](docs/model/11.0-changes.md)), are not in the SRD report, and were imported into Innoslate (Intelligence 77%, no errors). Requirement 2.1.11 was reworded in 11.0 because it still said the bus time is typed.
+
 Not yet in this SPEC: system-level requirements for the SH.6/SH.7 needs (BMA N11), which the report defers to Architecture Definition; those will be added here as 3.x.x with a trace to the stakeholder requirements.
 
 Open values needing sponsor confirmation: 3-second display time (2.1.2); minimum aggregate group size 5 (2.2.3).
@@ -108,12 +110,12 @@ Open values needing sponsor confirmation: 3-second display time (2.1.2); minimum
 
 ### 2.1.11 - compare travel modes between two places
 
-- **Statement:** The EcoCommute system shall require a start place and a destination place and show on one screen, for walking, cycling and driving, and for bus when the Commuter enters a door-to-door time, the route distance, travel time, estimated CO2e and estimated difference from the always-drive baseline, each based on that mode's own route.
+- **Statement:** The EcoCommute system shall require a start place and a destination place and show on one screen, for walking, cycling and scooter (only those the Commuter has), driving, and the bus when the published timetable is installed, the route distance, travel time, estimated CO2e and estimated difference from the always-drive baseline, each based on that mode's own route.
 - **Rationale:** Typed distances are rarely right, and the same two places give different distances on foot, by bike and by car; a per-mode route keeps each estimate honest and lets the Commuter weigh time against emissions.
 - **From need:** 1.1.9
 - **Acceptance criterion:** MOE - Percentage of test Commuters who name the lowest-emission feasible option from the screen (proposed target 80% or more). Validation - Usability session with reference routes whose distances per mode are known; compare displayed figures with the reference. Method: Demonstration and Test.
 - **Satisfied by (model):** `UC.3`, `UC.3.1`, `UC.3.2`, `UC.3.3`, `UC.3.4`, `UC.3.5`, `UC.3.6`
-- **Status:** Draft (model 10.9). Exercised in the Plan page: `tests/test_web_app.py`, `tests/test_routes.py`. Routed distances were checked once against the live Route Service; without a key the page shows a labelled estimate between sample places. Bus uses the drive distance (assumption) and a time the Commuter enters.
+- **Status:** Draft (model 10.9; wording updated in model 11.0). Exercised in the Plan page: `tests/test_web_app.py`, `tests/test_routes.py`. Routed distances were checked once against the live Route Service; without a key the page shows a labelled estimate between sample places. The bus now comes from the TCAT timetable (2.1.15, ADR 0007) and the scooter reuses the bike route (ADR 0006).
 
 ### 2.1.12 - count only trips the Commuter confirms
 
@@ -141,6 +143,43 @@ Open values needing sponsor confirmation: 3-second display time (2.1.2); minimum
 - **Acceptance criterion:** MOE - Counted trips that break a limit in a seeded test set (target 0). Validation - Seed trips just inside and outside each limit; compare the counted set with the expected set. Method: Test.
 - **Satisfied by (model):** `UC.3.8`
 - **Status:** Draft (model 10.9). Exercised: `TestAntiGaming` in `tests/test_achievements.py`.
+
+
+### 2.1.15 - plan a bus ride from the published timetable
+
+- **Statement:** The EcoCommute system shall show, for the date and time the Commuter leaves, the direct bus ride of each route that links the two places, with the route, the boarding and alighting stops, the departure and arrival times and the door-to-door time taken from the published timetable, or the reason no bus is offered.
+- **Rationale:** A typed bus time is not data; the transit agency publishes its timetable, so the bus can be compared on the same footing as the other ways. Only direct rides are planned, and the page says the timetable is not live.
+- **From need:** 1.1.12
+- **Acceptance criterion:** MOE - Offered rides that do not exist in the published timetable for the chosen date and time, in a reference set of trips (target 0). Validation - Pick reference trips and times (weekday, weekend, after midnight, a date with no service); compare the offered rides with the timetable; check that every missing bus has a stated reason. Method: Test.
+- **Satisfied by (model 11.0):** `UC.3.13`, `UC.3.15`
+- **Status:** Draft (model 11.0). Exercised: `tests/test_transit.py` (an invented feed with the real feed's quirks), `tests/test_bus_options.py`. Transfers are not planned; the schedule file is not committed (no terms found) and ends 2026-12-19.
+
+### 2.1.16 - offer only the vehicles the Commuter has and share a car's emissions
+
+- **Statement:** The EcoCommute system shall offer cycling and scooter only when the Commuter says they have one, and shall divide the estimated emissions of a shared car trip equally among the 2 to 8 people the Commuter enters.
+- **Rationale:** The comparison is only useful if every way shown is one the Commuter can take, and a shared ride emits less per person. The default of no vehicle and the range of 2 to 8 people are project assumptions to confirm.
+- **From need:** 1.1.13
+- **Acceptance criterion:** MOE - Ways offered that the Commuter did not say they have, and shared-trip figures that differ from the equal share (target 0 for both). Validation - Run seeded plans with and without each vehicle and with 1 to 9 people; compare the offered ways and the per-person figures with the expected ones. Method: Test.
+- **Satisfied by (model 11.0):** `UC.3.5`, `UC.3.8`, `UC.3.12`
+- **Status:** Draft (model 11.0). Exercised: `tests/test_carpool.py`, `tests/test_routes.py`. Occupants are self-reported.
+
+### 2.1.17 - keep trips under the Commuter's own account
+
+- **Statement:** The EcoCommute system shall keep each Commuter's confirmed trips, vehicles and preferences under that Commuter's account between visits, shall show no Commuter another account's trips, and shall let the Commuter download or delete the account's data.
+- **Rationale:** Progress and badges mean something only if they survive a restart, and the trips are personal data. This extends 2.1.7 (restrict access) and 2.1.8 (delete on request) to the stored account.
+- **From need:** 1.1.14
+- **Acceptance criterion:** MOE - Trips lost across a restart, shown to another account, or left after account deletion in a seeded two-account test (target 0 for all three). Validation - Create two accounts, save trips, restart the service, compare what each sees; download and delete one account and inspect the stored data. Method: Test.
+- **Satisfied by (model 11.0):** `UC.4`, `UC.4.1`, `UC.4.4`, `UC.4.5`
+- **Status:** Draft (model 11.0). Exercised: `tests/test_accounts.py`, `tests/test_auth_web.py`. Whether keeping real people's trips is allowed has not been checked (risk TR.14).
+
+### 2.1.18 - show matching place suggestions while typing
+
+- **Statement:** The EcoCommute system shall show matching place suggestions, each with its name and area, while the Commuter types a start or destination place, and shall not require the Commuter to type the whole name.
+- **Rationale:** Typing complete addresses slows entry (2.1.1) and misspelled places give no route; suggestions find known places without a full name. The 90% target is a proposal.
+- **From need:** 1.1.1, 1.1.9
+- **Acceptance criterion:** MOE - Percentage of searches for known campus places in which the intended place appears among the suggestions after the first four characters (proposed target 90% or more). Validation - A list of 20 known campus places typed by testers; count how often the intended place is suggested. Method: Test.
+- **Satisfied by (model 11.0):** `UC.3.14`
+- **Status:** Draft (model 11.0). Exercised: `tests/test_routes.py`, `tests/test_web_app.py` (mocked service); the 90% target has not been measured.
 
 
 ## Group 2.2
@@ -256,6 +295,16 @@ Open values needing sponsor confirmation: 3-second display time (2.1.2); minimum
 - **Acceptance criterion:** MOE - Percentage of approved aggregate summaries exported at retirement (target 100%). Validation - Disposal rehearsal verifies the export file against the approved summary list. Method: Test.
 - **Satisfied by (model):** `OP.4`
 - **Skeleton status:** Not in skeleton - Outside the UC.1 nominal path (institutional, operational or retirement behavior).
+
+
+### 2.3.8 - create accounts only for invited participants
+
+- **Statement:** The EcoCommute system shall create an account only for a person who presents a valid invite code.
+- **Rationale:** The pilot cohort is invited, and the free place and route services have small quotas. The number of codes, who holds them and whether codes expire are project choices to confirm with the sponsor.
+- **From need:** 1.3.5
+- **Acceptance criterion:** MOE - Accounts created with a wrong, missing or revoked invite code (target 0). Validation - Attempt sign-up with no code, a wrong code and a revoked code; confirm that no account exists afterwards. Method: Test.
+- **Satisfied by (model 11.0):** `UC.4`, `UC.4.2`, `UC.4.3`
+- **Status:** Draft (model 11.0). Exercised: `tests/test_accounts.py`. Three shared codes admit many accounts (ADR 0009, risk TR.15).
 
 
 ## Group 2.4

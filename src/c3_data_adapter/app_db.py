@@ -13,6 +13,8 @@ import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
 
+from src.model_trace import realizes
+
 ROOT = Path(__file__).resolve().parent.parent.parent
 DB_PATH = Path(os.environ.get("ECOCOMMUTE_DB", ROOT / "data" / "app.sqlite"))
 SCHEMA_VERSION = 1
@@ -73,6 +75,7 @@ class DatabaseError(RuntimeError):
     """The file is from a different version of the application."""
 
 
+@realizes("UC.4.4")
 def connect(path=None, shared: bool = False) -> sqlite3.Connection:
     """Open the database, creating the file and tables the first time.
 

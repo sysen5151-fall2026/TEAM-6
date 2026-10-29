@@ -26,6 +26,7 @@ except ImportError:
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "..", "docs", "model")
 UC1_ACTION = re.compile(r"^UC\.1\.\d+$")
 UC3_ACTION = re.compile(r"^UC\.3\.\d+$")
+UC4_ACTION = re.compile(r"^UC\.4\.\d+$")
 
 
 def model_uc1_actions():
@@ -40,13 +41,13 @@ def model_uc1_actions():
     return numbers
 
 
-def model_uc3_performers():
-    """{UC.3.x action: set of performer numbers} from the latest export."""
+def model_performers(pattern):
+    """{UC.n.m action matching pattern: set of performer numbers} from the latest export."""
     root = ET.parse(sorted(glob.glob(os.path.join(MODEL_DIR, "EcoCommute_*.xml")))[-1]).getroot()
     schema, db = root.find("schema"), root.find("database")
     relation = {c.get("id"): c.findtext("name") for c in schema if c.tag == "schemaRelation"}
     number = {e.findtext("globalId"): (e.findtext("number") or "").strip() for e in db.iter("entity")}
-    performers = {n: set() for n in number.values() if UC3_ACTION.match(n)}
+    performers = {n: set() for n in number.values() if pattern.match(n)}
     for r in db.iter("relationship"):
         if relation[r.findtext("schemaRelationId")] == "performed by":
             action = number[r.findtext("sourceId")]
@@ -68,19 +69,33 @@ class TestModelLinkage(unittest.TestCase):
 
 
 class TestWebFlowLinkage(unittest.TestCase):
-    def test_model_has_the_eleven_uc3_actions(self):
-        self.assertEqual(set(model_uc3_performers()), {f"UC.3.{i}" for i in range(1, 12)})
+    """UC.3 (plan and choose a trip) and UC.4 (sign up and log in), model 10.9 and 11.0."""
 
-    def test_every_uc3_action_performed_by_a_component_has_code(self):
-        by_component = {a for a, who in model_uc3_performers().items() if any(w.startswith("C.") for w in who)}
-        self.assertTrue(by_component)
-        if not WEB_PAGES_LOADED:  # the C.1 pages need Flask; the other components can still be checked
-            by_component = {a for a in by_component if not model_uc3_performers()[a] & {"C.1"}}
-        self.assertEqual(by_component - set(REGISTRY), set())
+    CASES = ((UC3_ACTION, 15), (UC4_ACTION, 5))
 
-    def test_no_code_claims_an_unmodeled_uc3_action(self):
-        tagged = {a for a in REGISTRY if UC3_ACTION.match(a)}
-        self.assertEqual(tagged - set(model_uc3_performers()), set())
+    def test_model_has_the_web_flow_actions(self):
+        self.assertEqual(set(model_performers(UC3_ACTION)), {f"UC.3.{i}" for i in range(1, 16)})
+        self.assertEqual(set(model_performers(UC4_ACTION)), {f"UC.4.{i}" for i in range(1, 6)})
+
+    def test_every_action_performed_by_a_component_has_code(self):
+        for pattern, _ in self.CASES:
+            performers = model_performers(pattern)
+            by_component = {a for a, who in performers.items() if any(w.startswith("C.") for w in who)}
+            self.assertTrue(by_component)
+            if not WEB_PAGES_LOADED:  # the C.1 pages need Flask; the other components can still be checked
+                by_component = {a for a in by_component if not performers[a] & {"C.1"}}
+            self.assertEqual(by_component - set(REGISTRY), set())
+
+    def test_no_code_claims_an_unmodeled_action(self):
+        for pattern, _ in self.CASES:
+            tagged = {a for a in REGISTRY if pattern.match(a)}
+            self.assertEqual(tagged - set(model_performers(pattern)), set())
+
+    def test_no_code_claims_an_action_performed_by_an_actor_or_external_system(self):
+        for pattern, _ in self.CASES:
+            for action, who in model_performers(pattern).items():
+                if action in REGISTRY:
+                    self.assertTrue(any(w.startswith("C.") for w in who), (action, who))
 
 
 if __name__ == "__main__":

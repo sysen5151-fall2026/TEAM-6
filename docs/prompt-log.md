@@ -322,6 +322,19 @@ Rule: every GenAI-assisted change is logged here with the tool, the (constrained
 | Not claimed | Not a security review. Follow-up the same day (team request): the invite system was simplified to three shared codes (team members, project manager, professor), the sign-up form became user name, password, password again, invite code, the sign-up limits were removed because the site is private, the password rule was relaxed to 6 characters, and `manage seed` creates the named accounts from a git-ignored roster file. The log-in lockout (5 wrong passwords, 15 minutes) is a project assumption for a small invited group. Tailscale and tunnel use is described but was not tried here. Plain http on a shared network is readable by others. The database holds personal data: whether the course allows keeping real people's trips was not checked. SPEC.md and model 10.9 do not describe accounts or invites. Timing of the test suite grew (about 30 s) |
 | Human review | **Pending.** Reviewer and date: ____________ . |
 
+## Entry 025 - 2026-10-29 - Model 11.0: bus timetable, vehicles, carpool, place suggestions and accounts
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `docs/model-10-10-accounts-transit` (from `origin/main`) |
+| Prompt (summary, originally Chinese) | The project changed a lot; update Innoslate. The assistant cannot sign in to Innoslate, so the team chose: change the repository's model XML and sync the documents; the team imports it. |
+| Constraining sources | Model 10.9 and `build_model_10_9.py` (numbering and relationship patterns); prompt-log entries 017-024 and ADRs 0006-0009 (what the app gained); SPEC.md; the current code |
+| What it produced | `docs/model/scripts/build_model_11_0.py` and its output `docs/model/EcoCommute_11.0_accounts_transit.xml` (45 new entities, 276 new relationships: 4 needs, 5 stakeholder requirements, 16 system requirements, X.7, a conduit, 5 input/outputs, UC.3.12-UC.3.15, UC.4 with 5 steps, 3 risks; 2.1.11 and 3.3.1.9 reworded); `docs/model/11.0-changes.md`; SPEC.md entries 2.1.15-2.1.18, 2.3.8 and the reworded 2.1.11; `@realizes` tags (UC.3.14 on `find_bus`, formerly UC.3.4; UC.3.15, UC.4.3, UC.4.4, UC.4.5); `tests/test_model_11_0.py` and a UC.4 section in `tests/test_model_linkage.py`; traceability (section and O-11), context and README pointers |
+| Not claimed | The first import of 11.0 gave Intelligence 74% with three errors (two input/outputs without a requirement; "prior action is dependent on the later action" on UC.3 and UC.4, cause inferred); the file was corrected and imported again (76%, one error: looping input/outputs on Trip Options, cause not understood); the cause was then found in Innoslate's Fix dialog (the parent actions UC.3 and UC.4 had no timeline in their simulation data; pure 10.9 had the same error) and fixed in the file; **the final file was imported into a new project: Intelligence 77%, no errors, warnings only**. New requirements are Drafts with every quality flag false. The function architecture and the Chapter 4-7 reports were not updated. The numbers (2 to 8 people, 5 wrong passwords in 15 minutes, 90% suggestion rate, no vehicle by default) are proposals. Carpool, the place cache and the lockout have no use-case step of their own |
+| Human review | **Pending.** Reviewer and date: ____________ . |
+
 ## Entry template
 
 | Field | Value |

@@ -190,6 +190,7 @@ def _ask_remote(text: str):
     return None
 
 
+@realizes("UC.3.14")
 def suggest_places(text: str, online: bool = True) -> tuple:
     """Up to MAX_SUGGESTIONS places matching what the Commuter has typed so far.
 
