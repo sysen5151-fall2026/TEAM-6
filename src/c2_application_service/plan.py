@@ -3,8 +3,9 @@ from datetime import datetime
 from src.c2_application_service.bus_planner import find_bus, local_now
 from src.c2_application_service.comparison import bus_comparison, compare_modes
 from src.c2_application_service.recommendation import recommend_mode
+from src.c0_2_reference_data import WEATHER_TIMEOUT_S, resolve_trip_forecast
 from src.c3_data_adapter import current_weather
-from src.interfaces import CommutePlan
+from src.interfaces import CommutePlan, ForecastQueryContext
 from src.model_trace import realizes
 
 VEHICLES = ("bike", "scooter")  # the student has neither unless they say so
@@ -33,5 +34,6 @@ def plan_commute(origin_text: str, destination_text: str, have=(), when: datetim
         chosen = next((i for i, o in enumerate(bus.options) if o.route_id == bus_route), 0)  # else the best
         choice = bus.options[chosen].route_id
         usable += (rows[chosen],)
-    weather = current_weather(origin)
+    context = ForecastQueryContext(origin.label, when.isoformat(timespec="minutes"), WEATHER_TIMEOUT_S)  # IO.24
+    weather = resolve_trip_forecast(current_weather(origin), context=context).forecast  # F.2.2.4; None = unavailable
     return CommutePlan(origin, dest, usable, recommend_mode(usable, weather), (), bus, rows, choice)

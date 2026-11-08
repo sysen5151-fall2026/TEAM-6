@@ -327,7 +327,7 @@ footer a:hover{color:var(--ink)}
         <li><div><b>Estimates, labelled as estimates</b><span>Savings are never presented as verified avoided emissions.</span></div></li>
         <li><div><b>Sources on every result</b><span>Routes from OpenRouteService, weather from Open-Meteo, buses from TCAT&rsquo;s published schedule. When one is unavailable the page says so.</span></div></li>
         <li><div><b>Same inputs, same answer</b><span>The recommendation follows fixed rules, not a language model, and states only facts from the calculation.</span></div></li>
-        <li><div><b>Factors still being reviewed</b><span>Emission factors are placeholders until the method reviewer signs off on sources.</span></div></li>
+        <li><div><b>Factors reviewed, with limits</b><span>Emission factors come from the EPA GHG Emission Factors Hub (2025, tailpipe only) and were reviewed by the method reviewer; the scooter factor is still a placeholder.</span></div></li>
       </ul>
     </div>
   </div>
@@ -357,7 +357,7 @@ footer a:hover{color:var(--ink)}
     <div class="faq">
       <details><summary>Who can use EcoCommute?</summary><p>It is an invite-only pilot for a small group at Cornell (the team, the professor and the TA, and invited testers). You need an invite code to create an account.</p></details>
       <details><summary>How is the recommendation chosen?</summary><p>First it rules out ways the weather or time limits make unreasonable: rain for walking, biking and scooter; freezing or strong wind for biking and scooter; more than 30 minutes on foot or 45 on a bike or scooter. Of what is left, it recommends the lowest estimated CO<sub>2</sub>e, and ties go to walking, then biking, then scooter.</p></details>
-      <details><summary>Are the CO<sub>2</sub> numbers accurate?</summary><p>They are estimates. The emission factors are placeholders for now and will be replaced by reviewed, sourced factors. The tree goal and the feasibility limits are project assumptions.</p></details>
+      <details><summary>Are the CO<sub>2</sub> numbers accurate?</summary><p>They are estimates. The emission factors come from the EPA GHG Emission Factors Hub (2025, tailpipe only) and were reviewed by the method reviewer; they count tailpipe emissions only, and the scooter factor is still a placeholder. The tree goal and the feasibility limits are project assumptions.</p></details>
       <details><summary>Is the bus real-time?</summary><p>No. Bus times come from TCAT&rsquo;s published timetable, for direct rides, not from live vehicle positions.</p></details>
       <details><summary>Do you track my location?</summary><p>No. You type places or press a button to use your current position once. Your position stays in your browser.</p></details>
       <details><summary>Does it work outside Ithaca?</summary><p>Place search and bus data are set up for the Ithaca area.</p></details>
@@ -388,7 +388,7 @@ footer a:hover{color:var(--ink)}
       <div><h4>Project</h4><a href="project.html">About the project</a><a href="project.html#arch">Architecture</a><a href="project.html#status">Status</a><a href="project.html#road">Roadmap</a></div>
       <div><h4>Resources</h4><a href="https://github.com/sysen5151-fall2026/TEAM-6" target="_blank" rel="noopener">GitHub</a><a href="https://github.com/sysen5151-fall2026/TEAM-6#readme" target="_blank" rel="noopener">README</a><a href="https://github.com/sysen5151-fall2026/TEAM-6/blob/main/SPEC.md" target="_blank" rel="noopener">Requirements</a><a href="https://github.com/sysen5151-fall2026/TEAM-6/tree/main/docs/adr" target="_blank" rel="noopener">Decisions</a></div>
     </div>
-    <div class="legal">&copy; 2026 Team 6, SYSEN 5151 Foundations of Systems Engineering, Cornell University. Emission values on this page are placeholders, not reviewed factors. Savings are estimates, not verified avoided emissions. Route X1 in the demo is a made-up example, not a real TCAT line.</div>
+    <div class="legal">&copy; 2026 Team 6, SYSEN 5151 Foundations of Systems Engineering, Cornell University. Emission values on this page are illustrative; the product uses EPA 2025 factors reviewed by the method reviewer (tailpipe only). Savings are estimates, not verified avoided emissions. Route X1 in the demo is a made-up example, not a real TCAT line.</div>
   </div>
 </footer>
 

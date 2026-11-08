@@ -13,6 +13,11 @@ from datetime import date, datetime
 from pathlib import Path
 from unittest import mock
 
+from src.c0_2_reference_data.published_factors import EPA_2025
+
+DRIVE_G_PER_KM = EPA_2025["factors"]["drive"]
+BUS_G_PER_KM = EPA_2025["factors"]["bus"]
+
 try:
     from src.c1_web_front_end.web_app import create_app
     from tests.webhelper import make_client, store_of
@@ -165,7 +170,7 @@ class TestPlanChoice(Base):
         for option, row in zip(self.plan().bus.options, rows):
             self.assertEqual(row.distance_km, option.ride_km)
             self.assertEqual(row.duration_min, option.total_min)
-            self.assertEqual(row.co2e_g, round(option.ride_km * 105))
+            self.assertEqual(row.co2e_g, round(option.ride_km * BUS_G_PER_KM))
 
     def test_the_recommendation_uses_the_picked_route(self):
         wet = WeatherForecast(precipitation_mm=2.0, forecast_timestamp="t", temperature_c=10.0, wind_kmh=5.0)

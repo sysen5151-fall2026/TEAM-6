@@ -13,6 +13,11 @@ from datetime import datetime
 from pathlib import Path
 from unittest import mock
 
+from src.c0_2_reference_data.published_factors import EPA_2025
+
+DRIVE_G_PER_KM = EPA_2025["factors"]["drive"]
+BUS_G_PER_KM = EPA_2025["factors"]["bus"]
+
 from src.c2_application_service import bus_planner, plan_commute
 from src.c2_application_service.bus_planner import find_bus, local_now
 from src.c3_data_adapter import gtfs_store
@@ -389,7 +394,7 @@ class TestBusInThePlan(unittest.TestCase):
         drive = plan.comparisons[0]
         self.assertEqual(bus.distance_km, plan.bus.itinerary.ride_km)  # the ride along the route, not the drive distance
         self.assertEqual(bus.duration_min, plan.bus.itinerary.total_min)  # door to door, waits and walks included
-        self.assertEqual(bus.co2e_g, round(plan.bus.itinerary.ride_km * 105))  # placeholder bus factor
+        self.assertEqual(bus.co2e_g, round(plan.bus.itinerary.ride_km * BUS_G_PER_KM))  # EPA bus factor
         self.assertEqual(bus.difference_g, drive.co2e_g - bus.co2e_g)
         self.assertIn("test-1", bus.source)
 

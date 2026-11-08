@@ -1,4 +1,5 @@
-from src.c3_data_adapter import geocode, get_route_options, retrieve_factor
+from src.c0_2_reference_data import select_emission_factor  # F.2.2.2
+from src.c3_data_adapter import geocode, get_route_options
 from src.interfaces import BusItinerary, CommuteRequest, ModeComparison, Place, RouteOption
 from src.model_trace import realizes
 
@@ -7,7 +8,7 @@ MIN_DISTANCE_KM = 0.05  # origin and destination closer than this are treated as
 
 def _factor_g_per_km(mode: str) -> float:
     request = CommuteRequest(mode=mode, distance_km=1.0, date="", coarse_area="")
-    return retrieve_factor(request).g_co2e_per_km
+    return select_emission_factor(request).g_co2e_per_km
 
 
 @realizes("UC.3.5")

@@ -58,7 +58,7 @@ python -m venv .venv
 .venv\Scripts\python -m src.main_web
 ```
 
-Then open <http://127.0.0.1:5000>. Everything needs an account (next section). Emission factors are still placeholders.
+Then open <http://127.0.0.1:5000>. Everything needs an account (next section). Emission factors for drive, bus, walk and bike come from the EPA GHG Emission Factors Hub (January 2025, tailpipe only; see `src/c0_2_reference_data/published_factors.py`), reviewed by the method reviewer on 2026-11-09 ([record](docs/factor-review.md)); the scooter is still a placeholder.
 
 The pages: **Plan** (start and destination are required; every way is compared and one is recommended; you then choose the way you took), a **done** page after choosing (estimated saving, campus tree progress, and a popup for any new badge), **Garden** (an animated campus garden with one tree per reached goal) and **Achievements** (your trip history, earned badges and badges still to go). The earlier "log a trip with a typed distance" web form was removed; the command-line UC.1 path (`python -m src.main`) is unchanged.
 
@@ -87,7 +87,7 @@ $env:ORS_API_KEY = "your-key"
 
 The server looks for the key in this order and prints which one it used when it starts: the process environment, a `.env` file in the project folder (one line `ORS_API_KEY=your-key`; git ignores it), then the Windows user environment variable. A variable saved after a terminal was opened is not visible to that terminal, which is why the last two exist. The page itself says whether place search is live.
 
-**Status:** two paths run today. The command-line UC.1 walking skeleton (`python -m src.main`) is still one stubbed end-to-end path. The Flask web app adds invite-only accounts, saved trips (SQLite), the Plan, Done, Garden and Achievements pages with real route (OpenRouteService), weather (Open-Meteo) and TCAT bus data, a feasibility-based recommendation, carpool, badges and the campus tree. Still open: reviewed emission factors (placeholders today), a language-model explanation, and the pilot usability measurements. 386 automated tests pass (those needing Flask or a built bus index are skipped when it is missing). See [docs/walking-skeleton.md](docs/walking-skeleton.md) and the [project home page](https://sysen5151-fall2026.github.io/TEAM-6/).
+**Status:** two paths run today. The command-line UC.1 walking skeleton (`python -m src.main`) is still one stubbed end-to-end path. The Flask web app adds invite-only accounts, saved trips (SQLite), the Plan, Done, Garden and Achievements pages with real route (OpenRouteService), weather (Open-Meteo) and TCAT bus data, a feasibility-based recommendation, carpool, badges and the campus tree. Still open: a reviewed scooter factor (still a placeholder), a language-model explanation, and the pilot usability measurements. 386 automated tests pass (those needing Flask or a built bus index are skipped when it is missing). See [docs/walking-skeleton.md](docs/walking-skeleton.md) and the [project home page](https://sysen5151-fall2026.github.io/TEAM-6/).
 
 ## Accounts and invites
 

@@ -59,6 +59,21 @@ Model 11.0 ([docs/model/11.0-changes.md](model/11.0-changes.md)) adds what the a
 
 UC.3.15 is the transit agency's step, UC.3.12 the Commuter's choice of vehicles and sharing (the carpool share itself is computed in `confirm_trip`, already UC.3.8), and UC.4.1 and UC.4.2 the Commuter's, so no code claims them. `tests/test_model_linkage.py` checks the rest against the model, and `tests/test_model_11_0.py` checks the structure of the 11.0 file.
 
+## Function to module to requirement to test: F.2.2 Manage Reference Data (model 11.3)
+
+Added for Milestone Check 2 (Lab Manual Chapters 4, 5, 6 and 7 product build). Function IDs and requirements are those of the second-level IDEF0 of F.2.2 and the component specification (document 5) of `docs/model/EcoCommute_11.3_C8-C9_physical_architecture.xml`. Each module states its function ID in its docstring; its signature is built from the ICOMs (inputs as parameters, controls keyword-only, outputs as return values). Contract: [contracts/api-v1.yaml](../contracts/api-v1.yaml). Entry points: [route-table.md](route-table.md). Decision: [ADR 0010](adr/0010-f22-reference-data-modules-and-contract.md). Tests: `tests/test_functional_requirements.py`, run by `.github/workflows/tests.yml`.
+
+| Function ID | Function | Module (mechanism) | Requirement | Test |
+|---|---|---|---|---|
+| F.2.2.1 | Load Emission Factors | `src/c0_2_reference_data/load_emission_factors.py` (C.0.2.1) | 5.4.1 | `test_FR_5_4_1_a_complete_reviewed_set_is_loaded_as_a_versioned_set`, `test_FR_5_4_1_a_set_lacking_any_required_attribute_is_rejected_and_not_stored` |
+| F.2.2.2 | Select Emission Factor | `src/c0_2_reference_data/select_emission_factor.py` (C.0.2.2) | 5.4.2, 5.5.7 | `test_FR_5_4_2_the_factor_is_selected_from_the_set_with_its_provenance`, `test_FR_5_4_2_a_factor_is_returned_for_every_mode_the_product_offers`, `test_FR_5_5_7_factors_keep_a_resolution_of_at_least_0_001_g_per_km` |
+| F.2.2.3 | Request Weather Forecast | `src/c0_2_reference_data/request_weather_forecast.py` (C.0.2.3) | 5.4.3, 5.5.6 | `test_FR_5_4_3_a_query_is_built_for_the_coarse_location_and_trip_time`, `test_FR_5_5_6_the_weather_query_carries_nothing_finer_than_a_coarse_area` |
+| F.2.2.4 | Resolve Trip Forecast | `src/c0_2_reference_data/resolve_trip_forecast.py` (C.0.2.4) | 5.4.4 | `test_FR_5_4_4_the_forecast_for_the_trip_hour_is_chosen_with_its_timestamp`, `test_FR_5_4_4_no_response_flags_the_forecast_unavailable`, `test_FR_5_4_4_a_response_later_than_1_second_flags_the_forecast_unavailable`, `test_FR_5_4_4_a_series_without_the_trip_hour_flags_the_forecast_unavailable` |
+
+Parent system requirement of all four: **3.3.1.2** manage reference data (satisfied by F.2.2). Chain for the system-wide example: 3.4.5.2 (coarse location only) -> 5.5.6 by equivalence; 3.4.6.1 -> 5.5.7 by synthesis.
+
+Honest status: the web app now takes its drive, bus, walk and bike factors from the EPA GHG Emission Factors Hub 2025 set (`published_factors.py`, Table 10 of the hub, tailpipe only), transcribed and **reviewed by the Method Reviewer, Yinping Yin, on 2026-11-09** ([record](factor-review.md)); scooter and carpool keep the labelled placeholder. F.2.2.1 `load_emission_factors` validates a set and `published_factors` is built through the same check, but the web app does not read a reviewed file at run time; F.2.2.3 builds the query but the Plan page still reads current weather through `weather_adapter.current_weather` (C.3). F.2.2.2 and F.2.2.4 are on the web path (`comparison.py`, `plan.py`). The other first-level functions F.2.0, F.2.1 and F.2.3 to F.2.7 have no row here yet. Their rows are pending, not claimed.
+
 ## Requirements not exercised by the skeleton
 
 Institutional (2.2.x: UC.2), operational and retirement (2.1.7, 2.1.8, 2.3.x, 2.5.1, 2.5.2: OP.1-OP.5) requirements are outside the UC.1 nominal path; SPEC.md marks them "Not in skeleton". No code claims to implement them.
@@ -68,7 +83,7 @@ Institutional (2.2.x: UC.2), operational and retirement (2.1.7, 2.1.8, 2.3.x, 2.
 | ID | Item | Action / owner |
 |---|---|---|
 | O-1 | ~~C.4 had no need or requirement.~~ **Closed:** need 1.1.8 and requirement 2.1.10 added (SPEC.md, Innoslate model 10.6); C.4 performs UC.1.11. Remaining: the real language-model call is still a stub. | Later increment. |
-| O-2 | Emission factors are placeholders (`version stub-0`), so 2.4.1 is only partially met. | Method Reviewer supplies the reviewed factor table. |
+| O-2 | The web app uses EPA GHG Emission Factors Hub 2025 values for drive, bus, walk and bike (`src/c0_2_reference_data/published_factors.py`, epa-hub-2025-01, tailpipe only); scooter and carpool and the command-line UC.1 skeleton still use `stub-0` placeholders, so 2.4.1 is met for the factors above (review record: [factor-review.md](factor-review.md)) and still open for scooter and carpool. | Decide and review a scooter factor. |
 | O-3 | Occupancy is not handled (BMA 7.8 open item); the "under 3 km and no rain" rule threshold is unvalidated. | Method reviewer / product lead. |
 | O-4 | A web UI now exists (Flask, ADR 0002), but 2.1.1 timing, 2.1.9 (WCAG) and 2.5.3 have not been measured or audited against it; the pages were only checked by hand in one browser. | Measure and audit next. |
 | O-5 | Off-nominal paths (weather outage, invalid input) are neither modeled nor coded. | Add to model first, then code. |

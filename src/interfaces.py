@@ -203,3 +203,28 @@ class CampusGoal:
     trips: int
     students: int
     sample_note: str  # discloses which part is sample data
+
+
+@dataclass(frozen=True)
+class FactorSet:  # I/O IO.23 "Versioned Factor Set" (F.2.2.1 -> F.2.2.2)
+    version: str
+    source: str
+    units: str
+    geography: str
+    methodology: str
+    factors: tuple  # ((mode, g_co2e_per_km), ...)
+
+
+@dataclass(frozen=True)
+class ForecastQueryContext:  # I/O IO.24 "Forecast Query Context" (F.2.2.3 -> F.2.2.4)
+    coarse_area: str
+    trip_time: str  # ISO date or date-time of the trip
+    timeout_s: float  # a response later than this counts as no response
+
+
+@dataclass(frozen=True)
+class TripForecast:  # I/O IO.15 "Trip Weather Forecast" (F.2.2.4 -> F.2.5)
+    forecast: "WeatherForecast | None"
+    forecast_timestamp: str  # empty when unavailable
+    available: bool
+    note: str

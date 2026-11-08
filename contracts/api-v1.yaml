@@ -1,0 +1,187 @@
+# Internal interface contract for F.2.2 Manage Reference Data (C.0.2 Reference Data Subsystem).
+#
+# Written from the internal flows of the second-level IDEF0 of F.2.2 (model 11.3, Table 4 and
+# Figure 8 of the Chapter 8-9 report), not from the code. The contract is the authority on what
+# crosses a boundary: the modules in src/c0_2_reference_data/ conform to it.
+#
+# Internal flows of F.2.2 (IO.23 and IO.24 stay inside C.0.2):
+#   F.2.2.1 -> F.2.2.2   IO.23 Versioned Factor Set
+#   F.2.2.3 -> F.2.2.4   IO.24 Forecast Query Context
+# Flows carried down from the first level: IO.12, IO.5, IO.6 in; IO.14, IO.4, IO.15 out.
+#
+# Timeouts are fixed configuration, not request fields (docs/adr/0010).
+openapi: 3.0.3
+info:
+  title: EcoCommute Reference Data Subsystem (F.2.2) Internal Interface Contract
+  version: 1.0.0
+paths:
+  /internal/load-emission-factors:
+    post:
+      operationId: loadEmissionFactors
+      summary: "F.2.2.1 Load Emission Factors (C.0.2.1). Control IO.6 in, IO.23 out. Requirement 5.4.1."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [source, units, geography, methodology, version, factors]
+              properties:
+                source: {type: string, minLength: 1}
+                units: {type: string, minLength: 1, example: "g CO2e per vehicle-km"}
+                geography: {type: string, minLength: 1}
+                methodology: {type: string, minLength: 1}
+                version: {type: string, minLength: 1}
+                factors:
+                  type: object
+                  description: mode -> grams CO2e per kilometre
+                  additionalProperties: {type: number, minimum: 0, multipleOf: 0.001}
+      responses:
+        '200':
+          description: IO.23 Versioned Factor Set, stored as a new version
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/VersionedFactorSet'}
+        '422':
+          description: Set rejected - it lacks source, units, geography, methodology or version, has no factors, or repeats a stored version
+
+  /internal/select-emission-factor:
+    post:
+      operationId: selectEmissionFactor
+      summary: "F.2.2.2 Select Emission Factor (C.0.2.2). IO.12 and IO.23 in, IO.14 out. Requirement 5.4.2."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [validated_entry]
+              properties:
+                validated_entry: {$ref: '#/components/schemas/ValidatedCommuteEntry'}
+                factor_set_version: {type: string, description: "IO.23 version to use; omitted = placeholder table"}
+      responses:
+        '200':
+          description: IO.14 Emission Factor Record with provenance
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/EmissionFactorRecord'}
+        '404':
+          description: The factor set has no factor for the mode
+
+  /internal/request-weather-forecast:
+    post:
+      operationId: requestWeatherForecast
+      summary: "F.2.2.3 Request Weather Forecast (C.0.2.3). IO.12 in, IO.4 and IO.24 out. Requirement 5.4.3 and system-wide 5.5.6."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [validated_entry]
+              properties:
+                validated_entry: {$ref: '#/components/schemas/ValidatedCommuteEntry'}
+      responses:
+        '200':
+          description: The weather query for Open-Meteo (coarse area and trip time only) and the context kept for F.2.2.4
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [weather_query, forecast_query_context]
+                properties:
+                  weather_query: {$ref: '#/components/schemas/WeatherQuery'}
+                  forecast_query_context: {$ref: '#/components/schemas/ForecastQueryContext'}
+
+  /internal/resolve-trip-forecast:
+    post:
+      operationId: resolveTripForecast
+      summary: "F.2.2.4 Resolve Trip Forecast (C.0.2.4). IO.5 in, control IO.24, IO.15 out. Requirement 5.4.4."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [forecast_query_context]
+              properties:
+                forecast_query_context: {$ref: '#/components/schemas/ForecastQueryContext'}
+                weather_forecast:
+                  type: array
+                  description: IO.5 - one forecast or an hourly series; absent when Open-Meteo did not answer
+                  items: {$ref: '#/components/schemas/WeatherForecast'}
+                response_seconds: {type: number, minimum: 0}
+      responses:
+        '200':
+          description: IO.15 Trip Weather Forecast - the forecast for the trip hour, or available=false
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TripWeatherForecast'}
+
+components:
+  schemas:
+    ValidatedCommuteEntry:
+      type: object
+      description: IO.12
+      required: [mode, distance_km, date, coarse_area]
+      properties:
+        mode: {type: string, enum: [drive, carpool, bus, bike, walk, scooter]}
+        distance_km: {type: number, minimum: 0}
+        date: {type: string, description: ISO date or date-time of the trip}
+        coarse_area: {type: string, description: "Coarse-area granularity only (requirement 5.5.6)"}
+    VersionedFactorSet:
+      type: object
+      description: IO.23
+      required: [version, source, units, geography, methodology, factors]
+      properties:
+        version: {type: string}
+        source: {type: string}
+        units: {type: string}
+        geography: {type: string}
+        methodology: {type: string}
+        factors: {type: object, additionalProperties: {type: number}}
+    EmissionFactorRecord:
+      type: object
+      description: IO.14
+      required: [mode, g_co2e_per_km, units, geography, source, version]
+      properties:
+        mode: {type: string}
+        g_co2e_per_km: {type: number}
+        units: {type: string}
+        geography: {type: string}
+        source: {type: string}
+        version: {type: string}
+    WeatherQuery:
+      type: object
+      description: IO.4 - nothing finer than a coarse area and the trip time may be sent
+      required: [coarse_area, date]
+      additionalProperties: false
+      properties:
+        coarse_area: {type: string}
+        date: {type: string}
+    ForecastQueryContext:
+      type: object
+      description: IO.24
+      required: [coarse_area, trip_time, timeout_s]
+      properties:
+        coarse_area: {type: string}
+        trip_time: {type: string}
+        timeout_s: {type: number, example: 1.0}
+    WeatherForecast:
+      type: object
+      description: IO.5
+      required: [precipitation_mm, forecast_timestamp]
+      properties:
+        precipitation_mm: {type: number, minimum: 0}
+        forecast_timestamp: {type: string}
+        temperature_c: {type: number, nullable: true}
+        wind_kmh: {type: number, nullable: true}
+    TripWeatherForecast:
+      type: object
+      description: IO.15
+      required: [available, forecast_timestamp, note]
+      properties:
+        available: {type: boolean}
+        forecast_timestamp: {type: string, description: "empty when unavailable"}
+        forecast: {$ref: '#/components/schemas/WeatherForecast'}
+        note: {type: string}
