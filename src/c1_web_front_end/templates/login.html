@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Log in - EcoCommute{% endblock %}
+{% block content %}
+  <section class="hero">
+    <span class="floaty" aria-hidden="true">🌳</span>
+    <h1>Welcome back</h1>
+    <p>Log in to see your trips, your badges and the campus tree.</p>
+  </section>
+
+  {% if error %}
+  <div class="card errors" role="alert"><ul><li>{{ error }}</li></ul></div>
+  {% endif %}
+
+  <form class="card narrow" method="post" action="/login">
+    {{ csrf_input() }}
+    <input type="hidden" name="next" value="{{ next }}">
+    <label for="username">User name</label>
+    <input id="username" name="username" type="text" autocomplete="username" required maxlength="64"
+           autocapitalize="none" spellcheck="false" value="{{ username }}" autofocus>
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required maxlength="128">
+    <button class="btn full" type="submit">Log in</button>
+    <p class="note">New here? You need an invite code from the team. <a href="/register">Create an account</a>.</p>
+  </form>
+{% endblock %}

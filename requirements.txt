@@ -1,2 +1,9 @@
-# No external packages are required: standard library only (Python 3.12).
+# The walking skeleton (python -m src.main) and its tests need only the standard library.
+# The web entry (python -m src.main_web) needs Flask:  pip install -r requirements.txt
 # Tests use unittest: python -m unittest discover -s tests -t .
+Flask>=3.0,<4
+# Windows has no time zone database of its own; the bus planner needs Ithaca time
+# (it falls back to the US daylight-saving rule when this is missing).
+tzdata>=2024.1; sys_platform == "win32"
+# A real web server for when other computers connect (python -m src.main_web uses it when installed).
+waitress>=3.0

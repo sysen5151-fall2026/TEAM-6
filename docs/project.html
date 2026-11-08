@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About the project - EcoCommute</title>
+<meta name="description" content="How EcoCommute was engineered: architecture, requirements traceability, honest status, roadmap, documents and team (Cornell SYSEN 5151, Team 6).">
+<style>
+:root{
+  --bg:#f5f2e9; --bg2:#ece8da; --card:#ffffff; --ink:#10261d; --muted:#53665c; --line:#d9d4c3;
+  --forest:#14532d; --leaf:#2f8f5b; --mint:#d3ead9; --sky:#2a7ba6; --skyl:#d6e9f3;
+  --sun:#f0a734; --sunl:#fbe8c4; --clay:#c4553b; --clayl:#f6dcd4; --violet:#6a5bb3; --violetl:#e4e0f4;
+  --shadow:0 1px 2px rgba(16,38,29,.06),0 8px 28px rgba(16,38,29,.07);
+  --r:18px; --maxw:1120px;
+}
+:root[data-theme="dark"]{
+  --bg:#0b1612; --bg2:#101f19; --card:#142720; --ink:#e7f1ea; --muted:#9bb2a5; --line:#254238;
+  --forest:#7fd6a0; --leaf:#4fbf80; --mint:#173a2a; --sky:#6cc0ea; --skyl:#15303f; --sun:#f5b84d; --sunl:#3b2f14;
+  --clay:#f08a72; --clayl:#3f201a; --violet:#a99cf0; --violetl:#26224a;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.35);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0b1612; --bg2:#101f19; --card:#142720; --ink:#e7f1ea; --muted:#9bb2a5; --line:#254238;
+    --forest:#7fd6a0; --leaf:#4fbf80; --mint:#173a2a; --sky:#6cc0ea; --skyl:#15303f; --sun:#f5b84d; --sunl:#3b2f14;
+    --clay:#f08a72; --clayl:#3f201a; --violet:#a99cf0; --violetl:#26224a;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.35);
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "Segoe UI Variable","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--sky)}
+code{font-size:.9em;background:var(--bg2);padding:1px 6px;border-radius:6px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 20px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--forest);color:#fff;padding:8px 14px;border-radius:8px;z-index:100}
+.skip:focus{left:8px}
+:focus-visible{outline:3px solid var(--sun);outline-offset:2px;border-radius:6px}
+
+header.nav{position:sticky;top:0;z-index:50;backdrop-filter:saturate(1.4) blur(12px);background:color-mix(in srgb,var(--bg) 82%,transparent);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;gap:18px;height:62px}
+.brand{font-weight:800;letter-spacing:-.02em;color:var(--ink);text-decoration:none;font-size:1.1rem}
+.nav nav{margin-left:auto;display:flex;gap:2px;flex-wrap:wrap}
+.nav nav a{color:var(--muted);text-decoration:none;font-size:.9rem;padding:6px 10px;border-radius:999px}
+.nav nav a:hover{background:var(--mint);color:var(--ink)}
+.theme{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;width:38px;height:38px;cursor:pointer;font-size:1rem}
+@media (max-width:980px){.nav nav{display:none}.nav .wrap{justify-content:space-between}}
+
+.hero{padding:60px 0 36px;background:radial-gradient(900px 400px at 85% -10%,var(--sunl),transparent 60%),radial-gradient(700px 380px at -10% 10%,var(--mint),transparent 60%)}
+.hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:36px;align-items:center}
+@media (max-width:900px){.hero .wrap{grid-template-columns:1fr}}
+.eyebrow{display:inline-block;font-size:.8rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--forest);background:var(--mint);padding:6px 12px;border-radius:999px}
+h1{font-size:clamp(2.3rem,6vw,4rem);line-height:1.03;letter-spacing:-.035em;margin:16px 0 14px;font-weight:850}
+h1 em{font-style:normal;background:linear-gradient(100deg,var(--leaf),var(--sky));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{font-size:1.15rem;color:var(--muted);max-width:34em;margin:0 0 24px}
+.cta{display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:12px;font-weight:700;text-decoration:none;border:1px solid transparent;cursor:pointer;font-size:1rem}
+.btn.primary{background:var(--forest);color:#fff}
+:root[data-theme="dark"] .btn.primary{color:#07140e}
+.btn.primary:hover{filter:brightness(1.12)}
+.btn.ghost{background:var(--card);color:var(--ink);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--leaf)}
+.meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:4px 11px;font-size:.84rem;color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+
+.hero-card{background:var(--card);border:1px solid var(--line);border-radius:26px;box-shadow:var(--shadow);padding:22px}
+.hero-card .route{display:flex;align-items:center;gap:10px;font-weight:700;margin-bottom:4px}
+.hero-card .route i{font-style:normal;color:var(--muted)}
+.hero-card .sub2{font-size:.84rem;color:var(--muted);margin-bottom:14px}
+.mrow{display:grid;grid-template-columns:90px 1fr 56px;gap:10px;align-items:center;font-size:.88rem;margin:8px 0}
+.mrow .t{height:14px;border-radius:99px;background:var(--bg2);overflow:hidden}
+.mrow .f{height:100%;border-radius:99px}
+.mrow.pick{font-weight:800}
+.badge-pick{display:inline-block;margin-top:12px;background:var(--mint);color:var(--forest);font-weight:800;font-size:.82rem;padding:5px 12px;border-radius:99px}
+
+.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-top:34px}
+@media (max-width:900px){.stats{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:520px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.stat b{display:block;font-size:1.9rem;letter-spacing:-.03em;line-height:1.1;color:var(--forest)}
+.stat span{font-size:.82rem;color:var(--muted)}
+
+section{padding:72px 0}
+section.alt{background:var(--bg2)}
+.kicker{font-size:.8rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--leaf)}
+h2{font-size:clamp(1.7rem,3.4vw,2.4rem);letter-spacing:-.03em;line-height:1.1;margin:8px 0 12px}
+.sub{color:var(--muted);max-width:46em;margin:0 0 30px}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+@media (max-width:900px){.g3,.g4{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:620px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px;box-shadow:var(--shadow)}
+.card h3{margin:10px 0 6px;font-size:1.1rem;letter-spacing:-.01em}
+.card p{margin:0;color:var(--muted);font-size:.95rem}
+.ico{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.3rem}
+.fine{font-size:.82rem;color:var(--muted)}
+.tag{display:inline-block;font-size:.72rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:999px}
+.tag.real{background:var(--mint);color:var(--forest)}
+.tag.stub{background:var(--sunl);color:#8a5a00}
+:root[data-theme="dark"] .tag.stub{color:var(--sun)}
+.tag.sim{background:var(--violetl);color:var(--violet)}
+
+.demo{display:grid;grid-template-columns:.8fr 1.2fr;gap:18px}
+@media (max-width:900px){.demo{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px;box-shadow:var(--shadow)}
+.panel h3{margin:0 0 6px;font-size:1.05rem}
+label{display:block;font-size:.86rem;font-weight:700;margin:14px 0 6px}
+select,input[type=range]{width:100%}
+select{padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:1rem}
+input[type=range]{accent-color:var(--leaf)}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.check{display:flex;align-items:center;gap:8px;font-size:.92rem;font-weight:500;margin:0;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);cursor:pointer}
+.check input{accent-color:var(--leaf)}
+.val{font-variant-numeric:tabular-nums;font-weight:800;color:var(--forest)}
+.opt{display:grid;grid-template-columns:110px 1fr auto;gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:14px;margin:8px 0;background:var(--bg)}
+.opt.out{opacity:.65}
+.opt.rec{border:2px solid var(--leaf);background:var(--mint)}
+.opt .meta2{font-size:.82rem;color:var(--muted)}
+.opt .why{font-size:.8rem;color:var(--clay);font-weight:700}
+.opt .num{text-align:right;font-variant-numeric:tabular-nums;font-weight:800}
+.opt button{font:inherit;font-size:.82rem;font-weight:700;border:1px solid var(--leaf);background:var(--card);color:var(--forest);border-radius:10px;padding:4px 10px;cursor:pointer;margin-top:4px}
+.opt button:hover{background:var(--mint)}
+@media (max-width:560px){.opt{grid-template-columns:1fr auto}.opt .nm{grid-column:1/-1}}
+.callout{border-radius:14px;padding:14px 16px;margin:12px 0 0;font-size:.95rem}
+.callout.good{background:var(--mint);border:1px solid color-mix(in srgb,var(--leaf) 45%,transparent)}
+.callout.neutral{background:var(--skyl);border:1px solid color-mix(in srgb,var(--sky) 40%,transparent)}
+.callout b{display:block;margin-bottom:2px}
+.treebar{height:12px;border-radius:99px;background:var(--bg2);overflow:hidden;margin:8px 0 2px}
+.treebar i{display:block;height:100%;background:var(--leaf);border-radius:99px;transition:width .35s}
+
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;counter-reset:s}
+@media (max-width:900px){.steps{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:520px){.steps{grid-template-columns:1fr}}
+.stp{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
+.stp:before{counter-increment:s;content:counter(s);display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--forest);color:#fff;font-weight:800;margin-bottom:8px}
+:root[data-theme="dark"] .stp:before{color:#07140e}
+.stp h3{margin:0 0 4px;font-size:1rem}
+.stp p{margin:0;font-size:.9rem;color:var(--muted)}
+.stp small{display:block;margin-top:8px;font-size:.74rem;color:var(--leaf);font-weight:700}
+
+.badges{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media (max-width:900px){.badges{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:520px){.badges{grid-template-columns:1fr}}
+.bd{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;gap:12px}
+.bd .em{font-size:1.7rem;line-height:1}
+.bd b{display:block;font-size:.98rem}
+.bd span{font-size:.84rem;color:var(--muted)}
+
+.arch{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px;box-shadow:var(--shadow);overflow-x:auto}
+.arch svg{min-width:760px;width:100%;height:auto;display:block}
+
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.tab{font:inherit;font-size:.9rem;font-weight:700;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 14px;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--forest);color:#fff;border-color:var(--forest)}
+:root[data-theme="dark"] .tab[aria-selected="true"]{color:#07140e}
+.chain{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+@media (max-width:1000px){.chain{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:600px){.chain{grid-template-columns:1fr}}
+.link{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+.link small{font-weight:800;text-transform:uppercase;letter-spacing:.06em;font-size:.7rem}
+.link p{margin:6px 0 0;font-size:.86rem;word-break:break-word}
+
+.scroll{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+
+.road{display:grid;gap:10px}
+.ms{display:grid;grid-template-columns:210px 1fr;gap:6px 18px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 18px}
+@media (max-width:620px){.ms{grid-template-columns:1fr}}
+.ms time{font-size:.78rem;font-weight:800;letter-spacing:.06em;color:var(--muted)}
+.ms b{display:block}
+.ms span{font-size:.88rem;color:var(--muted)}
+.ms.done{border-left:5px solid var(--leaf)}
+.ms.now{border:2px solid var(--sun);background:var(--sunl)}
+.ms.now time{color:var(--clay)}
+
+.person{text-align:center}
+.avatar{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;margin:0 auto 8px;color:#fff;font-weight:800}
+footer{padding:36px 0;border-top:1px solid var(--line);color:var(--muted);font-size:.86rem}
+footer .wrap{display:grid;gap:6px}
+
+.phero{padding:56px 0 24px;background:radial-gradient(900px 360px at 85% -10%,var(--sunl),transparent 60%),radial-gradient(700px 320px at -10% 10%,var(--mint),transparent 60%)}
+.phero h1{font-size:clamp(2rem,4.6vw,3rem)}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="index.html">EcoCommute</a>
+    <nav aria-label="Primary">
+      <a href="index.html">&larr; Home</a><a href="#arch">Architecture</a><a href="#trace">Traceability</a><a href="#status">Status</a><a href="#stake">Stakeholders</a><a href="#road">Roadmap</a><a href="#docs">Documents</a><a href="#team">Team</a>
+    </nav>
+    <button class="theme" id="theme" aria-label="Toggle light and dark theme" title="Toggle theme">&#9680;</button>
+  </div>
+</header>
+<main id="main">
+<section class="phero">
+  <div class="wrap">
+    <span class="eyebrow">SYSEN 5151 &middot; Team 6 &middot; Fall 2026</span>
+    <h1>About the project</h1>
+    <p class="lead">EcoCommute is built as a systems-engineering project: needs, requirements, a function and architecture model in Innoslate, and code that traces back to both. This page is for reviewers and anyone who wants to see how it is put together.</p>
+    <div class="cta"><a class="btn primary" href="index.html">&larr; Back to the product</a><a class="btn ghost" href="https://github.com/sysen5151-fall2026/TEAM-6" target="_blank" rel="noopener">GitHub repository &#8599;</a></div>
+  </div>
+</section>
+<section class="alt" id="arch">
+  <div class="wrap">
+    <div class="kicker">System of interest</div>
+    <h2>Four internal components, a handful of outside services.</h2>
+    <p class="sub">C.0 EcoCommute contains the web front end, the application service, the data adapter and the explanation model. The commuter and the outside services are external: the software controls its response, not people&rsquo;s travel or the forecast.</p>
+    <div class="arch">
+      <svg viewBox="0 0 1060 400" role="img" aria-label="Architecture: X.1 Commuter uses C.1 Web Front End, which calls C.2 Application Service. C.2 uses C.4 Explanation Model and C.3 Data Adapter. C.3 talks to X.6 Route Service, X.3 Open-Meteo, the TCAT schedule feed and a local SQLite store.">
+        <defs><marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--forest)"/></marker></defs>
+        <rect x="200" y="20" width="620" height="360" rx="26" fill="var(--mint)" stroke="var(--forest)" stroke-width="3" stroke-dasharray="10 7" opacity=".5"/>
+        <text x="220" y="52" font-size="15" font-weight="800" fill="var(--forest)" font-family="system-ui">C.0 EcoCommute &middot; system boundary</text>
+        <g font-family="system-ui" text-anchor="middle">
+          <rect x="20" y="150" width="150" height="90" rx="16" fill="var(--violetl)" stroke="var(--violet)" stroke-width="2"/><text x="95" y="187" font-size="15" font-weight="800" fill="var(--violet)">X.1 Commuter</text><text x="95" y="209" font-size="12" fill="var(--muted)">invited student</text>
+          <rect x="225" y="150" width="150" height="90" rx="16" fill="var(--card)" stroke="var(--leaf)" stroke-width="2.5"/><text x="300" y="183" font-size="15" font-weight="800" fill="var(--ink)">C.1 Web Front</text><text x="300" y="202" font-size="15" font-weight="800" fill="var(--ink)">End</text><text x="300" y="224" font-size="11" fill="var(--muted)">Flask pages &middot; map</text>
+          <rect x="425" y="150" width="150" height="90" rx="16" fill="var(--card)" stroke="var(--leaf)" stroke-width="2.5"/><text x="500" y="183" font-size="15" font-weight="800" fill="var(--ink)">C.2 Application</text><text x="500" y="202" font-size="15" font-weight="800" fill="var(--ink)">Service</text><text x="500" y="224" font-size="11" fill="var(--muted)">compare &middot; rules &middot; badges</text>
+          <rect x="425" y="290" width="150" height="70" rx="16" fill="var(--card)" stroke="var(--sun)" stroke-width="2.5"/><text x="500" y="320" font-size="15" font-weight="800" fill="var(--ink)">C.4 Explanation</text><text x="500" y="340" font-size="15" font-weight="800" fill="var(--ink)">Model</text>
+          <rect x="625" y="150" width="150" height="90" rx="16" fill="var(--card)" stroke="var(--leaf)" stroke-width="2.5"/><text x="700" y="183" font-size="15" font-weight="800" fill="var(--ink)">C.3 Data</text><text x="700" y="202" font-size="15" font-weight="800" fill="var(--ink)">Adapter</text><text x="700" y="224" font-size="11" fill="var(--muted)">routes &middot; weather &middot; bus &middot; store</text>
+          <rect x="860" y="40" width="180" height="62" rx="14" fill="var(--skyl)" stroke="var(--sky)" stroke-width="2"/><text x="950" y="66" font-size="14" font-weight="800" fill="var(--sky)">X.6 Route Service</text><text x="950" y="86" font-size="11" fill="var(--muted)">OpenRouteService</text>
+          <rect x="860" y="125" width="180" height="62" rx="14" fill="var(--skyl)" stroke="var(--sky)" stroke-width="2"/><text x="950" y="151" font-size="14" font-weight="800" fill="var(--sky)">X.3 Open-Meteo</text><text x="950" y="171" font-size="11" fill="var(--muted)">current weather</text>
+          <rect x="860" y="210" width="180" height="62" rx="14" fill="var(--skyl)" stroke="var(--sky)" stroke-width="2"/><text x="950" y="236" font-size="14" font-weight="800" fill="var(--sky)">TCAT GTFS feed</text><text x="950" y="256" font-size="11" fill="var(--muted)">published bus schedule</text>
+          <rect x="860" y="295" width="180" height="62" rx="14" fill="var(--sunl)" stroke="var(--sun)" stroke-width="2"/><text x="950" y="321" font-size="14" font-weight="800" fill="var(--ink)">SQLite store</text><text x="950" y="341" font-size="11" fill="var(--muted)">accounts &middot; trips &middot; cache</text>
+        </g>
+        <g stroke="var(--forest)" stroke-width="2.5" fill="none" marker-end="url(#ar)">
+          <path d="M170 195H223"/><path d="M375 195H423"/><path d="M500 242V288"/><path d="M575 195H623"/>
+          <path d="M775 165L858 85"/><path d="M775 180L858 156"/><path d="M775 205L858 238"/><path d="M775 225L858 315"/>
+        </g>
+        <text x="508" y="268" font-size="11" fill="var(--muted)" font-family="system-ui">explain</text>
+        <text x="95" y="330" font-size="11" font-weight="700" fill="var(--muted)" font-family="system-ui" text-anchor="middle">Outside, not in the web flow</text>
+        <text x="95" y="350" font-size="12" fill="var(--muted)" font-family="system-ui" text-anchor="middle">X.2 Pilot Administrator</text>
+        <text x="95" y="368" font-size="12" fill="var(--muted)" font-family="system-ui" text-anchor="middle">X.4 Factor Publisher</text>
+        <text x="95" y="386" font-size="12" fill="var(--muted)" font-family="system-ui" text-anchor="middle">X.5 Hosting Provider</text>
+      </svg>
+    </div>
+    <div class="grid g3" style="margin-top:16px">
+      <div class="card"><h3>Included</h3><p>Plan and compare, feasibility and recommendation, TCAT direct rides, carpool, confirmed-trip history, badges, campus tree, invite-only accounts, data export and account deletion.</p></div>
+      <div class="card"><h3>Excluded on purpose</h3><p>Native apps, passive GPS tracking, carbon credits, live bus positions and multi-leg transit routing. Each would need new interfaces and review.</p></div>
+      <div class="card"><h3>Privacy by design</h3><p>Manual entry, no tracking. Your location stays in the browser until you press &ldquo;Start from my location&rdquo;. Passwords are salted scrypt hashes, and each account sees only its own trips.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="trace">
+  <div class="wrap">
+    <div class="kicker">Model &harr; product</div>
+    <h2>Trace any behavior back to a stakeholder need.</h2>
+    <p class="sub">Stakeholder &rarr; need &rarr; requirement &rarr; modeled action &rarr; code &rarr; test. A test reads the use-case actions from the exported Innoslate model and checks that every action a component performs has tagged code and that no other action is tagged.</p>
+    <div class="tabs" role="tablist" aria-label="Traceability examples" id="tabs"></div>
+    <div class="chain" id="chain"></div>
+  </div>
+</section>
+
+<section class="alt" id="status">
+  <div class="wrap">
+    <div class="kicker">Honest status</div>
+    <h2>What really runs today &mdash; and what is still a stub.</h2>
+    <p class="sub">Being explicit about what is stubbed is part of the design. The command-line UC.1 walking skeleton still exists; the web app is the main product now.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Part</th><th>Today</th><th>Detail</th></tr></thead>
+      <tbody>
+        <tr><td>C.1 Web Front End</td><td><span class="tag real">Real</span></td><td>Plan, Done, Garden and Achievements pages, log-in and sign-up, phone layout, map with routes</td></tr>
+        <tr><td>C.2 Application Service</td><td><span class="tag real">Real</span></td><td>Mode comparison, feasibility filter and recommendation, carpool share, TCAT trip planner, badges, campus tree, accounts</td></tr>
+        <tr><td>C.3 Data Adapter</td><td><span class="tag real">Real</span> <span class="tag stub">Stub</span></td><td>Real: routes, places, weather, TCAT index, SQLite accounts, trips and cache. Stub: emission factors are placeholders</td></tr>
+        <tr><td>C.4 Explanation Model</td><td><span class="tag stub">Stub</span></td><td>Template fed only calculated values; no language model yet</td></tr>
+        <tr><td>X.1 Commuter</td><td><span class="tag sim">Simulated</span> in tests</td><td>Scripted driver of the command-line UC.1; real people use the web app</td></tr>
+        <tr><td>X.3, X.6 external services</td><td><span class="tag real">Real</span></td><td>Open-Meteo without a key; OpenRouteService with a key, labelled estimate without</td></tr>
+      </tbody></table></div>
+    <div class="grid g3" style="margin-top:16px">
+      <div class="card"><h3>Not yet</h3><p>Reviewed emission factors, a language-model explanation, live bus positions, multi-leg transit, and the pilot usability measurements (such as the 30-second entry target).</p></div>
+      <div class="card"><h3>Estimates, not claims</h3><p>Every saving is labelled an estimate. Emission factors, the tree goal and all feasibility limits are placeholders or project assumptions until the method reviewer supplies sources.</p></div>
+      <div class="card"><h3>Provenance</h3><p>GenAI-assisted work is logged in the prompt log, and code is constrained by the requirement text in SPEC.md. Decisions are recorded in ADR&nbsp;0001&ndash;0009.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="stake">
+  <div class="wrap">
+    <div class="kicker">Stakeholders</div>
+    <h2>Who needs EcoCommute &mdash; and why they matter.</h2>
+    <p class="sub">Seven groups identified, five carried into requirements by power and interest.</p>
+    <div class="grid g4" id="stakeGrid"></div>
+  </div>
+</section>
+
+<section class="alt" id="road">
+  <div class="wrap">
+    <div class="kicker">Roadmap</div>
+    <h2>From a defensible baseline to a controlled pilot.</h2>
+    <div class="road">
+      <div class="ms done"><time>SEP 30, 2026</time><div><b>Charter and plan baseline</b><span>Sponsor baseline decision</span></div></div>
+      <div class="ms done"><time>OCT 7, 2026</time><div><b>Milestone Check 1 &mdash; system definition and requirements baseline</b><span>SoI, OpsCon, needs and requirements, command-line walking skeleton linked to the model</span></div></div>
+      <div class="ms now"><time>NOV 13, 2026 &middot; WE ARE HERE</time><div><b>Discovery and requirements complete</b><span>System requirements and function architecture (Ch. 4&ndash;7) drafted; web app running with accounts; model 10.9 covers the web flow</span></div></div>
+      <div class="ms"><time>DEC 18, 2026</time><div><b>Experience and architecture baseline</b><span>Reviewed prototype, methods and privacy approach</span></div></div>
+      <div class="ms"><time>MAR 19, 2027</time><div><b>Feature-complete MVP</b><span>Core functional review</span></div></div>
+      <div class="ms"><time>APR 30 &ndash; JUN 30, 2027</time><div><b>Pilot readiness, pilot, launch decision</b><span>Eight-week pilot; schedule overlap to be resolved</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="docs">
+  <div class="wrap">
+    <div class="kicker">Project documents</div>
+    <h2>Everything is in the repository.</h2>
+    <div class="grid g3" id="docsGrid"></div>
+  </div>
+</section>
+
+<section class="alt" id="team">
+  <div class="wrap">
+    <div class="kicker">Team 6</div>
+    <h2>Who built it.</h2>
+    <div class="grid" id="teamGrid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))"></div>
+  </div>
+</section>
+</main>
+<footer>
+  <div class="wrap">
+    <div><b>EcoCommute</b> &mdash; SYSEN 5151 Foundations of Systems Engineering, Cornell University, Fall 2026.</div>
+    <div>Emission factors in the project are placeholders until reviewed. Savings are estimates, not verified avoided emissions.</div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var REPO="https://github.com/sysen5151-fall2026/TEAM-6";
+  var BLOB=REPO+"/blob/main/";
+  function $(id){return document.getElementById(id)}
+  function el(tag,attrs,html){var e=document.createElement(tag);for(var k in attrs||{})e.setAttribute(k,attrs[k]);if(html!=null)e.innerHTML=html;return e}
+
+  var root=document.documentElement;
+  try{var t=localStorage.getItem("theme");if(t)root.setAttribute("data-theme",t)}catch(e){}
+  $("theme").addEventListener("click",function(){
+    var cur=root.getAttribute("data-theme");
+    if(!cur){cur=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}
+    var next=cur==="dark"?"light":"dark";root.setAttribute("data-theme",next);
+    try{localStorage.setItem("theme",next)}catch(e){}
+  });
+
+  /* ---------- traceability ---------- */
+  var COL=["var(--violet)","var(--sky)","var(--forest)","var(--sun)","var(--leaf)","var(--clay)"];
+  var LBL=["Stakeholder","Need","Requirement","Model action","Code","Test"];
+  var CHAINS=[
+    {t:"Compare before I choose",c:["SH.1 Commuters","1.1.9 Compare every way before I choose","2.1.11 compare travel modes between two places","UC.3.3 &ndash; UC.3.6","c2_application_service.compare_modes, route_adapter.get_route_options","tests/test_routes.py, tests/test_web_app.py"]},
+    {t:"Advice I can follow",c:["SH.1 Commuters","1.1.4 &ldquo;I need suggestions for a greener way to travel that fit the weather and my own limits.&rdquo;","2.1.4 one alternative with a stated reason; 2.1.5 never a mode marked not feasible","UC.3.5 (and UC.1.10 in the skeleton)","c2_application_service.recommend_mode","test_user_marked_mode_is_never_recommended, test_rain_rules_out_walk_bike_and_scooter"]},
+    {t:"Count only real trips",c:["SH.1 Commuters","1.1.10 Enjoy steady green choices","2.1.12 count only confirmed trips; 2.1.14 ignore repeated and excess trips; 2.1.13 badges by published rules","UC.3.7 &ndash; UC.3.9","confirmation.confirm_trip, achievements.counted_trips, evaluate_badges","tests/test_achievements.py"]},
+    {t:"See what we achieve together",c:["SH.2 Pilot sponsor and administrator","1.2.4 Encourage campus-wide participation (and 1.1.11 for commuters)","2.2.5 show shared campus progress","UC.3.10, UC.3.11","achievements.campus_goal","tests/test_achievements.py"]},
+    {t:"Understand my result",c:["SH.1 Commuters","1.1.8 a short plain-language explanation of my result","2.1.10 explanation states only facts from the calculated result","UC.1.11 (C.1 and C.4)","c4_explanation_model.explain_result, explain_recommendation","test_explanation_states_only_calculated_facts"]}
+  ];
+  var tabs=$("tabs"),chain=$("chain");
+  CHAINS.forEach(function(ch,i){
+    var b=el("button",{"class":"tab",role:"tab","aria-selected":"false",type:"button"},ch.t);
+    b.addEventListener("click",function(){draw(i)});tabs.appendChild(b);
+  });
+  function draw(i){
+    Array.prototype.forEach.call(tabs.children,function(c,j){c.setAttribute("aria-selected",j===i?"true":"false")});
+    chain.innerHTML="";
+    CHAINS[i].c.forEach(function(txt,k){
+      chain.appendChild(el("div",{"class":"link",style:"border-top:4px solid "+COL[k]},'<small style="color:'+COL[k]+'">'+LBL[k]+'</small><p>'+txt+'</p>'));
+    });
+  }
+  draw(0);
+
+  /* ---------- stakeholders ---------- */
+  var SH=[
+    ["SH.1","Commuters","Primary users","Fast, private, understandable feedback and advice that fits real constraints.","var(--violet)"],
+    ["SH.2","Pilot sponsor & administrator","Buyer","Participation evidence and safe aggregates, never individual trips.","var(--sky)"],
+    ["SH.3","Company sponsor","Acquirer","Cost within $750,000, pilot evidence for the June 2027 decision, scope control.","var(--forest)"],
+    ["SH.4","Method reviewers","Method credibility","Traceable factors, a fair baseline, honest labelling of estimates.","var(--leaf)"],
+    ["SH.5","Assurance reviewers","Privacy, security, accessibility","Minimal data, recorded consent, accessibility checked before the pilot.","var(--sun)"],
+    ["SH.6","Engineering & support","Build and support","Clear interfaces and maintainability.","var(--muted)"],
+    ["SH.7","Enabling providers","Weather, routes, schedules, hosting","Compliant use and dependency ownership.","var(--muted)"]
+  ];
+  SH.forEach(function(s){$("stakeGrid").appendChild(el("div",{"class":"card",style:"border-top:4px solid "+s[4]},'<div class="fine" style="font-weight:800;color:'+s[4]+'">'+s[0]+'</div><h3>'+s[1]+'</h3><div class="fine">'+s[2]+'</div><p style="margin-top:8px">'+s[3]+'</p>'))});
+
+  /* ---------- docs ---------- */
+  var DOCS=[
+    ["README","Operational concept, how to run the app, accounts and invites",BLOB+"README.md"],
+    ["SPEC.md","33 stakeholder requirements with acceptance criteria",BLOB+"SPEC.md"],
+    ["Context","Boundary, interface inventory, components",BLOB+"docs/context.md"],
+    ["Walking skeleton","UC.1 call order, real vs stub",BLOB+"docs/walking-skeleton.md"],
+    ["Traceability","Need → requirement → action → code → test",BLOB+"docs/traceability.md"],
+    ["Ch. 4–5 report","System requirements definition",REPO+"/tree/main/docs/ch4-ch5"],
+    ["Ch. 6–7 report","Architecture definition: function (.docx, .pdf)",REPO+"/tree/main/docs/ch6-ch7"],
+    ["Innoslate models","Exported MBSE models 10.6–10.9 (XML)",REPO+"/tree/main/docs/model"],
+    ["Decisions (ADRs)","Toolchain and design decisions 0001–0009",REPO+"/tree/main/docs/adr"],
+    ["Prompt log","GenAI provenance record",BLOB+"docs/prompt-log.md"],
+    ["Source code","src/, tests/",REPO+"/tree/main/src"]
+  ];
+  DOCS.forEach(function(d){$("docsGrid").appendChild(el("a",{"class":"card",href:d[2],target:"_blank",rel:"noopener",style:"text-decoration:none;color:inherit"},'<h3 style="margin-top:0">'+d[0]+' <span aria-hidden="true">&#8599;</span></h3><p>'+d[1]+'</p>'))});
+
+  /* ---------- team ---------- */
+  var TEAM=[
+    ["Luyu Chen","Project Manager & Integration Lead","LC","var(--forest)"],
+    ["Mingjie Fang","Quality, Risk & Documentation Lead","MF","var(--sky)"],
+    ["Karen Li","Product & Stakeholder Lead","KL","var(--violet)"],
+    ["Yinping Yin","Sustainability Data & Analysis Lead","YY","var(--leaf)"],
+    ["Yiyang Zou","Technical Architecture Lead","YZ","var(--clay)"]
+  ];
+  TEAM.forEach(function(p){$("teamGrid").appendChild(el("div",{"class":"card person"},'<div class="avatar" style="background:'+p[3]+'">'+p[2]+'</div><h3>'+p[0]+'</h3><p>'+p[1]+'</p>'))});
+})();
+</script>
+</body>
+</html>

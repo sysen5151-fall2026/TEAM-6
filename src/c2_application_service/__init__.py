@@ -1,4 +1,23 @@
-"""C.2 Application Service - calculation, baseline, recommendation rules."""
+"""C.2 Application Service - calculation, baseline, recommendation, achievement rules."""
+from .achievements import campus_goal, evaluate_badges
+from .bus_planner import find_bus, local_now
+from .comparison import compare_modes, preview_routes
+from .confirmation import confirm_trip
+from .demo_data import load_demo_trips
+from .plan import plan_commute
+from .recommendation import recommend_mode
 from .service import process_commute
 
-__all__ = ["process_commute"]
+__all__ = [
+    "campus_goal",
+    "compare_modes",
+    "confirm_trip",
+    "evaluate_badges",
+    "find_bus",
+    "load_demo_trips",
+    "local_now",
+    "plan_commute",
+    "preview_routes",
+    "process_commute",
+    "recommend_mode",
+]

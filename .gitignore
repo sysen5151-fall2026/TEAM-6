@@ -220,3 +220,6 @@ __marimo__/
 # Course submission files (upload to Canvas, not to the repository)
 Milestone_1_Canvas_Submission*.docx
 ~$*.docx
+
+# Downloaded transit data and its index (terms for redistributing the TCAT feed were not found)
+data/

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Create an account - EcoCommute{% endblock %}
+{% block content %}
+  <section class="hero">
+    <span class="floaty" aria-hidden="true">🌱</span>
+    <h1>Join EcoCommute</h1>
+    <p>Accounts are by invitation. Enter the code the team gave you.</p>
+  </section>
+
+  {% if error %}
+  <div class="card errors" role="alert"><ul><li>{{ error }}</li></ul></div>
+  {% endif %}
+
+  <form class="card narrow" method="post" action="/register">
+    {{ csrf_input() }}
+    <label for="username">User name</label>
+    <input id="username" name="username" type="text" required minlength="3" maxlength="32" autocomplete="username"
+           autocapitalize="none" spellcheck="false" value="{{ username }}" autofocus>
+    <p class="note" style="margin:4px 0 0">3 to 32 letters, digits, dots, dashes or underscores.</p>
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" required minlength="6" maxlength="128" autocomplete="new-password">
+    <p class="note" style="margin:4px 0 0">At least 6 characters. We store only a scrambled form of it.</p>
+    <label for="confirm">Confirm password</label>
+    <input id="confirm" name="confirm" type="password" required minlength="6" maxlength="128" autocomplete="new-password">
+    <label for="invite">Invite code</label>
+    <input id="invite" name="invite" type="text" required maxlength="40" autocomplete="off" autocapitalize="characters"
+           spellcheck="false" value="{{ invite }}">
+    <div class="trap" aria-hidden="true"><label>Leave this empty <input name="website" type="text" tabindex="-1" autocomplete="off"></label></div>
+    <button class="btn full" type="submit">Create my account</button>
+    <p class="note">Already have one? <a href="/login">Log in</a>.</p>
+  </form>
+{% endblock %}

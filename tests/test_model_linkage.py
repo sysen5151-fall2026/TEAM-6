@@ -2,7 +2,9 @@
 
 Reads the UC.1.x action numbers from the XML export in docs/model/ and verifies that
 (1) each has at least one @realizes-tagged implementation and (2) no other UC.1.x
-action ID is tagged in code. It does not check performers or satisfies links.
+action ID is tagged in code. For the web flow (UC.3.x, model 10.9) it also reads who
+performs each action: every action performed by a component (C.1-C.4) must have code,
+and no other UC.3.x ID may be tagged. It does not check satisfies links.
 """
 
 import glob
@@ -14,8 +16,17 @@ import xml.etree.ElementTree as ET
 import src.x1_commuter_sim  # noqa: F401  (importing pulls in every participant)
 from src.model_trace import REGISTRY
 
+try:
+    import src.c1_web_front_end.web_app  # noqa: F401  (tags the C.1 pages; needs Flask)
+
+    WEB_PAGES_LOADED = True
+except ImportError:
+    WEB_PAGES_LOADED = False
+
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "..", "docs", "model")
 UC1_ACTION = re.compile(r"^UC\.1\.\d+$")
+UC3_ACTION = re.compile(r"^UC\.3\.\d+$")
+UC4_ACTION = re.compile(r"^UC\.4\.\d+$")
 
 
 def model_uc1_actions():
@@ -30,6 +41,21 @@ def model_uc1_actions():
     return numbers
 
 
+def model_performers(pattern):
+    """{UC.n.m action matching pattern: set of performer numbers} from the latest export."""
+    root = ET.parse(sorted(glob.glob(os.path.join(MODEL_DIR, "EcoCommute_*.xml")))[-1]).getroot()
+    schema, db = root.find("schema"), root.find("database")
+    relation = {c.get("id"): c.findtext("name") for c in schema if c.tag == "schemaRelation"}
+    number = {e.findtext("globalId"): (e.findtext("number") or "").strip() for e in db.iter("entity")}
+    performers = {n: set() for n in number.values() if pattern.match(n)}
+    for r in db.iter("relationship"):
+        if relation[r.findtext("schemaRelationId")] == "performed by":
+            action = number[r.findtext("sourceId")]
+            if action in performers:
+                performers[action].add(number[r.findtext("targetId")])
+    return performers
+
+
 class TestModelLinkage(unittest.TestCase):
     def test_model_has_the_twelve_uc1_actions(self):
         self.assertEqual(model_uc1_actions(), {f"UC.1.{i}" for i in range(1, 13)})
@@ -40,6 +66,36 @@ class TestModelLinkage(unittest.TestCase):
     def test_no_code_claims_an_unmodeled_uc1_action(self):
         tagged = {a for a in REGISTRY if UC1_ACTION.match(a)}
         self.assertEqual(tagged - model_uc1_actions(), set())
+
+
+class TestWebFlowLinkage(unittest.TestCase):
+    """UC.3 (plan and choose a trip) and UC.4 (sign up and log in), model 10.9 and 11.0."""
+
+    CASES = ((UC3_ACTION, 15), (UC4_ACTION, 5))
+
+    def test_model_has_the_web_flow_actions(self):
+        self.assertEqual(set(model_performers(UC3_ACTION)), {f"UC.3.{i}" for i in range(1, 16)})
+        self.assertEqual(set(model_performers(UC4_ACTION)), {f"UC.4.{i}" for i in range(1, 6)})
+
+    def test_every_action_performed_by_a_component_has_code(self):
+        for pattern, _ in self.CASES:
+            performers = model_performers(pattern)
+            by_component = {a for a, who in performers.items() if any(w.startswith("C.") for w in who)}
+            self.assertTrue(by_component)
+            if not WEB_PAGES_LOADED:  # the C.1 pages need Flask; the other components can still be checked
+                by_component = {a for a in by_component if not performers[a] & {"C.1"}}
+            self.assertEqual(by_component - set(REGISTRY), set())
+
+    def test_no_code_claims_an_unmodeled_action(self):
+        for pattern, _ in self.CASES:
+            tagged = {a for a in REGISTRY if pattern.match(a)}
+            self.assertEqual(tagged - set(model_performers(pattern)), set())
+
+    def test_no_code_claims_an_action_performed_by_an_actor_or_external_system(self):
+        for pattern, _ in self.CASES:
+            for action, who in model_performers(pattern).items():
+                if action in REGISTRY:
+                    self.assertTrue(any(w.startswith("C.") for w in who), (action, who))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% block title %}Achievements - EcoCommute{% endblock %}
+{% block content %}
+  <section class="hero">
+    <span class="floaty" aria-hidden="true">🏅</span><span class="floaty" aria-hidden="true">✨</span>
+    <h1>My achievements</h1>
+    <p>Look back at your trips and see which badges are still waiting for you.</p>
+  </section>
+
+  <div class="stats">
+    <div class="card stat"><b>{{ trip_count }}</b>trips confirmed</div>
+    <div class="card stat"><b>{{ '%g'|format(saved_g) }} g</b>estimated saved vs driving</div>
+    <div class="card stat"><b>{{ earned|length }} / {{ badges|length }}</b>badges earned</div>
+  </div>
+
+  <h2>🗓️ My trips</h2>
+  <section class="card">
+    {% if trips %}
+    <ul class="trips">
+      {% for t in trips %}
+      <li>
+        <span class="emoji" aria-hidden="true">{{ m.mode(t.mode) }}</span>
+        <span class="grow"><strong>{{ t.origin }} ➜ {{ t.destination }}</strong><br>
+          <span class="note">{{ t.date }} · {{ t.mode }}{% if t.route %} {{ t.route }}{% endif %}{% if t.occupants > 1 %} ({{ t.occupants }} people){% endif %} · {{ '%g'|format(t.distance_km) }} km</span></span>
+        <span class="save">{% if t.difference_g > 0 %}🌱 {{ '%g'|format(t.difference_g) }} g{% else %}baseline{% endif %}</span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p style="margin:0">No trips yet. <a href="/">Plan your first one</a> and it will show up here.</p>
+    {% endif %}
+  </section>
+
+  <h2>🎖️ Earned</h2>
+  {% if earned %}
+  <p class="note" style="margin-top:-4px">Tap a badge to see how you earned it.</p>
+  <div class="tiles">
+    {% for b in earned %}
+    <button type="button" class="tile" data-name="{{ b.name }}"
+            data-how="{{ b.condition }}" data-date="{{ earned_on.get(b.id, '') }}">
+      <span class="icon" aria-hidden="true">{{ m.badge(b.icon) }}</span>
+      <span class="label">{{ b.name }}</span>
+    </button>
+    {% endfor %}
+  </div>
+  <dialog id="badge-info" aria-labelledby="badge-info-name">
+    <div class="medal disc" id="badge-info-icon" aria-hidden="true"></div>
+    <h2 id="badge-info-name"></h2>
+    <p id="badge-info-how"></p>
+    <p class="note" id="badge-info-date"></p>
+    <form method="dialog"><button class="btn" type="submit">Close</button></form>
+  </dialog>
+  {% else %}
+  <section class="card"><p style="margin:0">Nothing yet - your first badge is one trip away.</p></section>
+  {% endif %}
+
+  <h2 style="margin-top:22px">🔒 Still to go</h2>
+  {% if todo %}
+  <p class="note" style="margin-top:-4px">Tap a badge to see what it takes.</p>
+  <div class="tiles">
+    {% for b in todo %}
+    <button type="button" class="tile locked" data-name="{{ b.name }}"
+            data-how="{{ b.condition }}" data-date="" data-progress="{{ b.progress }} of {{ b.target }} {{ b.unit }}">
+      <span class="icon" aria-hidden="true">{{ m.badge(b.icon) }}</span>
+      <span class="label">{{ b.name }}</span>
+      <span class="bar mini" role="progressbar" aria-valuemin="0" aria-valuemax="{{ b.target }}" aria-valuenow="{{ b.progress }}"><i style="width:{{ (100 * b.progress / b.target)|round|int }}%"></i></span>
+      <span class="count">{{ b.progress }} / {{ b.target }}</span>
+    </button>
+    {% endfor %}
+  </div>
+  {% else %}
+  <section class="card"><p style="margin:0">You earned every badge. 🎉</p></section>
+  {% endif %}
+
+  <section class="card" style="margin-top:22px">
+    <p class="note" style="margin-top:0">At most 2 trips a day count, trips over 50 km count as 50 km, and the same trip can't be confirmed twice.
+      Your trips are saved with your account.</p>
+    <form method="post" action="/demo" style="display:inline">{{ csrf_input() }}<input type="hidden" name="next" value="/achievements"><button class="btn small ghost" style="width:auto" type="submit">Load sample trips</button></form>
+    <form method="post" action="/reset" style="display:inline">{{ csrf_input() }}<input type="hidden" name="next" value="/achievements"><button class="btn small ghost" style="width:auto" type="submit">Clear my trips</button></form>
+  </section>
+{% endblock %}
+{% block scripts %}
+<script>
+  (function () {
+    var box = document.getElementById('badge-info');
+    if (!box || !box.showModal) return;
+    document.querySelectorAll('.tile').forEach(function (tile) {
+      tile.addEventListener('click', function () {
+        document.getElementById('badge-info-icon').innerHTML = tile.querySelector('.icon').innerHTML;
+        document.getElementById('badge-info-name').textContent = tile.dataset.name;
+        document.getElementById('badge-info-how').textContent = tile.dataset.how;
+        document.getElementById('badge-info-date').textContent = tile.dataset.date ? 'Earned on ' + tile.dataset.date
+          : (tile.dataset.progress ? 'Your progress: ' + tile.dataset.progress : '');
+        box.showModal();
+      });
+    });
+    box.addEventListener('click', function (e) { if (e.target === box) box.close(); });
+  })();
+</script>
+{% endblock %}
