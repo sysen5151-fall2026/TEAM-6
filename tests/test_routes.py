@@ -12,6 +12,11 @@ import unittest
 import urllib.error
 from unittest import mock
 
+from src.c0_2_reference_data.published_factors import EPA_2025
+
+DRIVE_G_PER_KM = EPA_2025["factors"]["drive"]
+BUS_G_PER_KM = EPA_2025["factors"]["bus"]
+
 from src.c2_application_service import compare_modes
 from src.c3_data_adapter import route_adapter
 from src.interfaces import Place
@@ -95,7 +100,7 @@ class TestWithMockedOrs(unittest.TestCase):
         self.assertEqual(errors, [])
         walk = next(c for c in comparisons if c.mode == "walk")
         self.assertEqual(walk.co2e_g, 0)
-        self.assertEqual(walk.difference_g, round(3.2 * 192))  # drive 3.2 km x placeholder 192 g/km
+        self.assertEqual(walk.difference_g, round(3.2 * DRIVE_G_PER_KM))  # drive 3.2 km x the EPA drive factor
 
     def test_failed_mode_falls_back_alone(self):
         def flaky(url, headers=None, body=None):

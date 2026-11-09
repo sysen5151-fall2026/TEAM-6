@@ -349,6 +349,19 @@ Rule: every GenAI-assisted change is logged here with the tool, the (constrained
 | Not claimed | Model 11.2 was imported by the team into Innoslate (Intelligence 74%, no errors, warnings only); 11.3 adds two Route Service interface requirements and has not been imported; the sequence diagrams are drawn from the model data because Innoslate cannot show internal interactions; the repository code layout is unchanged; the contribution table was confirmed by the team |
 | Human review | **Pending.** Reviewer and date: ____________ . |
 
+## Entry 027 - 2026-11-09 - F.2.2 modules, reviewed EPA emission factors, contract, route table, functional-requirement tests
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `docs/ch8-ch9-form-architecture` (working tree, not committed) |
+| Prompt (summary, originally Chinese) | Prepare Milestone Check 2: add the missing repository files (modules with function IDs, requirement-named tests, CI, interface contract, route table, traceability rows) for F.2.2 and replace the placeholder emission factors with published ones. |
+| Constraining sources | Lab Manual v3.0 chapters 4.4, 5.3, 6.4, 7.4, 8-9; model 11.3 (F.2.2.1-F.2.2.4, requirements 5.4.1-5.4.4, 5.5.6, 5.5.7); EPA GHG Emission Factors Hub 2025 Tables 10 and 11 |
+| What it produced | `src/c0_2_reference_data/`, `tests/test_functional_requirements.py`, `.github/workflows/tests.yml`, `contracts/api-v1.yaml`, `docs/route-table.md`, `docs/traceability.md` (F.2.2 section), `docs/adr/0010-...md`, `docs/factor-review.md`, `docs/ch8-ch9/milestone-check-2-video-script.md` |
+| Not claimed | CI has not run on GitHub; the web app does not read a factor file at run time; scooter and carpool factors are still placeholders; the two orphan routes `/demo` and `/reset` and the open mappings for `/logout` and `/account/export` need a team decision |
+| Human review | Emission factor values and conversion: **Yinping Yin, 2026-11-09** (approved in person, reported by Luyu Chen; see `docs/factor-review.md`). Everything else: **Pending.** Reviewer and date: ____________ . |
+
 ## Entry template
 
 | Field | Value |

@@ -215,7 +215,7 @@
     {% if plan.comparisons | selectattr('mode', 'equalto', 'bus') | list %}
     <p class="note">Bus times are the published TCAT schedule, not live bus positions, so a late bus is not shown. Transfers are not planned.</p>
     {% endif %}
-    <p class="note" style="margin-top:16px">Each way uses its own route distance. "Less than driving" is an estimate against driving the drive route, not verified avoided emissions. Emission factors are placeholders.
+    <p class="note" style="margin-top:16px">Each way uses its own route distance. "Less than driving" is an estimate against driving the drive route, not verified avoided emissions. Emission factors are from the EPA GHG Emission Factors Hub (January 2025, tailpipe only, reviewed by the team's method reviewer); the scooter factor is still a placeholder.
       Route data: {{ plan.comparisons|rejectattr('mode', 'equalto', 'scooter')|map(attribute='source')|unique|join('; ') }}.
       {% if plan.comparisons|selectattr('mode', 'equalto', 'scooter')|list %}The scooter is assumed to use the bike route and speed.{% endif %}</p>
   </section>
