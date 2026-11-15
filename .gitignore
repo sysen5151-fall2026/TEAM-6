@@ -223,3 +223,6 @@ Milestone_1_Canvas_Submission*.docx
 
 # Downloaded transit data and its index (terms for redistributing the TCAT feed were not found)
 data/
+
+# Chapter 10 run data and measurements are kept in the repository
+!docs/ch10/data/

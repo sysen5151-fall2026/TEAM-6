@@ -1,0 +1,457 @@
+run,phase,boundary,enter_s,exit_s,thread
+1,open,render:plan.html,-0.026715,-0.000646,13940
+1,plan,geocode,0.005434,0.005453,13940
+1,plan,geocode,0.005456,0.005464,13940
+1,plan,X.6 call,0.005740,3.547229,25992
+1,plan,X.6 call,0.006056,3.556041,28236
+1,plan,X.6 call,0.005917,3.560830,27988
+1,plan,get_route_options,0.005465,3.560894,13940
+1,plan,select_factor,3.560909,3.560929,13940
+1,plan,select_factor,3.560933,3.560935,13940
+1,plan,select_factor,3.560940,3.560942,13940
+1,plan,select_factor,3.560944,3.560945,13940
+1,plan,select_factor,3.560948,3.560950,13940
+1,plan,compare_modes,0.005433,3.560953,13940
+1,plan,find_bus,3.560956,3.561067,13940
+1,plan,X.3 call,3.561110,4.707609,13940
+1,plan,current_weather,3.561075,4.707618,13940
+1,plan,resolve_forecast,4.707620,4.707626,13940
+1,plan,recommend_mode,4.707628,4.707653,13940
+1,plan,plan_commute@web,0.005431,4.707659,13940
+1,plan,render:plan.html,4.707821,4.708264,13940
+1,choose,geocode,4.746809,4.746822,13940
+1,choose,geocode,4.746825,4.746830,13940
+1,choose,get_route_options,4.746831,4.746839,13940
+1,choose,select_factor,4.746849,4.746854,13940
+1,choose,select_factor,4.746856,4.746857,13940
+1,choose,select_factor,4.746861,4.746862,13940
+1,choose,select_factor,4.746864,4.746865,13940
+1,choose,select_factor,4.746867,4.746869,13940
+1,choose,compare_modes,4.746808,4.746872,13940
+1,choose,find_bus,4.746873,4.746925,13940
+1,choose,X.3 call,4.746946,4.768247,13940
+1,choose,current_weather,4.746930,4.768254,13940
+1,choose,resolve_forecast,4.768255,4.768260,13940
+1,choose,recommend_mode,4.768261,4.768279,13940
+1,choose,plan_commute@confirm,4.746807,4.768283,13940
+1,choose,add_confirmed,4.768423,4.773172,13940
+1,choose,confirm_trip,4.746801,4.773331,13940
+1,choose,render:done.html,4.777815,4.783139,13940
+2,open,render:plan.html,-0.000710,-0.000492,13940
+2,plan,geocode,0.001249,0.001262,13940
+2,plan,geocode,0.001264,0.001270,13940
+2,plan,X.6 call,0.001325,3.560186,25992
+2,plan,X.6 call,0.001430,3.562571,28236
+2,plan,X.6 call,0.001475,3.572679,27988
+2,plan,get_route_options,0.001270,3.572731,13940
+2,plan,select_factor,3.572742,3.572748,13940
+2,plan,select_factor,3.572751,3.572752,13940
+2,plan,select_factor,3.572755,3.572757,13940
+2,plan,select_factor,3.572758,3.572759,13940
+2,plan,select_factor,3.572761,3.572763,13940
+2,plan,compare_modes,0.001248,3.572766,13940
+2,plan,find_bus,3.572768,3.572868,13940
+2,plan,X.3 call,3.572892,4.722464,13940
+2,plan,current_weather,3.572874,4.722472,13940
+2,plan,resolve_forecast,4.722473,4.722477,13940
+2,plan,recommend_mode,4.722479,4.722497,13940
+2,plan,plan_commute@web,0.001247,4.722502,13940
+2,plan,render:plan.html,4.722662,4.723038,13940
+2,choose,geocode,4.725462,4.725478,13940
+2,choose,geocode,4.725480,4.725486,13940
+2,choose,get_route_options,4.725487,4.725493,13940
+2,choose,select_factor,4.725503,4.725508,13940
+2,choose,select_factor,4.725510,4.725511,13940
+2,choose,select_factor,4.725514,4.725516,13940
+2,choose,select_factor,4.725517,4.725518,13940
+2,choose,select_factor,4.725521,4.725523,13940
+2,choose,compare_modes,4.725461,4.725525,13940
+2,choose,find_bus,4.725527,4.725583,13940
+2,choose,X.3 call,4.725603,4.746911,13940
+2,choose,current_weather,4.725587,4.746922,13940
+2,choose,resolve_forecast,4.746924,4.746929,13940
+2,choose,recommend_mode,4.746930,4.746950,13940
+2,choose,plan_commute@confirm,4.725460,4.746956,13940
+2,choose,add_confirmed,4.747129,4.806113,13940
+2,choose,confirm_trip,4.725453,4.806250,13940
+2,choose,render:done.html,4.812843,4.812996,13940
+3,open,render:plan.html,-0.000675,-0.000458,13940
+3,plan,geocode,0.001180,0.001192,13940
+3,plan,geocode,0.001194,0.001201,13940
+3,plan,X.6 call,0.001458,3.551835,27988
+3,plan,X.6 call,0.001353,3.561938,28236
+3,plan,X.6 call,0.001256,3.574166,25992
+3,plan,get_route_options,0.001202,3.574414,13940
+3,plan,select_factor,3.574437,3.574449,13940
+3,plan,select_factor,3.574454,3.574456,13940
+3,plan,select_factor,3.574468,3.574470,13940
+3,plan,select_factor,3.574474,3.574476,13940
+3,plan,select_factor,3.574480,3.574485,13940
+3,plan,compare_modes,0.001179,3.574489,13940
+3,plan,find_bus,3.574495,3.574851,13940
+3,plan,X.3 call,3.574916,6.716232,13940
+3,plan,current_weather,3.574872,6.716243,13940
+3,plan,resolve_forecast,6.716245,6.716252,13940
+3,plan,recommend_mode,6.716253,6.716278,13940
+3,plan,plan_commute@web,0.001177,6.716285,13940
+3,plan,render:plan.html,6.716505,6.717001,13940
+3,choose,geocode,6.719173,6.719185,13940
+3,choose,geocode,6.719186,6.719193,13940
+3,choose,get_route_options,6.719193,6.719211,13940
+3,choose,select_factor,6.719220,6.719224,13940
+3,choose,select_factor,6.719227,6.719228,13940
+3,choose,select_factor,6.719232,6.719233,13940
+3,choose,select_factor,6.719235,6.719236,13940
+3,choose,select_factor,6.719239,6.719241,13940
+3,choose,compare_modes,6.719172,6.719243,13940
+3,choose,find_bus,6.719245,6.719293,13940
+3,choose,X.3 call,6.719312,6.742511,13940
+3,choose,current_weather,6.719297,6.742518,13940
+3,choose,resolve_forecast,6.742520,6.742524,13940
+3,choose,recommend_mode,6.742525,6.742542,13940
+3,choose,plan_commute@confirm,6.719171,6.742547,13940
+3,choose,add_confirmed,6.742700,6.746490,13940
+3,choose,confirm_trip,6.719167,6.746600,13940
+3,choose,render:done.html,6.750948,6.751111,13940
+4,open,render:plan.html,-0.000987,-0.000593,13940
+4,plan,geocode,0.001264,0.001277,13940
+4,plan,geocode,0.001279,0.001285,13940
+4,plan,X.6 call,0.001580,1.529943,28236
+4,plan,X.6 call,0.001485,1.540145,27988
+4,plan,X.6 call,0.001681,1.583376,25992
+4,plan,get_route_options,0.001286,1.583535,13940
+4,plan,select_factor,1.583565,1.583576,13940
+4,plan,select_factor,1.583582,1.583585,13940
+4,plan,select_factor,1.583593,1.583595,13940
+4,plan,select_factor,1.583600,1.583602,13940
+4,plan,select_factor,1.583608,1.583613,13940
+4,plan,compare_modes,0.001263,1.583617,13940
+4,plan,find_bus,1.583623,1.583789,13940
+4,plan,X.3 call,1.583845,4.746764,13940
+4,plan,current_weather,1.583801,4.746771,13940
+4,plan,resolve_forecast,4.746773,4.746778,13940
+4,plan,recommend_mode,4.746779,4.746796,13940
+4,plan,plan_commute@web,0.001262,4.746801,13940
+4,plan,render:plan.html,4.746973,4.747386,13940
+4,choose,geocode,4.749446,4.749480,13940
+4,choose,geocode,4.749483,4.749489,13940
+4,choose,get_route_options,4.749490,4.749496,13940
+4,choose,select_factor,4.749505,4.749510,13940
+4,choose,select_factor,4.749512,4.749513,13940
+4,choose,select_factor,4.749516,4.749517,13940
+4,choose,select_factor,4.749519,4.749520,13940
+4,choose,select_factor,4.749523,4.749525,13940
+4,choose,compare_modes,4.749445,4.749531,13940
+4,choose,find_bus,4.749532,4.749578,13940
+4,choose,X.3 call,4.749596,4.770902,13940
+4,choose,current_weather,4.749582,4.770913,13940
+4,choose,resolve_forecast,4.770915,4.770921,13940
+4,choose,recommend_mode,4.770923,4.770950,13940
+4,choose,plan_commute@confirm,4.749444,4.770956,13940
+4,choose,add_confirmed,4.771200,4.787973,13940
+4,choose,confirm_trip,4.749440,4.788169,13940
+4,choose,render:done.html,4.794875,4.795039,13940
+5,open,render:plan.html,-0.000806,-0.000517,13940
+5,plan,geocode,0.001391,0.001406,13940
+5,plan,geocode,0.001408,0.001414,13940
+5,plan,X.6 call,0.001519,1.545833,27988
+5,plan,X.6 call,0.001583,1.570046,25992
+5,plan,X.6 call,0.001474,1.586930,28236
+5,plan,get_route_options,0.001415,1.587081,13940
+5,plan,select_factor,1.587096,1.587103,13940
+5,plan,select_factor,1.587106,1.587107,13940
+5,plan,select_factor,1.587111,1.587112,13940
+5,plan,select_factor,1.587114,1.587115,13940
+5,plan,select_factor,1.587118,1.587120,13940
+5,plan,compare_modes,0.001391,1.587122,13940
+5,plan,find_bus,1.587125,1.587274,13940
+5,plan,X.3 call,1.587307,2.749202,13940
+5,plan,current_weather,1.587282,2.749208,13940
+5,plan,resolve_forecast,2.749210,2.749214,13940
+5,plan,recommend_mode,2.749216,2.749233,13940
+5,plan,plan_commute@web,0.001389,2.749246,13940
+5,plan,render:plan.html,2.749409,2.749779,13940
+5,choose,geocode,2.752198,2.752211,13940
+5,choose,geocode,2.752213,2.752219,13940
+5,choose,get_route_options,2.752220,2.752226,13940
+5,choose,select_factor,2.752235,2.752240,13940
+5,choose,select_factor,2.752242,2.752243,13940
+5,choose,select_factor,2.752247,2.752248,13940
+5,choose,select_factor,2.752249,2.752250,13940
+5,choose,select_factor,2.752252,2.752254,13940
+5,choose,compare_modes,2.752197,2.752256,13940
+5,choose,find_bus,2.752258,2.752310,13940
+5,choose,X.3 call,2.752330,2.775987,13940
+5,choose,current_weather,2.752315,2.775996,13940
+5,choose,resolve_forecast,2.775998,2.776005,13940
+5,choose,recommend_mode,2.776007,2.776030,13940
+5,choose,plan_commute@confirm,2.752196,2.776037,13940
+5,choose,add_confirmed,2.776277,2.781300,13940
+5,choose,confirm_trip,2.752191,2.781408,13940
+5,choose,render:done.html,2.786756,2.786920,13940
+6,open,render:plan.html,-0.000860,-0.000643,13940
+6,plan,geocode,0.001150,0.001163,13940
+6,plan,geocode,0.001166,0.001171,13940
+6,plan,X.6 call,0.001228,3.539658,27988
+6,plan,X.6 call,0.009126,3.558204,28236
+6,plan,X.6 call,0.001320,3.585594,25992
+6,plan,get_route_options,0.001172,3.585689,13940
+6,plan,select_factor,3.585715,3.585727,13940
+6,plan,select_factor,3.585732,3.585735,13940
+6,plan,select_factor,3.585742,3.585744,13940
+6,plan,select_factor,3.585748,3.585750,13940
+6,plan,select_factor,3.585754,3.585758,13940
+6,plan,compare_modes,0.001149,3.585762,13940
+6,plan,find_bus,3.585767,3.585908,13940
+6,plan,X.3 call,3.585952,4.736002,13940
+6,plan,current_weather,3.585919,4.736010,13940
+6,plan,resolve_forecast,4.736012,4.736016,13940
+6,plan,recommend_mode,4.736017,4.736035,13940
+6,plan,plan_commute@web,0.001148,4.736039,13940
+6,plan,render:plan.html,4.736200,4.736585,13940
+6,choose,geocode,4.738671,4.738684,13940
+6,choose,geocode,4.738687,4.738693,13940
+6,choose,get_route_options,4.738694,4.738700,13940
+6,choose,select_factor,4.738709,4.738715,13940
+6,choose,select_factor,4.738717,4.738718,13940
+6,choose,select_factor,4.738721,4.738723,13940
+6,choose,select_factor,4.738725,4.738726,13940
+6,choose,select_factor,4.738728,4.738730,13940
+6,choose,compare_modes,4.738671,4.738732,13940
+6,choose,find_bus,4.738734,4.738785,13940
+6,choose,X.3 call,4.738806,4.763345,13940
+6,choose,current_weather,4.738790,4.763354,13940
+6,choose,resolve_forecast,4.763356,4.763361,13940
+6,choose,recommend_mode,4.763363,4.763384,13940
+6,choose,plan_commute@confirm,4.738669,4.763390,13940
+6,choose,add_confirmed,4.763589,4.769461,13940
+6,choose,confirm_trip,4.738664,4.769597,13940
+6,choose,render:done.html,4.774983,4.775134,13940
+7,open,render:plan.html,-0.001091,-0.000758,13940
+7,plan,geocode,0.001171,0.001183,13940
+7,plan,geocode,0.001186,0.001191,13940
+7,plan,X.6 call,0.001350,3.546528,28236
+7,plan,X.6 call,0.001244,3.552540,27988
+7,plan,X.6 call,0.001394,3.568095,25992
+7,plan,get_route_options,0.001192,3.568161,13940
+7,plan,select_factor,3.568179,3.568185,13940
+7,plan,select_factor,3.568189,3.568190,13940
+7,plan,select_factor,3.568195,3.568196,13940
+7,plan,select_factor,3.568198,3.568199,13940
+7,plan,select_factor,3.568201,3.568204,13940
+7,plan,compare_modes,0.001170,3.568207,13940
+7,plan,find_bus,3.568209,3.568292,13940
+7,plan,X.3 call,3.568318,6.700665,13940
+7,plan,current_weather,3.568298,6.700675,13940
+7,plan,resolve_forecast,6.700677,6.700685,13940
+7,plan,recommend_mode,6.700686,6.700709,13940
+7,plan,plan_commute@web,0.001169,6.700715,13940
+7,plan,render:plan.html,6.700892,6.701275,13940
+7,choose,geocode,6.703494,6.703510,13940
+7,choose,geocode,6.703513,6.703519,13940
+7,choose,get_route_options,6.703520,6.703546,13940
+7,choose,select_factor,6.703564,6.703570,13940
+7,choose,select_factor,6.703573,6.703575,13940
+7,choose,select_factor,6.703578,6.703579,13940
+7,choose,select_factor,6.703582,6.703583,13940
+7,choose,select_factor,6.703585,6.703588,13940
+7,choose,compare_modes,6.703493,6.703590,13940
+7,choose,find_bus,6.703593,6.703655,13940
+7,choose,X.3 call,6.703680,6.724934,13940
+7,choose,current_weather,6.703661,6.724941,13940
+7,choose,resolve_forecast,6.724943,6.724948,13940
+7,choose,recommend_mode,6.724950,6.724969,13940
+7,choose,plan_commute@confirm,6.703492,6.724974,13940
+7,choose,add_confirmed,6.725191,6.728173,13940
+7,choose,confirm_trip,6.703486,6.728300,13940
+7,choose,render:done.html,6.732955,6.733106,13940
+8,open,render:plan.html,-0.000860,-0.000595,13940
+8,plan,geocode,0.001516,0.001530,13940
+8,plan,geocode,0.001533,0.001540,13940
+8,plan,X.6 call,0.001633,3.537006,28236
+8,plan,X.6 call,0.001688,3.546393,27988
+8,plan,X.6 call,0.001725,3.577663,25992
+8,plan,get_route_options,0.001540,3.577725,13940
+8,plan,select_factor,3.577740,3.577747,13940
+8,plan,select_factor,3.577750,3.577751,13940
+8,plan,select_factor,3.577755,3.577757,13940
+8,plan,select_factor,3.577759,3.577760,13940
+8,plan,select_factor,3.577762,3.577765,13940
+8,plan,compare_modes,0.001515,3.577767,13940
+8,plan,find_bus,3.577770,3.577850,13940
+8,plan,X.3 call,3.577877,6.729165,13940
+8,plan,current_weather,3.577857,6.729173,13940
+8,plan,resolve_forecast,6.729174,6.729178,13940
+8,plan,recommend_mode,6.729179,6.729196,13940
+8,plan,plan_commute@web,0.001514,6.729201,13940
+8,plan,render:plan.html,6.729371,6.729764,13940
+8,choose,geocode,6.731965,6.731982,13940
+8,choose,geocode,6.731984,6.731991,13940
+8,choose,get_route_options,6.731991,6.731997,13940
+8,choose,select_factor,6.732007,6.732012,13940
+8,choose,select_factor,6.732014,6.732015,13940
+8,choose,select_factor,6.732018,6.732019,13940
+8,choose,select_factor,6.732021,6.732022,13940
+8,choose,select_factor,6.732024,6.732026,13940
+8,choose,compare_modes,6.731965,6.732028,13940
+8,choose,find_bus,6.732030,6.732092,13940
+8,choose,X.3 call,6.732113,6.751799,13940
+8,choose,current_weather,6.732097,6.751806,13940
+8,choose,resolve_forecast,6.751807,6.751811,13940
+8,choose,recommend_mode,6.751812,6.751829,13940
+8,choose,plan_commute@confirm,6.731963,6.751833,13940
+8,choose,add_confirmed,6.752005,6.755982,13940
+8,choose,confirm_trip,6.731958,6.756104,13940
+8,choose,render:done.html,6.760505,6.760673,13940
+9,open,render:plan.html,-0.000753,-0.000522,13940
+9,plan,geocode,0.001120,0.001132,13940
+9,plan,geocode,0.001134,0.001140,13940
+9,plan,X.6 call,0.001235,3.543250,27988
+9,plan,X.6 call,0.001329,3.563211,25992
+9,plan,X.6 call,0.001197,3.563999,28236
+9,plan,get_route_options,0.001141,3.564044,13940
+9,plan,select_factor,3.564055,3.564061,13940
+9,plan,select_factor,3.564063,3.564064,13940
+9,plan,select_factor,3.564068,3.564070,13940
+9,plan,select_factor,3.564072,3.564073,13940
+9,plan,select_factor,3.564075,3.564077,13940
+9,plan,compare_modes,0.001119,3.564080,13940
+9,plan,find_bus,3.564082,3.564159,13940
+9,plan,X.3 call,3.564185,6.712592,13940
+9,plan,current_weather,3.564165,6.712599,13940
+9,plan,resolve_forecast,6.712600,6.712605,13940
+9,plan,recommend_mode,6.712606,6.712622,13940
+9,plan,plan_commute@web,0.001118,6.712626,13940
+9,plan,render:plan.html,6.712794,6.713186,13940
+9,choose,geocode,6.715527,6.715541,13940
+9,choose,geocode,6.715544,6.715550,13940
+9,choose,get_route_options,6.715550,6.715558,13940
+9,choose,select_factor,6.715567,6.715572,13940
+9,choose,select_factor,6.715574,6.715576,13940
+9,choose,select_factor,6.715579,6.715580,13940
+9,choose,select_factor,6.715582,6.715583,13940
+9,choose,select_factor,6.715585,6.715587,13940
+9,choose,compare_modes,6.715526,6.715589,13940
+9,choose,find_bus,6.715591,6.715644,13940
+9,choose,X.3 call,6.715665,6.740164,13940
+9,choose,current_weather,6.715648,6.740172,13940
+9,choose,resolve_forecast,6.740174,6.740178,13940
+9,choose,recommend_mode,6.740179,6.740198,13940
+9,choose,plan_commute@confirm,6.715525,6.740202,13940
+9,choose,add_confirmed,6.740385,6.744571,13940
+9,choose,confirm_trip,6.715519,6.744686,13940
+9,choose,render:done.html,6.749821,6.749982,13940
+10,open,render:plan.html,-0.000879,-0.000665,13940
+10,plan,geocode,0.001203,0.001216,13940
+10,plan,geocode,0.001218,0.001226,13940
+10,plan,X.6 call,0.001295,3.543813,27988
+10,plan,X.6 call,0.001432,3.550242,28236
+10,plan,X.6 call,0.001363,3.561194,25992
+10,plan,get_route_options,0.001227,3.561243,13940
+10,plan,select_factor,3.561254,3.561259,13940
+10,plan,select_factor,3.561261,3.561263,13940
+10,plan,select_factor,3.561279,3.561281,13940
+10,plan,select_factor,3.561282,3.561284,13940
+10,plan,select_factor,3.561286,3.561288,13940
+10,plan,compare_modes,0.001202,3.561290,13940
+10,plan,find_bus,3.561293,3.561377,13940
+10,plan,X.3 call,3.561402,6.722485,13940
+10,plan,current_weather,3.561383,6.722495,13940
+10,plan,resolve_forecast,6.722498,6.722504,13940
+10,plan,recommend_mode,6.722506,6.722531,13940
+10,plan,plan_commute@web,0.001200,6.722537,13940
+10,plan,render:plan.html,6.722987,6.723724,13940
+10,choose,geocode,6.726186,6.726200,13940
+10,choose,geocode,6.726203,6.726210,13940
+10,choose,get_route_options,6.726211,6.726218,13940
+10,choose,select_factor,6.726229,6.726235,13940
+10,choose,select_factor,6.726237,6.726238,13940
+10,choose,select_factor,6.726242,6.726243,13940
+10,choose,select_factor,6.726246,6.726247,13940
+10,choose,select_factor,6.726249,6.726252,13940
+10,choose,compare_modes,6.726185,6.726254,13940
+10,choose,find_bus,6.726256,6.726314,13940
+10,choose,X.3 call,6.726339,6.746930,13940
+10,choose,current_weather,6.726320,6.746938,13940
+10,choose,resolve_forecast,6.746939,6.746944,13940
+10,choose,recommend_mode,6.746945,6.746963,13940
+10,choose,plan_commute@confirm,6.726184,6.746968,13940
+10,choose,add_confirmed,6.747149,6.750580,13940
+10,choose,confirm_trip,6.726178,6.750711,13940
+10,choose,render:done.html,6.755554,6.755718,13940
+11,open,render:plan.html,-0.000910,-0.000651,13940
+11,plan,geocode,0.001655,0.001669,13940
+11,plan,geocode,0.001672,0.001679,13940
+11,plan,X.6 call,0.001842,3.572904,28236
+11,plan,X.6 call,0.001741,3.587994,27988
+11,plan,X.6 call,0.001901,3.588299,25992
+11,plan,get_route_options,0.001680,3.588370,13940
+11,plan,select_factor,3.588382,3.588388,13940
+11,plan,select_factor,3.588391,3.588392,13940
+11,plan,select_factor,3.588396,3.588397,13940
+11,plan,select_factor,3.588399,3.588400,13940
+11,plan,select_factor,3.588403,3.588405,13940
+11,plan,compare_modes,0.001654,3.588407,13940
+11,plan,find_bus,3.588410,3.588489,13940
+11,plan,X.3 call,3.588516,6.766056,13940
+11,plan,current_weather,3.588495,6.766063,13940
+11,plan,resolve_forecast,6.766064,6.766069,13940
+11,plan,recommend_mode,6.766071,6.766088,13940
+11,plan,plan_commute@web,0.001652,6.766094,13940
+11,plan,render:plan.html,6.766278,6.766689,13940
+11,choose,geocode,6.798814,6.798829,13940
+11,choose,geocode,6.798832,6.798838,13940
+11,choose,get_route_options,6.798839,6.798847,13940
+11,choose,select_factor,6.798858,6.798864,13940
+11,choose,select_factor,6.798867,6.798868,13940
+11,choose,select_factor,6.798872,6.798873,13940
+11,choose,select_factor,6.798876,6.798877,13940
+11,choose,select_factor,6.798879,6.798881,13940
+11,choose,compare_modes,6.798813,6.798883,13940
+11,choose,find_bus,6.798885,6.798946,13940
+11,choose,X.3 call,6.798970,6.833810,13940
+11,choose,current_weather,6.798951,6.833817,13940
+11,choose,resolve_forecast,6.833818,6.833822,13940
+11,choose,recommend_mode,6.833823,6.833840,13940
+11,choose,plan_commute@confirm,6.798812,6.833848,13940
+11,choose,add_confirmed,6.834043,6.874579,13940
+11,choose,confirm_trip,6.798805,6.874733,13940
+11,choose,render:done.html,6.879739,6.879904,13940
+12,open,render:plan.html,-0.000851,-0.000621,13940
+12,plan,geocode,0.001263,0.001277,13940
+12,plan,geocode,0.001280,0.001287,13940
+12,plan,X.6 call,0.001424,3.533881,27988
+12,plan,X.6 call,0.001379,3.554507,28236
+12,plan,X.6 call,0.001477,3.561557,25992
+12,plan,get_route_options,0.001287,3.561620,13940
+12,plan,select_factor,3.561637,3.561643,13940
+12,plan,select_factor,3.561646,3.561648,13940
+12,plan,select_factor,3.561652,3.561653,13940
+12,plan,select_factor,3.561655,3.561656,13940
+12,plan,select_factor,3.561659,3.561661,13940
+12,plan,compare_modes,0.001262,3.561664,13940
+12,plan,find_bus,3.561666,3.561743,13940
+12,plan,X.3 call,3.561770,6.714829,13940
+12,plan,current_weather,3.561749,6.714836,13940
+12,plan,resolve_forecast,6.714837,6.714842,13940
+12,plan,recommend_mode,6.714843,6.714861,13940
+12,plan,plan_commute@web,0.001260,6.714866,13940
+12,plan,render:plan.html,6.715052,6.715426,13940
+12,choose,geocode,6.717563,6.717577,13940
+12,choose,geocode,6.717580,6.717586,13940
+12,choose,get_route_options,6.717587,6.717594,13940
+12,choose,select_factor,6.717604,6.717613,13940
+12,choose,select_factor,6.717616,6.717617,13940
+12,choose,select_factor,6.717620,6.717621,13940
+12,choose,select_factor,6.717623,6.717624,13940
+12,choose,select_factor,6.717626,6.717628,13940
+12,choose,compare_modes,6.717563,6.717630,13940
+12,choose,find_bus,6.717632,6.717681,13940
+12,choose,X.3 call,6.717701,6.738672,13940
+12,choose,current_weather,6.717686,6.738679,13940
+12,choose,resolve_forecast,6.738680,6.738684,13940
+12,choose,recommend_mode,6.738685,6.738701,13940
+12,choose,plan_commute@confirm,6.717561,6.738705,13940
+12,choose,add_confirmed,6.738870,6.742246,13940
+12,choose,confirm_trip,6.717555,6.742388,13940
+12,choose,render:done.html,6.747098,6.747250,13940
