@@ -362,6 +362,20 @@ Rule: every GenAI-assisted change is logged here with the tool, the (constrained
 | Not claimed | CI has not run on GitHub; the web app does not read a factor file at run time; scooter and carpool factors are still placeholders; the two orphan routes `/demo` and `/reset` and the open mappings for `/logout` and `/account/export` need a team decision |
 | Human review | Emission factor values and conversion: **Yinping Yin, 2026-11-09** (approved in person, reported by Luyu Chen; see `docs/factor-review.md`). Everything else: **Pending.** Reviewer and date: ____________ . |
 
+## Entry 028 - 2026-11-15 - Chapter 10 modeling and simulation section
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `docs/ch10-modeling-simulation` |
+| Prompt (summary, originally Chinese) | Complete the Chapter 10 Modeling and Simulation assignment (two scenarios, action and sequence diagrams, runs, analysis, measured-behavior comparison, traceability) against the rubric; report as a Word document. |
+| Constraining sources | Lab Manual v3.0 Chapter 10 (10.1-10.4, assessment criteria); the assignment rubric; model 11.3 (UC.3 actions, assets C.0.x/X.x, requirements 2.1.1, 2.1.2, 3.4.2.1, 3.4.2.2, 5.4.4, 5.5.3); `src/` of the product |
+| What it produced | `docs/ch10/` (scenario data, simulation engine, diagram generator, instrumentation harness, run data, report builder, report .docx and .pdf), `docs/model/scripts/build_model_11_4.py` and `docs/model/EcoCommute_11.4_C10_simulation.xml`, `.gitignore` exception for `docs/ch10/data/` |
+| Constraints applied | Simulated durations written down before measuring and not changed afterwards; measurement against the real application with no product code changed; explanations of the divergence written from checks of the code and data; decisions recorded, not implemented |
+| Not claimed | Human-action durations are assumptions (no timed sessions); the Innoslate Monte Carlo export holds only mean and SD, so min and max come from the Python engine; stage X.6 with cold connections and live routes has 12 runs (the free routing quota is 200 requests a day), and all timings come from one development laptop with an in-process test client |
+| Human review | Contribution table confirmed by Luyu Chen (2026-11-16); Innoslate import, Intelligence report and Monte Carlo runs done by the team in the shared project. Everything else: **Pending.** Reviewer and date: ____________ . |
+
 ## Entry template
 
 | Field | Value |
