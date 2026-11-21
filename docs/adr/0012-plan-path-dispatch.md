@@ -1,6 +1,6 @@
 # ADR 0012: The plan path calls the services concurrently, with a name cache, deadlines and a labelled fallback
 
-Status: **Proposed - needs team review and merge approval** (date: 2026-11-22). Implemented on branch `docs/ch10-modeling-simulation`; not yet merged.
+Status: **Accepted and merged into main in pull request #31 (merge commit 4f0218e, 2026-11-21 20:50 UTC)** (decision date: 2026-11-22).
 
 ## Context
 

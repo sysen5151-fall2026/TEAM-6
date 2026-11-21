@@ -1,6 +1,6 @@
 # ADR 0011: C.4 may use a local language model only behind a guardrail, with the template as the fallback
 
-Status: **Proposed - needs team review and merge approval** (date: 2026-11-22).
+Status: **Accepted and merged into main in pull request #31 (merge commit 4f0218e, 2026-11-21 20:50 UTC)** (decision date: 2026-11-22).
 
 ## Context
 
