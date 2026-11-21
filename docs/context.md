@@ -29,7 +29,7 @@ Boundary directories use asset-based names (BMA Section 7.9).
 | C.1 Web Front End | `src/c1_web_front_end` | Presents entry fields, forwards the request, displays the result | Stub (plain text, no web layer) |
 | C.2 Application Service | `src/c2_application_service` | Estimation, always-drive baseline, recommendation rules | Real logic, placeholder factors |
 | C.3 Data Adapter | `src/c3_data_adapter` | Factor store, trip store, weather access | Stub (in-memory, hard-coded) |
-| C.4 Explanation Model | `src/c4_explanation_model` | Explains an already-calculated result (need 1.1.8, requirement 2.1.10) | Stub (sentence template fed only calculated values; no language model) |
+| C.4 Explanation Model | `src/c4_explanation_model` | Explains an already-calculated result (need 1.1.8, requirement 2.1.10) | Sentence template fed only calculated values (authoritative); optional local language model behind a guardrail and the template as fallback, off by default ([ADR 0011](adr/0011-c4-model-behind-a-guardrail.md)) |
 | X.1 Commuter (external) | `src/x1_commuter_sim` | Scripted simulation that drives UC.1 | Simulation |
 | X.3 Open-Meteo (external) | `src/x3_open_meteo_stub` | Returns the forecast | Stub (fixed dry forecast) |
 

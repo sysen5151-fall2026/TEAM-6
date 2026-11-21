@@ -1,0 +1,6 @@
+{
+ "tests": 474,
+ "ok": true,
+ "stamp": "2026-11-22 03:19:19",
+ "note": "python -m unittest discover -s tests -t . with Flask installed; 420 existed before this chapter, 54 are new"
+}

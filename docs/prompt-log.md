@@ -376,6 +376,21 @@ Rule: every GenAI-assisted change is logged here with the tool, the (constrained
 | Not claimed | Human-action durations are assumptions (no timed sessions); the Innoslate Monte Carlo export holds only mean and SD, so min and max come from the Python engine; stage X.6 with cold connections and live routes has 12 runs (the free routing quota is 200 requests a day), and all timings come from one development laptop with an in-process test client |
 | Human review | Contribution table confirmed by Luyu Chen (2026-11-16); Innoslate import, Intelligence report and Monte Carlo runs done by the team in the shared project. Everything else: **Pending.** Reviewer and date: ____________ . |
 
+## Entry 029 - 2026-11-22 - Chapter 11 system analysis and Chapter 12 risk assessment, with builds
+
+| Field | Value |
+|---|---|
+| Tool / model | Claude Code (Claude desktop app), Claude Sonnet 5.5 |
+| Requested by | Luyu Chen |
+| Branch | `docs/ch10-modeling-simulation` (working tree; not yet committed or merged) |
+| Prompt (summary, originally Chinese) | Complete the Systems Analysis and Risk Assessment assignment (lab manual Chapters 11 and 12) against the rubric; report as a Word document; build the selected alternative, the product risk register and a guardrail with a failure-path test. |
+| Constraining sources | Lab Manual v3.0 Chapters 11 and 12 (11.1-11.2, 12.1-12.3, Risk Assessment Criteria); the assignment rubric; model 11.4; Chapter 8-10 reports (apportionment, measured stages, decisions D5-D9); requirement 2.1.10; `src/` of the product |
+| What it produced | `src/c3_data_adapter/dns_cache.py`, `keepalive.py`, deadlines in `route_adapter.py`, concurrent dispatch and weather deadline in `src/c2_application_service/plan.py`; `src/c4_explanation_model/` guardrail, model client and orchestration (template stays authoritative); `tests/test_dispatch_guardrail.py`, `tests/test_dns_cache.py`, `tests/test_c4_guardrail.py`; `docs/ch11/` (three spikes, analysis, figures, report builder, report), `docs/risks.md`, ADR 0011 and 0012, `docs/model/scripts/build_model_11_5.py` and model 11.5 |
+| Constraints applied | Open decision chosen from the Chapter 10 table; selection rule and importance ratings written before scores were computed; every number in the trade study computed from measured files; assumptions marked; risk ratings kept in one place as the team's judgments to review; nothing generated rates a risk |
+| Findings the assistant corrected by measurement | The cold cost of Chapter 10 is a host-name lookup (about 3.07 s), not connection set-up; the first guardrail version passed reversed comparisons (found by reading 40 recorded model outputs); the keep-alive first held one connection where a plan needs three; the routing refusal was the per-minute limit, not the daily quota (published 40 a minute, 2,000 a day) |
+| Not claimed | Hosted-model alternative not measured (no key); routing directions replaced by a no-quota root request in the gap condition; one laptop and one network; the deployed host not measured; model 11.5 imported by the team (Intelligence 74%, warnings only); ratings and contribution table confirmed by the team on 2026-11-22 |
+| Human review | **Pending.** Reviewer and date: ____________ . Check: team confirms the importance and risk ratings (`docs/ch11/sim/model.py`), contribution table, merge of the branch, Innoslate import. |
+
 ## Entry template
 
 | Field | Value |

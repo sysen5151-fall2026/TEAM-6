@@ -15,12 +15,14 @@ import json
 import math
 import os
 import re
+import socket
 import threading
 import time
 import urllib.error
 import urllib.parse
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, wait
 
+from src.c3_data_adapter import dns_cache
 from src.interfaces import Place, RouteOption
 from src.model_trace import realizes
 
@@ -34,7 +36,13 @@ ONLINE_MIN_CHARS = 3  # sample places show from 2 characters; the online search 
 LOCAL_RADIUS_KM = 40  # the service area: places are only searched within this distance of campus (Ithaca and its surroundings)
 
 PROFILES = {"drive": "driving-car", "walk": "foot-walking", "bike": "cycling-regular"}
-_route_pool = ThreadPoolExecutor(max_workers=len(PROFILES), thread_name_prefix="ors")  # long-lived, so its threads keep their connections
+# Long-lived, so its threads keep their connections. Room for several requests' worth of calls: a call that missed the
+# deadline below keeps running until its own timeout, and must not make the next request wait for a free thread.
+_route_pool = ThreadPoolExecutor(max_workers=4 * len(PROFILES), thread_name_prefix="ors")
+# Guardrail for risk TR.16 (ADR 0012): the Reference Data budget of requirement 5.5.3 is 1.2 s. A mode whose route has not
+# arrived by then gets the labelled estimate instead; the late call is left to finish so that its connection is
+# kept open for the next request.
+ROUTE_DEADLINE_S = 1.2
 
 # Fallback assumptions (NOT measured): road distance = straight line x detour factor.
 FALLBACK_DETOUR = {"drive": 1.3, "walk": 1.2, "bike": 1.25}
@@ -245,6 +253,22 @@ def place_search_is_live() -> bool:
     return bool(_api_key())
 
 
+USE_DNS_CACHE = True  # ADR 0012 alternative D; the Chapter 11 measurements switch it off to measure the others
+
+
+class _CachedHTTPSConnection(http.client.HTTPSConnection):
+    """HTTPSConnection that connects to an address from `dns_cache` but still verifies the certificate for the host name."""
+
+    def connect(self):
+        try:
+            address = dns_cache.resolve(self.host, self.port)
+            sock = socket.create_connection((address, self.port), self.timeout)
+        except OSError:
+            dns_cache.forget(self.host)  # a stale or bad entry: fall back to an ordinary lookup, once
+            return super().connect()
+        self.sock = self._context.wrap_socket(sock, server_hostname=self.host)
+
+
 _pool_lock = threading.Lock()
 _idle = {}  # (scheme, host) -> connections that are open and free; shared by every thread
 MAX_IDLE = 4
@@ -258,7 +282,10 @@ def _acquire(scheme: str, host: str, timeout: float, fresh: bool = False):
         waiting = _idle.get(key, [])
         conn = None if fresh or not waiting else waiting.pop()
     if conn is None:
-        cls = http.client.HTTPSConnection if scheme == "https" else http.client.HTTPConnection
+        if scheme != "https":
+            cls = http.client.HTTPConnection
+        else:
+            cls = _CachedHTTPSConnection if USE_DNS_CACHE else http.client.HTTPSConnection
         conn = cls(host, timeout=timeout)
     conn.timeout = timeout
     if conn.sock is not None:
@@ -412,13 +439,13 @@ def _ors_route(mode: str, origin: Place, dest: Place) -> RouteOption:
     )
 
 
-def _fallback_route(mode: str, origin: Place, dest: Place) -> RouteOption:
+def _fallback_route(mode: str, origin: Place, dest: Place, source: str = FALLBACK_SOURCE) -> RouteOption:
     km = round(_haversine_km(origin, dest) * FALLBACK_DETOUR[mode], 2)
     return RouteOption(
         mode=mode,
         distance_km=km,
         duration_min=round(km / FALLBACK_SPEED_KMH[mode] * 60, 1),
-        source=FALLBACK_SOURCE,
+        source=source,
         path=((origin.lat, origin.lon), (dest.lat, dest.lon)),  # a straight line, not a route
     )
 
@@ -452,7 +479,13 @@ def get_route_options(origin: Place, dest: Place) -> tuple:
                 _note_failure("route", err)
         return _fallback_route(mode, origin, dest)
 
-    result = tuple(_route_pool.map(one, PROFILES))  # the three requests wait on the network, so run side by side
+    futures = {mode: _route_pool.submit(one, mode) for mode in PROFILES}  # the requests wait on the network: side by side
+    done, _late = wait(futures.values(), timeout=ROUTE_DEADLINE_S)
+    late_source = f"{FALLBACK_SOURCE}; the route service did not answer within {ROUTE_DEADLINE_S:g} s"
+    result = tuple(
+        future.result() if future in done else _fallback_route(mode, origin, dest, late_source)
+        for mode, future in futures.items()
+    )
     if all(o.source == "OpenRouteService" for o in result):
         if len(_route_cache) >= _CACHE_LIMIT:
             _route_cache.clear()

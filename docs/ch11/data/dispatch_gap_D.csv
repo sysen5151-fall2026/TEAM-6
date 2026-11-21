@@ -1,0 +1,9 @@
+strategy,run,pair,plan_s,route_max_s,weather_s,routes_live,weather_applied,condition,gap_s
+D,1,Cornell Arts Quad > Upson Hall,0.5693,0.5317,0.1515,1,1,gap,120.0
+D,2,Collegetown > Olin Library,0.5381,0.5049,0.1689,1,1,gap,120.0
+D,3,Ithaca Commons > Olin Library,0.5163,0.4828,0.1822,1,1,gap,120.0
+D,4,Upson Hall > Cornell Arts Quad,0.5298,0.493,0.1739,1,1,gap,120.0
+D,5,Duffield Hall > Olin Library,0.5195,0.4875,0.1829,1,1,gap,120.0
+D,6,Willard Straight Hall > Cornell Arts Quad,0.6079,0.5744,0.1624,1,1,gap,120.0
+D,7,Cornell Arts Quad > Ithaca Commons,0.5413,0.5005,0.1536,1,1,gap,120.0
+D,8,Collegetown > Cornell Gates Hall,0.5152,0.4853,0.2099,1,1,gap,120.0
