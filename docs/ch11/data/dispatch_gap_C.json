@@ -1,0 +1,19 @@
+{
+  "condition": "gap",
+  "gap_s": 123.0,
+  "keepalive_s": 20.0,
+  "stamp": "2026-11-22 03:17:50",
+  "summary": {
+    "C": {
+      "n": 8,
+      "median": 0.13845000000000002,
+      "mean": 0.141625,
+      "p95": 0.1552,
+      "max": 0.1552,
+      "within_3s": 1.0,
+      "within_1_2s": 1.0,
+      "routes_live": 8,
+      "weather_applied": 7
+    }
+  }
+}

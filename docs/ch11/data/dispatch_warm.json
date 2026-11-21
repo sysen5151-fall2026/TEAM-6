@@ -1,0 +1,30 @@
+{
+  "condition": "warm",
+  "gap_s": 3.0,
+  "keepalive_s": null,
+  "stamp": "2026-11-22 02:31:33",
+  "summary": {
+    "A": {
+      "n": 7,
+      "median": 0.1869,
+      "mean": 1.1421571428571429,
+      "p95": 6.8723,
+      "max": 6.8723,
+      "within_3s": 0.8571428571428571,
+      "within_1_2s": 0.8571428571428571,
+      "routes_live": 7,
+      "weather_applied": 7
+    },
+    "B": {
+      "n": 7,
+      "median": 0.1619,
+      "mean": 0.1626142857142857,
+      "p95": 0.1699,
+      "max": 0.1699,
+      "within_3s": 1.0,
+      "within_1_2s": 1.0,
+      "routes_live": 6,
+      "weather_applied": 7
+    }
+  }
+}

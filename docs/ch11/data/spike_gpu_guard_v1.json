@@ -1,0 +1,38 @@
+{
+  "label": "gpu",
+  "n": 40,
+  "model": "qwen2.5:1.5b",
+  "stamp": "2026-11-22 02:20:35",
+  "A": {
+    "latency_ms_median": 0.0007077500049490482,
+    "latency_ms_p95": 0.0008009999874047935,
+    "unsupported_rate": 0.0,
+    "fk_grade_mean": 6.919667857142858
+  },
+  "B_first_call_ms": 44709.346599993296,
+  "B": {
+    "latency_ms_median": 218.51435000280617,
+    "latency_ms_p95": 241.26100000285078,
+    "latency_ms_max": 288.87039999244735,
+    "raw_unsupported_rate": 0.175,
+    "raw_unsupported_count": 7,
+    "violation_categories": {
+      "required wording is missing": 7,
+      "required figure": 1
+    },
+    "fk_grade_mean_raw": 9.02479682434424,
+    "fk_grade_mean_after_guardrail": 8.799101020638142,
+    "within_2s": 1.0,
+    "ollama_process_mb": {
+      "ProcessName": "ollama",
+      "MB": 58
+    },
+    "gpu_mem_used": "2940 MiB"
+  },
+  "C_network_floor_ms": {
+    "median": 122.17474999488331,
+    "min": 109.26059998746496,
+    "max": 3273.1088000000454,
+    "n": 10
+  }
+}

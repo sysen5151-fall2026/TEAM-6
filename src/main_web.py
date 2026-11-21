@@ -12,7 +12,7 @@ import argparse
 import threading
 
 from src.c1_web_front_end.web_app import create_app
-from src.c3_data_adapter import SqliteCache, app_db, open_store, set_cache_backend, warm_up
+from src.c3_data_adapter import SqliteCache, app_db, dns_cache, open_store, set_cache_backend, warm_up
 from src.key_loader import load_ors_key
 
 LOOPBACK = ("127.0.0.1", "localhost", "::1")
@@ -86,6 +86,7 @@ def main(argv=None) -> None:
         print(warning)
 
     set_cache_backend(SqliteCache(app_db.DB_PATH))  # places searched once are not searched again
+    dns_cache.prefetch()  # ADR 0012: the two services' addresses are looked up now, not on a commuter's first request
     threading.Thread(target=warm_up, daemon=True).start()  # so the first suggestion is not slow
     app = create_app()
     print(f"Open http://{'127.0.0.1' if args.host in ('0.0.0.0', '::') else args.host}:{args.port}")

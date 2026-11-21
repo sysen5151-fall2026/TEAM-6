@@ -1,0 +1,15 @@
+service,rep,idle_s,cold_ms,after_idle_ms,status_cold,status_after
+open-meteo,1,5,3227,23,ok,ok
+open-meteo,1,15,3185,3194,ok,ok
+open-meteo,1,30,94,21,ok,ok
+open-meteo,1,60,3215,3203,ok,ok
+open-meteo,1,120,106,3202,ok,ok
+open-meteo,1,240,114,3178,ok,ok
+open-meteo,2,5,109,3189,ok,ok
+openrouteservice-root,1,5,3544,3569,JSONDecodeError,JSONDecodeError
+openrouteservice-root,1,15,422,101,JSONDecodeError,JSONDecodeError
+openrouteservice-root,1,30,426,3553,JSONDecodeError,JSONDecodeError
+openrouteservice-root,1,60,427,103,JSONDecodeError,JSONDecodeError
+openrouteservice-root,1,120,3508,3531,JSONDecodeError,JSONDecodeError
+openrouteservice-root,1,240,432,3495,JSONDecodeError,JSONDecodeError
+openrouteservice-root,2,5,460,108,JSONDecodeError,JSONDecodeError

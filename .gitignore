@@ -226,3 +226,7 @@ data/
 
 # Chapter 10 run data and measurements are kept in the repository
 !docs/ch10/data/
+
+# Chapter 11 and 12 measurements and the report builder are kept in the repository
+!docs/ch11/data/
+!docs/ch11/build/
