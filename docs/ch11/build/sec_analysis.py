@@ -257,7 +257,7 @@ def selection(d):
               + "and, for risk TR.16, deadlines on each call with a labelled fallback. The alternatives that were not selected stay in the code only as the switches the measurements needed "
               "(`DISPATCH = sequential`, `USE_DNS_CACHE = False`) so that they can be remeasured; `keepalive.py` is not started by the server. "
               "All repository tests pass with the change (Section 10.3), and the plan was exercised against the live services after the change (Section 5.4). "
-              "The change is on branch docs/ch10-modeling-simulation of the team repository; as for every earlier ADR, merge needs the team's review and approval, and the ADR's status line records it.")
+              "The change was reviewed by the team and merged into main in pull request #31 (merge commit 4f0218e); both ADRs carry that status.")
     H.heading(d, "5.4 Validation against the live services", 2)
     FV = os.path.join(D11, "final_validation.json")
     if os.path.exists(FV):

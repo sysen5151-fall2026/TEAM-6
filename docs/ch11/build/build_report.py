@@ -106,7 +106,7 @@ def appendices(d):
         ("Scope, criteria, objective functions", "Sections 2.1 and 2.3; " + T("criteria") + " (trace to needs, requirements, model entities; units and ranges)"),
         ("Physical architecture alternatives, genuinely open, at least two, in the model", "Section 1.2 (why open), 2.2 (five alternatives, what each requires), model entities AL.A to AL.E (Section 11)"),
         ("Swing weight matrix, value scores, effectiveness, LCC, affordability, sourced, assumptions", "Sections 3 and 4; " + T("matrix") + " to " + T("lcc") + "; sources and assumptions in Section 3.3"),
-        ("Selection follows from results; sensitivity; implemented and merged; decision record", "Section 5; ADR 0012; code in Section 5.3 (merge pending the team's approval)"),
+        ("Selection follows from results; sensitivity; implemented and merged; decision record", "Section 5; ADR 0012; code in Section 5.3 (merged: pull request #31)"),
         ("Three to five system-level risks from the architecture model; description with type and phase; required columns; scales; calculation", "Section 6 (" + T("risktable") + " and " + T("scales") + ")"),
         ("Risks plotted correctly on the risk matrix, described", "Section 7"),
         ("Top risk selected from table and matrix; strategy stated and justified; specific plan traced to model entities", "Section 8 (separate page; " + T("plan") + ")"),
